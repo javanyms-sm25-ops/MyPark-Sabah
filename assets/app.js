@@ -191,6 +191,19 @@
       timer.classList.toggle('timer-warning', secondsLeft > 0 && secondsLeft <= 300);
       timer.classList.toggle('timer-expired', secondsLeft === 0);
 
+      if (window.ParkEasyToast && secondsLeft > 0 && secondsLeft <= 600) {
+        const threshold = secondsLeft <= 300 ? '5' : '10';
+        if (timer.dataset.toastThreshold !== threshold) {
+          timer.dataset.toastThreshold = threshold;
+          const row = timer.closest('tr');
+          const plate = row ? row.cells[1].textContent.trim() : 'Your vehicle';
+          window.ParkEasyToast.show(plate + ': your parking session ends in ' + threshold + ' minutes or less.', 'warning', {
+            key: 'parking:' + plate + ':' + timer.dataset.expires + ':' + threshold,
+            details: true
+          });
+        }
+      }
+
       const label = timer.nextElementSibling;
       if (label && label.classList.contains('timer-label')) {
         label.textContent = secondsLeft === 0 ? 'Parking time expired' :
@@ -268,6 +281,33 @@
         button.textContent = '♥';
       }
       localStorage.setItem(key, JSON.stringify(savedItems));
+      if (window.ParkEasyToast) {
+        window.ParkEasyToast.show(savedItems.includes(id) ? 'Parking location added to favourites.' : 'Parking location removed from favourites.', savedItems.includes(id) ? 'success' : 'info');
+      }
+    });
+  });
+
+  // Booking ID copy feedback is shown only after the clipboard write succeeds.
+  document.querySelectorAll('#historyTable a[href^="ticket.php?id="]').forEach(function (ticketLink) {
+    const id = new URL(ticketLink.href, window.location.href).searchParams.get('id');
+    if (!id) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'booking-copy-button';
+    button.textContent = 'Copy ID';
+    button.setAttribute('aria-label', 'Copy booking ID ' + id);
+    ticketLink.insertAdjacentElement('afterend', button);
+    button.addEventListener('click', async function () {
+      button.disabled = true;
+      try {
+        if (!navigator.clipboard) throw new Error('Clipboard unavailable');
+        await navigator.clipboard.writeText(id);
+        window.ParkEasyToast?.show('Booking ID copied.', 'info');
+      } catch (_) {
+        window.ParkEasyToast?.show('Could not copy automatically. Booking ID: ' + id + '. Please copy it manually.', 'error');
+      } finally {
+        button.disabled = false;
+      }
     });
   });
 

@@ -1,0 +1,21 @@
+# Local database and runtime data
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.log
+
+# Secrets and local environment configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local dependencies and editor files
+node_modules/
+vendor/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
