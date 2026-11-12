@@ -1,0 +1,1 @@
+<?php require 'includes.php';require_login();header('Content-Type: application/json');$out=[];foreach($_SESSION['demo_lots'] as $l)$out[]=['id'=>$l['id'],'name'=>$l['name'],'city'=>$l['city'],'rate'=>$l['rate'],'capacity'=>$l['capacity'],'busy'=>count(array_filter($_SESSION['demo_bookings'],fn($b)=>$b['lot_id']===$l['id']&&$b['status']==='active'))];echo json_encode($out);
