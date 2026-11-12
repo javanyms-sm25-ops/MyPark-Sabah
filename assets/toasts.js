@@ -91,7 +91,7 @@
     document.addEventListener('visibilitychange', onVisibility);
     resume();
   }
-  window.ParkEasyToast = { show };
+  window.MyParkToast = { show };
 
   // Keep server-rendered errors visible as a durable explanation and JS fallback.
   document.querySelectorAll('main .flash, main .error').forEach(function (element) {

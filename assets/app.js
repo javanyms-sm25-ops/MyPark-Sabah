@@ -1,4 +1,4 @@
-/* ParkEasy Sabah - browser interactions */
+/* MyPark Sabah - browser interactions */
 // Password controls are independent and never store or change the entered value.
 (function () {
   'use strict';
@@ -50,7 +50,7 @@
 
   const amount = wallet.querySelector('.dashboard-wallet__amount');
   const toggle = wallet.querySelector('.dashboard-wallet__toggle');
-  const storageKey = 'parkeasy:wallet-visibility:user:' + wallet.dataset.walletUser;
+  const storageKey = 'MyPark:wallet-visibility:user:' + wallet.dataset.walletUser;
   let hidden = false;
 
   try {
@@ -233,13 +233,13 @@
       timer.classList.toggle('timer-warning', secondsLeft > 0 && secondsLeft <= 300);
       timer.classList.toggle('timer-expired', secondsLeft === 0);
 
-      if (window.ParkEasyToast && secondsLeft > 0 && secondsLeft <= 600) {
+      if (window.MyParkToast && secondsLeft > 0 && secondsLeft <= 600) {
         const threshold = secondsLeft <= 300 ? '5' : '10';
         if (timer.dataset.toastThreshold !== threshold) {
           timer.dataset.toastThreshold = threshold;
           const row = timer.closest('tr');
           const plate = row ? row.cells[1].textContent.trim() : 'Your vehicle';
-          window.ParkEasyToast.show(plate + ': your parking session ends in ' + threshold + ' minutes or less.', 'warning', {
+          window.MyParkToast.show(plate + ': your parking session ends in ' + threshold + ' minutes or less.', 'warning', {
             key: 'parking:' + plate + ':' + timer.dataset.expires + ':' + threshold,
             details: true
           });
@@ -323,8 +323,8 @@
         button.textContent = '♥';
       }
       localStorage.setItem(key, JSON.stringify(savedItems));
-      if (window.ParkEasyToast) {
-        window.ParkEasyToast.show(savedItems.includes(id) ? 'Parking location added to favourites.' : 'Parking location removed from favourites.', savedItems.includes(id) ? 'success' : 'info');
+      if (window.MyParkToast) {
+        window.MyParkToast.show(savedItems.includes(id) ? 'Parking location added to favourites.' : 'Parking location removed from favourites.', savedItems.includes(id) ? 'success' : 'info');
       }
     });
   });
@@ -344,9 +344,9 @@
       try {
         if (!navigator.clipboard) throw new Error('Clipboard unavailable');
         await navigator.clipboard.writeText(id);
-        window.ParkEasyToast?.show('Booking ID copied.', 'info');
+        window.MyParkToast?.show('Booking ID copied.', 'info');
       } catch (_) {
-        window.ParkEasyToast?.show('Could not copy automatically. Booking ID: ' + id + '. Please copy it manually.', 'error');
+        window.MyParkToast?.show('Could not copy automatically. Booking ID: ' + id + '. Please copy it manually.', 'error');
       } finally {
         button.disabled = false;
       }

@@ -27,7 +27,7 @@ $transactions = array_reverse($_SESSION['demo_wallet_transactions']);
 head('Wallet');
 ?>
 
-<p class="eyebrow">PARKEASY WALLET</p>
+<p class="eyebrow">MyPark WALLET</p>
 <h1>My wallet</h1>
 
 <div class="wallet-layout">
