@@ -42,8 +42,18 @@ head('Register');
   <input type="hidden" name="csrf" value="<?= csrf() ?>">
   <label>Full name<input name="name" required></label>
   <label>Email<input type="email" name="email" required></label>
-  <label>Password<input type="password" name="password" minlength="8" required></label>
-  <label>Confirm password<input type="password" name="confirm" required></label>
+  <div class="password-field">
+    <label for="register-password">Password</label>
+    <div class="password-field__control">
+      <input id="register-password" type="password" name="password" minlength="8" placeholder="Enter password" autocomplete="new-password" required>
+    </div>
+  </div>
+  <div class="password-field">
+    <label for="register-confirm-password">Confirm password</label>
+    <div class="password-field__control">
+      <input id="register-confirm-password" type="password" name="confirm" placeholder="Enter password" autocomplete="new-password" required>
+    </div>
+  </div>
   <button>Create account</button>
 </form>
 

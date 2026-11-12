@@ -1,4 +1,46 @@
 /* ParkEasy Sabah - browser interactions */
+// Password controls are independent and never store or change the entered value.
+(function () {
+  'use strict';
+
+  document.querySelectorAll('.password-field__control').forEach(function (control) {
+    const input = control.querySelector('input[type="password"]');
+    if (!input) return;
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'password-field__toggle';
+    toggle.setAttribute('aria-controls', input.id);
+    toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="password-field__slash" d="M3 3 21 21"/></svg>';
+
+    function updateToggle() {
+      const visible = input.type === 'text';
+      const label = visible ? 'Hide password' : 'Show password';
+      toggle.setAttribute('aria-label', label);
+      toggle.title = label;
+      toggle.classList.toggle('is-password-visible', visible);
+    }
+
+    toggle.addEventListener('click', function () {
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      input.type = input.type === 'password' ? 'text' : 'password';
+      if (start !== null && end !== null) input.setSelectionRange(start, end);
+      updateToggle();
+    });
+
+    // Reset returns the field to its original masked presentation.
+    if (input.form) {
+      input.form.addEventListener('reset', function () {
+        input.type = 'password';
+        updateToggle();
+      });
+    }
+    updateToggle();
+    control.append(toggle);
+  });
+}());
+
 // Dashboard wallet presentation only; no balance values are written to storage.
 (function () {
   'use strict';

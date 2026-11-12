@@ -47,7 +47,12 @@ head('Login');
   <?php if ($error): ?><p class="error"><?= e($error) ?></p><?php endif; ?>
   <input type="hidden" name="csrf" value="<?= csrf() ?>">
   <label>Email<input type="email" name="email" required></label>
-  <label>Password<input type="password" name="password" required></label>
+  <div class="password-field">
+    <label for="login-password">Password</label>
+    <div class="password-field__control">
+      <input id="login-password" type="password" name="password" placeholder="Enter password" autocomplete="current-password" required>
+    </div>
+  </div>
   <button>Sign in</button>
   <p class="hint">Demo accounts:<br>Superadmin: superadmin@park.com / super123<br>Admin: admin@park.com / admin123<br>Staff: staff@park.com / staff123<br>Member: user@park.com / user123</p>
   <p><a href="forgot.php">Forgot password?</a></p>

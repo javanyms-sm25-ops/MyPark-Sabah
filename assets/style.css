@@ -120,7 +120,7 @@
 .pe-toast-stack {
   position: fixed;
   right: max(16px, env(safe-area-inset-right));
-  bottom: max(16px, env(safe-area-inset-bottom));
+  top: max(16px, env(safe-area-inset-top));
   z-index: 100;
   display: grid;
   gap: 12px;
@@ -399,6 +399,89 @@ button.ghost {
   background: transparent;
   color: var(--navy);
   border: 1px solid var(--border);
+}
+
+/* Password input: unobtrusive icon button inside the existing form width. */
+.password-field {
+  margin: 14px 0;
+}
+
+.password-field > label {
+  margin: 0 0 7px;
+  font-weight: 500;
+}
+
+.password-field__control {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.password-field__control > input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  margin: 0;
+  padding: 11px 52px 11px 14px;
+  border: 1px solid #d8dfe7;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #172b4d;
+  font-size: 1rem;
+  line-height: 1.5;
+  box-shadow: 0 2px 5px rgb(23 43 77 / 5%);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.password-field__control > input:focus {
+  outline: none;
+  border-color: #163d69;
+  box-shadow: 0 0 0 3px rgb(22 61 105 / 15%);
+}
+
+.password-field__toggle {
+  position: absolute;
+  inset-block: 0;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  margin: auto 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #707b89;
+  box-shadow: none;
+  transition: color 160ms ease;
+}
+
+.password-field__toggle:hover,
+.password-field__toggle:active {
+  color: #163d69;
+  background: transparent;
+  transform: none;
+}
+
+.password-field__toggle:focus-visible {
+  outline: 2px solid #287fa8;
+  outline-offset: -4px;
+}
+
+.password-field__toggle svg {
+  width: 21px;
+  height: 21px;
+  pointer-events: none;
+}
+
+.password-field__slash {
+  display: none;
+}
+
+.password-field__toggle.is-password-visible .password-field__slash {
+  display: initial;
 }
 
 .nav-toggle {
