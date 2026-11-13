@@ -179,8 +179,6 @@
 }
 
 .pe-toast__close:hover { background: var(--light-blue); transform: none; }
-.booking-copy-button { margin-inline: 6px; background: var(--light-blue); color: var(--text); }
-.booking-copy-button:hover { background: var(--border); }
 
 .pe-toast-announcer {
   position: absolute;

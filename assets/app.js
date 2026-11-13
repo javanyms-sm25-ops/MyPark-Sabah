@@ -329,30 +329,6 @@
     });
   });
 
-  // Booking ID copy feedback is shown only after the clipboard write succeeds.
-  document.querySelectorAll('#historyTable a[href^="ticket.php?id="]').forEach(function (ticketLink) {
-    const id = new URL(ticketLink.href, window.location.href).searchParams.get('id');
-    if (!id) return;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'booking-copy-button';
-    button.textContent = 'Copy ID';
-    button.setAttribute('aria-label', 'Copy booking ID ' + id);
-    ticketLink.insertAdjacentElement('afterend', button);
-    button.addEventListener('click', async function () {
-      button.disabled = true;
-      try {
-        if (!navigator.clipboard) throw new Error('Clipboard unavailable');
-        await navigator.clipboard.writeText(id);
-        window.MyParkToast?.show('Booking ID copied.', 'info');
-      } catch (_) {
-        window.MyParkToast?.show('Could not copy automatically. Booking ID: ' + id + '. Please copy it manually.', 'error');
-      } finally {
-        button.disabled = false;
-      }
-    });
-  });
-
   // Wallet top-up amount shortcuts
   const topupAmount = document.getElementById('topupAmount');
   document.querySelectorAll('[data-topup]').forEach(function (button) {
