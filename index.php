@@ -20,7 +20,7 @@ head('Home');
       <a class="btn btn-ghost" href="login.php">Log in</a>
     </div>
 
-    <ul class="home-hero__stats" aria-label="ParkEasy metrics">
+    <ul class="home-hero__stats" aria-label="MyPark metrics">
       <li><strong>2,400+</strong><span>Daily parkers</span></li>
       <li><strong>18</strong><span>Smart zones</span></li>
       <li><strong>4.9/5</strong><span>Customer rating</span></li>
@@ -59,7 +59,7 @@ head('Home');
 
 <section class="home-section">
   <div class="section-heading">
-    <p class="eyebrow">WHY PARKEASY</p>
+    <p class="eyebrow">WHY MyPark</p>
     <h2>Everything your trip needs in one place</h2>
   </div>
 

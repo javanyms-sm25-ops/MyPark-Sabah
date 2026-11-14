@@ -1,4 +1,4 @@
-/* ParkEasy Sabah - browser interactions */
+/* MyPark Sabah - browser interactions */
 // Password controls are independent and never store or change the entered value.
 (function () {
   'use strict';
@@ -50,7 +50,7 @@
 
   const amount = wallet.querySelector('.dashboard-wallet__amount');
   const toggle = wallet.querySelector('.dashboard-wallet__toggle');
-  const storageKey = 'parkeasy:wallet-visibility:user:' + wallet.dataset.walletUser;
+  const storageKey = 'MyPark:wallet-visibility:user:' + wallet.dataset.walletUser;
   let hidden = false;
 
   try {
@@ -183,6 +183,32 @@
   }
 
   if (durationInput) durationInput.addEventListener('input', updateEstimatedFee);
+
+  // Keep the existing hours field as the single value submitted to PHP.
+  const durationPicker = document.getElementById('durationPicker');
+  const customDuration = document.getElementById('customDuration');
+  if (durationPicker && customDuration && durationInput) {
+    const choices = durationPicker.querySelectorAll('input[type="radio"]');
+    let customHours = durationInput.value;
+    let customSelected = false;
+
+    function selectDuration(choice) {
+      if (!choice.checked) return;
+      if (customSelected) customHours = durationInput.value;
+      customSelected = choice.value === 'custom';
+      durationInput.value = customSelected ? customHours : choice.value;
+      durationInput.readOnly = !customSelected;
+      customDuration.hidden = !customSelected;
+      updateEstimatedFee();
+    }
+
+    choices.forEach(function (choice) {
+      choice.addEventListener('change', function () { selectDuration(choice); });
+    });
+    durationPicker.hidden = false;
+    selectDuration(durationPicker.querySelector('input:checked'));
+  }
+
   if (plateInput) {
     plateInput.addEventListener('input', function () {
       plateInput.value = plateInput.value.toUpperCase();
@@ -203,13 +229,17 @@
   // Reservation history search and status filter
   const historySearch = document.getElementById('historySearch');
   const historyStatus = document.getElementById('statusFilter');
+  const tablePaginators = new Map();
 
   function filterHistory() {
     document.querySelectorAll('#historyTable tr[data-status]').forEach(function (row) {
       const matchesStatus = !historyStatus || !historyStatus.value || row.dataset.status === historyStatus.value;
-      const matchesText = !historySearch || row.dataset.search.includes(historySearch.value.toLowerCase());
+      const matchesText = !historySearch || row.dataset.search.includes(historySearch.value.trim().toLowerCase());
+      row.dataset.filterHidden = String(!(matchesStatus && matchesText));
       row.hidden = !(matchesStatus && matchesText);
     });
+    const renderHistory = tablePaginators.get(document.getElementById('historyTable'));
+    if (renderHistory) renderHistory(true);
   }
 
   if (historySearch) historySearch.addEventListener('input', filterHistory);
@@ -233,13 +263,13 @@
       timer.classList.toggle('timer-warning', secondsLeft > 0 && secondsLeft <= 300);
       timer.classList.toggle('timer-expired', secondsLeft === 0);
 
-      if (window.ParkEasyToast && secondsLeft > 0 && secondsLeft <= 600) {
+      if (window.MyParkToast && secondsLeft > 0 && secondsLeft <= 600) {
         const threshold = secondsLeft <= 300 ? '5' : '10';
         if (timer.dataset.toastThreshold !== threshold) {
           timer.dataset.toastThreshold = threshold;
           const row = timer.closest('tr');
           const plate = row ? row.cells[1].textContent.trim() : 'Your vehicle';
-          window.ParkEasyToast.show(plate + ': your parking session ends in ' + threshold + ' minutes or less.', 'warning', {
+          window.MyParkToast.show(plate + ': your parking session ends in ' + threshold + ' minutes or less.', 'warning', {
             key: 'parking:' + plate + ':' + timer.dataset.expires + ':' + threshold,
             details: true
           });
@@ -266,18 +296,25 @@
     if (rows.length <= perPage) return;
 
     let page = 1;
-    const pages = Math.ceil(rows.length / perPage);
+    let pages = 1;
     const controls = document.createElement('div');
     controls.className = 'pagination';
     controls.innerHTML = '<button type="button" class="page-prev">Previous</button><span class="page-count"></span><button type="button" class="page-next">Next</button>';
     table.parentNode.insertAdjacentElement('afterend', controls);
 
-    function showPage() {
-      rows.forEach(function (row, index) {
-        row.dataset.pageHidden = String(index < (page - 1) * perPage || index >= page * perPage);
-        row.hidden = row.dataset.pageHidden === 'true';
+    function showPage(resetPage = false) {
+      const matchingRows = rows.filter(function (row) {
+        return row.dataset.filterHidden !== 'true';
       });
-      controls.querySelector('.page-count').textContent = 'Page ' + page + ' of ' + pages;
+      pages = Math.max(1, Math.ceil(matchingRows.length / perPage));
+      page = resetPage ? 1 : Math.min(page, pages);
+      const visibleRows = new Set(matchingRows.slice((page - 1) * perPage, page * perPage));
+      rows.forEach(function (row) {
+        row.dataset.pageHidden = String(!visibleRows.has(row));
+        row.hidden = !visibleRows.has(row);
+      });
+      controls.querySelector('.page-count').textContent = matchingRows.length
+        ? 'Page ' + page + ' of ' + pages : 'No matching records';
       controls.querySelector('.page-prev').disabled = page === 1;
       controls.querySelector('.page-next').disabled = page === pages;
     }
@@ -288,8 +325,10 @@
     controls.querySelector('.page-next').addEventListener('click', function () {
       if (page < pages) { page += 1; showPage(); }
     });
+    tablePaginators.set(table, showPage);
     showPage();
   });
+  filterHistory();
 
   // Operations table search and status filter
   const operationsSearch = document.getElementById('opsSearch');
@@ -323,32 +362,8 @@
         button.textContent = '♥';
       }
       localStorage.setItem(key, JSON.stringify(savedItems));
-      if (window.ParkEasyToast) {
-        window.ParkEasyToast.show(savedItems.includes(id) ? 'Parking location added to favourites.' : 'Parking location removed from favourites.', savedItems.includes(id) ? 'success' : 'info');
-      }
-    });
-  });
-
-  // Booking ID copy feedback is shown only after the clipboard write succeeds.
-  document.querySelectorAll('#historyTable a[href^="ticket.php?id="]').forEach(function (ticketLink) {
-    const id = new URL(ticketLink.href, window.location.href).searchParams.get('id');
-    if (!id) return;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'booking-copy-button';
-    button.textContent = 'Copy ID';
-    button.setAttribute('aria-label', 'Copy booking ID ' + id);
-    ticketLink.insertAdjacentElement('afterend', button);
-    button.addEventListener('click', async function () {
-      button.disabled = true;
-      try {
-        if (!navigator.clipboard) throw new Error('Clipboard unavailable');
-        await navigator.clipboard.writeText(id);
-        window.ParkEasyToast?.show('Booking ID copied.', 'info');
-      } catch (_) {
-        window.ParkEasyToast?.show('Could not copy automatically. Booking ID: ' + id + '. Please copy it manually.', 'error');
-      } finally {
-        button.disabled = false;
+      if (window.MyParkToast) {
+        window.MyParkToast.show(savedItems.includes(id) ? 'Parking location added to favourites.' : 'Parking location removed from favourites.', savedItems.includes(id) ? 'success' : 'info');
       }
     });
   });

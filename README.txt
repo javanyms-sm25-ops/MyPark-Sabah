@@ -1,4 +1,4 @@
-ParkEasy - Car Parking System (PHP + SQLite + HTML/CSS/JS)
+MyPark - Car Parking System (PHP + SQLite + HTML/CSS/JS)
 Requires PHP 8+ with pdo_sqlite. Run:  php -S localhost:8000   (inside this folder)
 Open http://localhost:8000  (parking.db is created/migrated automatically)
 Admin: admin@park.com / admin123

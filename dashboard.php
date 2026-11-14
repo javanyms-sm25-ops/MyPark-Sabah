@@ -142,7 +142,21 @@ head('Sabah Parking');
     <input type="hidden" name="lot_id" id="lot_id">
     <p>Selected: <b id="lotLabel">Choose a location above</b></p>
     <label>Vehicle plate<input name="plate" id="plate" placeholder="SAB 1234" required></label>
-    <label>Duration (hours)<input type="number" name="hours" id="hours" min="1" max="24" value="1" required></label>
+    <fieldset class="duration-picker" id="durationPicker" hidden>
+      <legend>Parking duration</legend>
+      <div class="duration-options">
+        <label class="duration-option"><input type="radio" name="duration_choice" value="1" checked><span>1 hour</span></label>
+        <label class="duration-option"><input type="radio" name="duration_choice" value="2"><span>2 hours</span></label>
+        <label class="duration-option"><input type="radio" name="duration_choice" value="3"><span>3 hours</span></label>
+        <label class="duration-option"><input type="radio" name="duration_choice" value="4"><span>4 hours</span></label>
+        <label class="duration-option"><input type="radio" name="duration_choice" value="custom" aria-controls="customDuration"><span>Custom</span></label>
+      </div>
+    </fieldset>
+    <div class="duration-custom" id="customDuration">
+      <label for="hours">Duration (hours)</label>
+      <input type="number" name="hours" id="hours" min="1" max="24" step="1" value="1" aria-describedby="durationHint" required>
+      <small id="durationHint">Choose a whole number from 1 to 24 hours.</small>
+    </div>
     <p>Estimated fee: <b id="fee">RM 0.00</b></p>
     <button>Confirm reservation</button>
   </form>
