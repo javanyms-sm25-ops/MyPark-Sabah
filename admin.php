@@ -1,1 +1,87 @@
-<?php require 'includes.php';require_login();if(!in_array(me()['role' ],['staff','admin','superadmin'],true)){http_response_code(403);exit('Forbidden');}if($_SERVER['REQUEST_METHOD']==='POST'){check_csrf();$a=$_POST['action']??'';if($a==='status'){foreach($_SESSION['demo_bookings'] as &$b)if($b['id']===(int)$_POST['id'])$b['status']=$_POST['status'];unset($b);flash('Reservation updated; demo notification recorded.');}elseif($a==='add_lot'&&in_array(me()['role'],['admin','superadmin'],true)){$_SESSION['demo_lots'][]=['id'=>count($_SESSION['demo_lots'])+1,'name'=>trim($_POST['name']),'city'=>trim($_POST['city']),'address'=>trim($_POST['address']),'rate'=>(float)$_POST['rate'],'capacity'=>(int)$_POST['capacity'],'lat'=>5.98,'lng'=>116.07];flash('Parking location added.');}elseif($a==='toggle_user'&&me()['role']==='superadmin'){foreach($_SESSION['demo_users'] as &$u)if($u['id']===(int)$_POST['id'])$u['blocked']=!$u['blocked'];unset($u);flash('Account status updated.');}header('Location: admin.php');exit;}$bookings=$_SESSION['demo_bookings'];$users=$_SESSION['demo_users'];$lots=$_SESSION['demo_lots'];$revenue=array_sum(array_map(fn($b)=>$b['fee'],array_filter($bookings,fn($b)=>in_array($b['status'],['active','completed']))));head('Operations'); ?><p class="eyebrow">SABAH PARKING OPERATIONS · <?= strtoupper(e(me()['role'])) ?></p><h1>Operations dashboard</h1><div class="stats"><div class="card"><small>Parking locations</small><b><?= count($lots) ?></b></div><div class="card"><small>Reservations</small><b><?= count($bookings) ?></b></div><div class="card"><small>Active stays</small><b><?= count(array_filter($bookings,fn($b)=>$b['status']==='active')) ?></b></div><div class="card"><small>Demo revenue</small><b>RM <?= number_format($revenue,2) ?></b></div></div><h2>Reservation management</h2><div class="row card"><input id="opsSearch" placeholder="Search member, plate, location"><select id="opsStatus"><option value="">All statuses</option><option>active</option><option>completed</option><option>cancelled</option></select><select id="opsSort"><option value="new">Newest first</option><option value="old">Oldest first</option></select></div><table id="opsTable"><tr><th>Member</th><th>Location</th><th>Plate</th><th>Fee</th><th>Status</th><th>Update</th></tr><?php foreach(array_reverse($bookings) as $b): ?><tr data-status="<?= e($b['status']) ?>" data-search="<?= e(strtolower($b['user'].' '.$b['plate'].' '.$b['lot'])) ?>"><td><?= e($b['user']) ?></td><td><?= e($b['lot']) ?></td><td><?= e($b['plate']) ?></td><td>RM <?= number_format($b['fee'],2) ?></td><td><span class="tag <?= e($b['status']) ?>"><?= e($b['status']) ?></span></td><td><form method="post" class="inline"><input type="hidden" name="csrf" value="<?= csrf() ?>"><input type="hidden" name="id" value="<?= $b['id'] ?>"><select name="status"><option <?= $b['status']==='active'?'selected':'' ?>>active</option><option <?= $b['status']==='completed'?'selected':'' ?>>completed</option><option <?= $b['status']==='cancelled'?'selected':'' ?>>cancelled</option></select><button name="action" value="status">Save</button></form></td></tr><?php endforeach; ?></table><h2>Parking locations</h2><div class="lot-grid"><?php foreach($lots as $l): ?><article class="card"><h3><?= e($l['name']) ?></h3><p><?= e($l['city']) ?> · RM <?= number_format($l['rate'],2) ?>/hour · <?= $l['capacity'] ?> spaces</p></article><?php endforeach; ?></div><?php if(in_array(me()['role'],['admin','superadmin'],true)): ?><form method="post" class="card row"><input type="hidden" name="csrf" value="<?= csrf() ?>"><input type="hidden" name="action" value="add_lot"><input name="name" placeholder="Parking lot name" required><input name="city" placeholder="Sabah city" required><input name="address" placeholder="Address" required><input type="number" step="0.5" min="0.5" name="rate" placeholder="RM/hour" required><input type="number" min="1" name="capacity" placeholder="Spaces" required><button>Add location</button></form><?php endif; ?><h2>Account maintenance</h2><p class="muted">Superadmin can block or unblock demo accounts. Role creation and email OTP are UI prototypes.</p><table><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><?php if(me()['role']==='superadmin')echo '<th>Action</th>'; ?></tr><?php foreach($users as $u): ?><tr><td><?= e($u['name']) ?></td><td><?= e($u['email']) ?></td><td><?= e($u['role']) ?></td><td><?= $u['blocked']?'Blocked':'Active' ?></td><?php if(me()['role']==='superadmin'): ?><td><form method="post"><input type="hidden" name="csrf" value="<?= csrf() ?>"><input type="hidden" name="id" value="<?= $u['id'] ?>"><button name="action" value="toggle_user">Block / unblock</button></form></td><?php endif; ?></tr><?php endforeach; ?></table><h2>Reports</h2><div class="card"><b>Reservations by status</b><div class="stats"><?php foreach(['active','completed','cancelled'] as $s): ?><div><small><?= ucfirst($s) ?></small><b><?= count(array_filter($bookings,fn($b)=>$b['status']===$s)) ?></b></div><?php endforeach; ?></div><a class="btn" href="export.php">Export CSV</a></div><?php foot();
+<?php
+require 'includes.php';
+require 'operations-data.php';
+$isJson = ($_GET['format'] ?? '') === 'json';
+try {
+    $actor = ops_actor();
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        foreach ($_POST as $value) if (!is_string($value)) throw new RuntimeException('Invalid request fields.', 400);
+        $message = ops_mutate($actor, $_POST);
+        if ($isJson) ops_json(['message' => $message, 'data' => ops_snapshot($actor)]);
+        flash($message);
+        header('Location: admin.php');
+        exit;
+    }
+    $snapshot = ops_snapshot($actor);
+    if ($isJson) ops_json(['data' => $snapshot]);
+} catch (RuntimeException $error) {
+    $status = in_array($error->getCode(), [400, 401, 403, 404, 409, 422], true) ? $error->getCode() : 500;
+    if ($isJson) ops_json(['error' => $error->getMessage()], $status);
+    if ($status === 401) { header('Location: login.php'); exit; }
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        flash('Operation failed: ' . $error->getMessage());
+        header('Location: admin.php');
+        exit;
+    }
+    http_response_code($status);
+    head('Operations');
+    echo '<p class="error">' . e($error->getMessage()) . '</p>';
+    foot();
+    exit;
+}
+$lots = $_SESSION['demo_lots'];
+head('Operations');
+?>
+<link rel="stylesheet" href="assets/operations.css">
+<div class="operations-page">
+  <div class="ops-page-heading">
+    <p class="eyebrow">SABAH PARKING OPERATIONS · <?= e(OPS_ROLES[$actor['role']]) ?></p>
+    <h1>Operations dashboard</h1>
+    <p class="ops-subtitle">Manage reservations and member access.</p>
+  </div>
+  <div class="stats">
+    <div class="card"><small>Parking locations</small><b data-ops-stat="lots"><?= $snapshot['summary']['lots'] ?></b></div>
+    <div class="card"><small>Reservations</small><b data-ops-stat="reservations"><?= $snapshot['summary']['reservations'] ?></b></div>
+    <div class="card"><small>Active stays</small><b data-ops-stat="active"><?= $snapshot['summary']['active'] ?></b></div>
+    <div class="card"><small>Demo revenue</small><b data-ops-stat="revenue">RM <?= number_format($snapshot['summary']['revenue'], 2) ?></b></div>
+  </div>
+  <section class="ops-panel" id="reservation-management" aria-labelledby="reservation-heading">
+    <div class="ops-panel-heading"><h2 id="reservation-heading">Reservation Management</h2><span class="ops-count" data-total><?= count($snapshot['reservations']) ?> records</span></div>
+    <div data-table-host="reservations"><p class="ops-initial">Preparing reservation table…</p></div>
+  </section>
+  <section class="ops-panel" id="account-management" aria-labelledby="account-heading">
+    <div class="ops-panel-heading"><h2 id="account-heading">Account Management</h2><span class="ops-count" data-total><?= count($snapshot['accounts']) ?> records</span></div>
+    <p class="ops-caption">Only Super Admin can block or unblock accounts.</p>
+    <div data-table-host="accounts"><p class="ops-initial">Preparing account table…</p></div>
+  </section>
+  <noscript><p class="card">Enable JavaScript to search and manage these tables. Existing records are shown below.</p>
+    <div class="ops-table-scroll"><table><thead><tr><th>Member</th><th>Location</th><th>Plate</th><th>Status</th></tr></thead><tbody>
+    <?php foreach ($snapshot['reservations'] as $booking): ?><tr><td><?= e($booking['user']) ?></td><td><?= e($booking['lot']) ?></td><td><?= e($booking['plate']) ?></td><td><?= e($booking['status']) ?></td></tr><?php endforeach; ?>
+    <?php if (!$snapshot['reservations']): ?><tr><td colspan="4">No reservations yet</td></tr><?php endif; ?>
+    </tbody></table></div>
+    <div class="ops-table-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead><tbody>
+    <?php foreach ($snapshot['accounts'] as $account): ?><tr><td><?= e($account['name']) ?></td><td><?= e($account['email']) ?></td><td><?= e($account['role_label']) ?></td><td><?= e($account['status']) ?></td></tr><?php endforeach; ?>
+    </tbody></table></div>
+  </noscript>
+  <h2>Parking locations</h2>
+  <div class="lot-grid">
+    <?php foreach ($lots as $lot): ?><article class="card"><h3><?= e($lot['name']) ?></h3><p><?= e($lot['city']) ?> · RM <?= number_format($lot['rate'], 2) ?>/hour · <?= (int)$lot['capacity'] ?> spaces</p></article><?php endforeach; ?>
+  </div>
+  <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
+    <form method="post" class="card ops-add-location">
+      <h2>Add parking location</h2>
+      <input type="hidden" name="csrf" value="<?= csrf() ?>"><input type="hidden" name="action" value="add_lot">
+      <label>Name<input name="name" required></label><label>Sabah city<input name="city" required></label><label>Address<input name="address" required></label>
+      <label>RM / hour<input type="number" step="0.5" min="0.5" name="rate" required></label><label>Spaces<input type="number" min="1" name="capacity" required></label>
+      <button>Add location</button>
+    </form>
+  <?php endif; ?>
+  <section class="card ops-reports"><h2>Reservation reports</h2><div class="stats">
+    <?php foreach (['active', 'completed', 'cancelled'] as $status): ?><div><small><?= ucfirst($status) ?></small><b data-ops-stat="<?= $status ?>"><?= $snapshot['summary'][$status] ?></b></div><?php endforeach; ?>
+  </div><?php if ($snapshot['can_export']): ?><a class="btn" href="export.php">Export all reservations (CSV)</a><?php endif; ?></section>
+</div>
+<dialog class="ops-dialog" id="ops-dialog" aria-labelledby="ops-dialog-title"><h2 id="ops-dialog-title"></h2><div data-dialog-body></div><div class="ops-dialog-actions"><button type="button" data-dialog-cancel>Close</button><button type="button" data-dialog-confirm hidden>Confirm</button></div></dialog>
+<script type="application/json" id="operations-data"><?= json_encode($snapshot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>
+<script src="assets/Js/operations-table.js" defer></script>
+<script src="assets/Js/operations.js" defer></script>
+<?php foot(); ?>

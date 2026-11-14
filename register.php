@@ -45,12 +45,12 @@ head('Register');
   <div class="registration-field">
     <label for="register-name">Full name</label>
     <input id="register-name" name="name" autocomplete="name" value="<?= e($_POST['name'] ?? '') ?>" aria-describedby="register-name-error" aria-invalid="<?= isset($errors['name']) ? 'true' : 'false' ?>" required>
-    <p class="field-feedback" id="register-name-error" <?= !isset($errors['name']) ? 'hidden' : '' ?>><span aria-hidden="true">!</span> <span data-error-text><?= e($errors['name'] ?? '') ?></span></p>
+    <p class="field-feedback" id="register-name-error" <?= !isset($errors['name']) ? 'hidden' : '' ?>><span data-error-text><?= e($errors['name'] ?? '') ?></span></p>
   </div>
   <div class="registration-field">
     <label for="register-email">Email</label>
     <input id="register-email" name="email" type="email" autocomplete="email" value="<?= e($_POST['email'] ?? '') ?>" aria-describedby="register-email-error" aria-invalid="<?= isset($errors['email']) ? 'true' : 'false' ?>" data-email-taken="<?= ($errors['email'] ?? '') === 'Email already registered.' ? 'true' : 'false' ?>" required>
-    <p class="field-feedback" id="register-email-error" <?= !isset($errors['email']) ? 'hidden' : '' ?>><span aria-hidden="true">!</span> <span data-error-text><?= e($errors['email'] ?? '') ?></span></p>
+    <p class="field-feedback" id="register-email-error" <?= !isset($errors['email']) ? 'hidden' : '' ?>><span data-error-text><?= e($errors['email'] ?? '') ?></span></p>
   </div>
   <div class="password-field">
     <label for="register-password">Password</label>
@@ -58,16 +58,16 @@ head('Register');
       <input id="register-password" type="password" name="password" minlength="8" placeholder="Enter password" autocomplete="new-password" aria-describedby="register-password-requirements register-password-error" aria-invalid="<?= isset($errors['password']) ? 'true' : 'false' ?>" required>
     </div>
     <ul class="password-requirements" id="register-password-requirements">
-      <li id="password-length-rule"><span class="requirement-check" aria-hidden="true">✓</span><span>At least 8 characters</span><span class="validation-sr-only" id="password-rule-status" role="status"> — not met</span></li>
+      <li id="password-length-rule"><span>At least 8 characters</span><span class="validation-sr-only" id="password-rule-status" role="status"> — not met</span></li>
     </ul>
-    <p class="field-feedback" id="register-password-error" <?= !isset($errors['password']) ? 'hidden' : '' ?>><span aria-hidden="true">!</span> <span data-error-text><?= e($errors['password'] ?? '') ?></span></p>
+    <p class="field-feedback" id="register-password-error" <?= !isset($errors['password']) ? 'hidden' : '' ?>><span data-error-text><?= e($errors['password'] ?? '') ?></span></p>
   </div>
   <div class="password-field">
     <label for="register-confirm-password">Confirm password</label>
     <div class="password-field__control">
       <input id="register-confirm-password" type="password" name="confirm" placeholder="Enter password" autocomplete="new-password" aria-describedby="register-confirm-error register-password-match" aria-invalid="<?= isset($errors['confirm']) ? 'true' : 'false' ?>" required>
     </div>
-    <p class="field-feedback" id="register-confirm-error" <?= !isset($errors['confirm']) ? 'hidden' : '' ?>><span aria-hidden="true">!</span> <span data-error-text><?= e($errors['confirm'] ?? '') ?></span></p>
+    <p class="field-feedback" id="register-confirm-error" <?= !isset($errors['confirm']) ? 'hidden' : '' ?>><span data-error-text><?= e($errors['confirm'] ?? '') ?></span></p>
     <p class="password-match" id="register-password-match" role="status"></p>
   </div>
   <button>Create account</button>
