@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'book') {
         $lotId = (int) ($_POST['lot_id'] ?? 0);
-        $hours = (int) ($_POST['hours'] ?? 0);
+        $hours = filter_var($_POST['hours'] ?? '', FILTER_VALIDATE_INT);
         $plate = strtoupper(trim($_POST['plate'] ?? ''));
         $selectedLot = null;
 
@@ -22,10 +22,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Parking location not found.');
         } elseif (!preg_match('/^[A-Z]{1,3} ?\d{1,4} ?[A-Z]?$/', $plate)) {
             flash('Enter a valid plate number, for example SAB 1234.');
-        } elseif ($hours < 1 || $hours > 24) {
+        } elseif ($hours === false || $hours < 1 || $hours > 24) {
             flash('Duration must be 1-24 hours.');
+        } elseif (count(array_filter($_SESSION['demo_bookings'], fn($booking) => $booking['lot_id'] === $lotId && $booking['status'] === 'active')) >= $selectedLot['capacity']) {
+            flash('This parking location is full. Please choose another location.');
         } else {
-            $bookingId = count($_SESSION['demo_bookings']) + 1;
+            $bookingId = max(array_column($_SESSION['demo_bookings'], 'id') ?: [0]) + 1;
             $_SESSION['demo_bookings'][] = [
                 'id' => $bookingId,
                 'user_id' => $userId,
@@ -41,18 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'created_at' => date('Y-m-d H:i'),
                 'expires_at' => time() + ($hours * 3600)
             ];
+            $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
             flash('Parking reserved. Your e-ticket is ready.');
         }
     }
 
     if ($action === 'cancel') {
-        foreach ($_SESSION['demo_bookings'] as &$booking) {
-            if ($booking['id'] === (int) ($_POST['id'] ?? 0) && $booking['user_id'] === $userId) {
-                $booking['status'] = 'cancelled';
-            }
-        }
-        unset($booking);
-        flash('Booking cancelled.');
+        flash(cancel_booking((int) ($_POST['id'] ?? 0), $userId));
     }
 
     header('Location: dashboard.php');

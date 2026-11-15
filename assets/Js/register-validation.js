@@ -22,6 +22,7 @@
       if (takenEmail === value.trim().toLowerCase()) return 'Email already registered.';
     }
     if (key === 'password' && Array.from(value).length < 8) return 'Password must be at least 8 characters.';
+    if (key === 'password' && new TextEncoder().encode(value).length > 72) return 'Password must be no more than 72 bytes (some characters use more than one byte).';
     if (key === 'confirm') {
       if (!value) return 'Please confirm your password.';
       if (value !== fields.password.value) return 'Passwords do not match.';

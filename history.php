@@ -6,13 +6,7 @@ $userId = me()['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'cancel') {
     check_csrf();
-    foreach ($_SESSION['demo_bookings'] as &$booking) {
-        if ($booking['id'] === (int) ($_POST['id'] ?? 0) && $booking['user_id'] === $userId) {
-            $booking['status'] = 'cancelled';
-        }
-    }
-    unset($booking);
-    flash('Booking cancelled.');
+    flash(cancel_booking((int) ($_POST['id'] ?? 0), $userId));
     header('Location: history.php');
     exit;
 }

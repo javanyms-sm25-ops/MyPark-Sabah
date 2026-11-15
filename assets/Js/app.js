@@ -85,15 +85,17 @@
   const root = document.documentElement;
 
   // Theme
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme) root.dataset.theme = savedTheme;
+  function readStorage(key) { try { return localStorage.getItem(key); } catch (_) { return null; } }
+  function writeStorage(key, value) { try { localStorage.setItem(key, value); } catch (_) { /* Page controls remain usable without storage. */ } }
+  const savedTheme = readStorage('theme');
+  if (savedTheme === 'light' || savedTheme === 'dark') root.dataset.theme = savedTheme;
 
   const themeButton = document.getElementById('themeBtn');
   if (themeButton) {
     themeButton.addEventListener('click', function () {
       const nextTheme = root.dataset.theme === 'dark' ? 'light' : 'dark';
       root.dataset.theme = nextTheme;
-      localStorage.setItem('theme', nextTheme);
+      writeStorage('theme', nextTheme);
     });
   }
 
@@ -219,7 +221,7 @@
     bookingForm.addEventListener('submit', function (event) {
       const platePattern = /^[A-Z]{1,3} ?\d{1,4} ?[A-Z]?$/;
       const hours = Number(durationInput.value);
-      if (!selectedLotId.value || !platePattern.test(plateInput.value.trim()) || hours < 1 || hours > 24) {
+      if (!selectedLotId.value || !platePattern.test(plateInput.value.trim()) || !Number.isInteger(hours) || hours < 1 || hours > 24) {
         event.preventDefault();
         window.alert('Choose a location, enter a valid Sabah vehicle plate and select 1–24 hours.');
       }
@@ -346,13 +348,19 @@
   if (operationsStatus) operationsStatus.addEventListener('change', filterOperations);
 
   // Wishlist (browser-local prototype)
+  function readWishlist(key) {
+    try {
+      const items = JSON.parse(readStorage(key) || '[]');
+      return Array.isArray(items) ? items.filter(item => typeof item === 'string') : [];
+    } catch (_) { return []; }
+  }
   document.querySelectorAll('[data-wish]').forEach(function (button) {
     const key = 'park-wishlist';
-    let savedItems = JSON.parse(localStorage.getItem(key) || '[]');
+    let savedItems = readWishlist(key);
     if (savedItems.includes(button.dataset.wish)) button.textContent = '♥';
 
     button.addEventListener('click', function () {
-      savedItems = JSON.parse(localStorage.getItem(key) || '[]');
+      if (readStorage(key) !== null) savedItems = readWishlist(key);
       const id = button.dataset.wish;
       if (savedItems.includes(id)) {
         savedItems = savedItems.filter(function (item) { return item !== id; });
@@ -361,7 +369,7 @@
         savedItems.push(id);
         button.textContent = '♥';
       }
-      localStorage.setItem(key, JSON.stringify(savedItems));
+      writeStorage(key, JSON.stringify(savedItems));
       if (window.MyParkToast) {
         window.MyParkToast.show(savedItems.includes(id) ? 'Parking location added to favourites.' : 'Parking location removed from favourites.', savedItems.includes(id) ? 'success' : 'info');
       }

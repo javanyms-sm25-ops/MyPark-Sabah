@@ -5,7 +5,7 @@ $isJson = ($_GET['format'] ?? '') === 'json';
 try {
     $actor = ops_actor();
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        foreach ($_POST as $value) if (!is_string($value)) throw new RuntimeException('Invalid request fields.', 400);
+        foreach ($_POST as $value) if (!is_string($value) || str_contains($value, "\0")) throw new RuntimeException('Invalid request fields.', 400);
         $message = ops_mutate($actor, $_POST);
         if ($isJson) ops_json(['message' => $message, 'data' => ops_snapshot($actor)]);
         flash($message);
@@ -32,7 +32,7 @@ try {
 $lots = $_SESSION['demo_lots'];
 head('Operations');
 ?>
-<link rel="stylesheet" href="assets/operations.css">
+<link rel="stylesheet" href="assets/css/operations.css">
 <div class="operations-page">
   <div class="ops-page-heading">
     <p class="eyebrow">SABAH PARKING OPERATIONS · <?= e(OPS_ROLES[$actor['role']]) ?></p>
@@ -82,6 +82,6 @@ head('Operations');
 </div>
 <dialog class="ops-dialog" id="ops-dialog" aria-labelledby="ops-dialog-title"><h2 id="ops-dialog-title"></h2><div data-dialog-body></div><div class="ops-dialog-actions"><button type="button" data-dialog-cancel>Close</button><button type="button" data-dialog-confirm hidden>Confirm</button></div></dialog>
 <script type="application/json" id="operations-data"><?= json_encode($snapshot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>
-<script src="assets/Js/operations-table.js" defer></script>
-<script src="assets/Js/operations.js" defer></script>
+<script src="assets/js/operations-table.js" defer></script>
+<script src="assets/js/operations.js" defer></script>
 <?php foot(); ?>

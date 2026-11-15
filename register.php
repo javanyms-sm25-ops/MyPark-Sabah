@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif (preg_match_all('/./us', $name) < 2) $errors['name'] = 'Name must be at least 2 characters.';
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = 'Enter an email address like name@example.com.';
     if (preg_match_all('/./us', $password) < 8) $errors['password'] = 'Password must be at least 8 characters.';
+    elseif (strlen($password) > 72) $errors['password'] = 'Password must be no more than 72 bytes (some characters use more than one byte).';
     if (($_POST['confirm'] ?? '') === '') $errors['confirm'] = 'Please confirm your password.';
     elseif ($password !== ($_POST['confirm'] ?? '')) $errors['confirm'] = 'Passwords do not match.';
 
@@ -73,5 +74,5 @@ head('Register');
   <button>Create account</button>
 </form>
 
-<script src="assets/Js/register-validation.js" defer></script>
+<script src="assets/js/register-validation.js" defer></script>
 <?php foot(); ?>

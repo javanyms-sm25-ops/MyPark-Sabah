@@ -14,7 +14,7 @@
   function icon(search = false) {
     const n = el('span', 'ops-icon'); n.setAttribute('aria-hidden', 'true');
     // Only static markup; all record values are inserted with textContent.
-    n.innerHTML = search ? '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg>' : '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path class="ops-sort-up" d="m4 6 4-4 4 4"/><path class="ops-sort-down" d="m4 10 4 4 4-4"/></svg>';
+    n.innerHTML = search ? '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg>' : '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path class="ops-sort-up" d="m4 6 4-4 4 4"/><path class="ops-sort-down" d="m4 10 4 4 4-4"/></svg>';
     return n;
   }
   const dialog = document.getElementById('ops-dialog');
@@ -150,10 +150,11 @@
         if (c.key === 'actions') th.textContent = c.label;
         else {
           th.setAttribute('aria-sort', this.state.sort === c.key ? (this.state.dir === 'asc' ? 'ascending' : 'descending') : 'none');
-          const sort = btn(c.label, () => {
+          const nextDirection = this.state.sort === c.key && this.state.dir === 'asc' ? 'descending' : 'ascending';
+          const sort = btn('', () => {
             this.state.dir = this.state.sort === c.key && this.state.dir === 'asc' ? 'desc' : 'asc'; this.state.sort = c.key; this.state.page = 1; this.render();
             this.thead.querySelector('[data-column="' + c.key + '"] button').focus();
-          }, 'ops-sort'); sort.setAttribute('aria-label', 'Sort by ' + c.label); sort.append(icon()); th.append(sort);
+          }, 'ops-sort'); sort.setAttribute('aria-label', 'Sort by ' + c.label + ', ' + nextDirection); sort.append(el('span', 'ops-sort-label', c.label), icon()); th.append(sort);
         } header.append(th);
       }); this.thead.replaceChildren(header);
       this.filtered = pipeline.filterSort(data[this.kind], this.kind, this.state);

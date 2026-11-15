@@ -2,7 +2,7 @@
 require 'includes.php';
 
 if (me()) {
-    header('Location: dashboard.php');
+    header('Location: ' . (me()['role'] === 'staff' ? 'staff.php' : 'dashboard.php'));
     exit;
 }
 

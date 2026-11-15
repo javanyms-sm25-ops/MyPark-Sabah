@@ -35,7 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['failures'][$email] = 0;
             session_regenerate_id(true);
             $_SESSION['user'] = ['id' => $user['id'], 'name' => $user['name'], 'email' => $user['email'], 'role' => $user['role']];
-            header('Location: ' . ($user['role'] === 'user' ? 'dashboard.php' : 'admin.php'));
+            foreach (['phone', 'photo'] as $key) if (isset($user[$key])) $_SESSION['user'][$key] = $user[$key];
+            header('Location: ' . ($user['role'] === 'staff' ? 'staff.php' : ($user['role'] === 'user' ? 'dashboard.php' : 'admin.php')));
             exit;
         } else {
             $attempts = ($_SESSION['failures'][$email] ?? 0) + 1;
@@ -79,5 +80,5 @@ head('Login');
 
 </form>
 
-<script src="assets/Js/login-validation.js" defer></script>
+<script src="assets/js/login-validation.js" defer></script>
 <?php foot(); ?>

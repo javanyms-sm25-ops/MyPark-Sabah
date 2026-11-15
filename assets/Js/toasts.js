@@ -97,7 +97,7 @@
   document.querySelectorAll('main .flash, main .error').forEach(function (element) {
     const message = element.textContent.trim();
     if (!message) return;
-    const failure = element.classList.contains('error') || /not found|must be|enter a valid|use jpg|invalid|failed|cannot/i.test(message);
+    const failure = element.classList.contains('error') || /not found|must be|enter a valid|use jpg|invalid|failed|cannot|can be cancelled|location is full/i.test(message);
     const success = /updated|created|reserved|cancelled|added|topped up|registered/i.test(message);
     const type = failure ? 'error' : success ? 'success' : 'info';
     show(message, type);

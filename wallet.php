@@ -6,10 +6,11 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
-    $amount = (float) ($_POST['amount'] ?? 0);
+    $rawAmount = trim($_POST['amount'] ?? '');
+    $amount = filter_var($rawAmount, FILTER_VALIDATE_FLOAT);
 
-    if ($amount < 10 || $amount > 500) {
-        $error = 'Top up amount must be between RM 10.00 and RM 500.00.';
+    if ($amount === false || !is_finite($amount) || $amount < 10 || $amount > 500 || fmod($amount, 10.0) !== 0.0) {
+        $error = 'Top up amount must be between RM 10.00 and RM 500.00, in multiples of RM 10.';
     } else {
         $_SESSION['demo_wallet_balance'] += $amount;
         $_SESSION['demo_wallet_transactions'][] = [

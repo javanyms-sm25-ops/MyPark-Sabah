@@ -1,8 +1,4 @@
 /* Operations only: native table layout, with scrolling on the wrapper. */
-body:has(.operations-page) > header { align-items: center; gap: 24px; }
-body:has(.operations-page) > header .logo { position: static; flex: 0 0 auto; }
-body:has(.operations-page) > header nav { flex: 1 1 auto; justify-content: flex-end; min-width: 0; gap: 8px; }
-body:has(.operations-page) > header nav span { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .operations-page { min-width: 0; max-width: 100%; color: #172b4d; }
 .operations-page .ops-subtitle { color: #64748b; font-size: 14px; }
 .operations-page .ops-panel { margin: 28px 0; border: 1px solid #dce3ec; border-radius: 12px; background: #fff; box-shadow: 0 3px 14px rgb(18 59 109 / 4%); min-width: 0; }
@@ -59,15 +55,30 @@ body:has(.operations-page) > header nav span { max-width: 240px; overflow: hidde
 .ops-table td[data-column="email"] .ops-cell-text { min-width: 180px; max-width: 290px; }
 .ops-table td[data-column="lot"] .ops-cell-text { min-width: 140px; max-width: 200px; }
 .ops-table td[data-column="user"] .ops-cell-text, .ops-table td[data-column="name"] .ops-cell-text { min-width: 100px; }
-.ops-panel .ops-sort { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; padding: 0; border: 0; border-radius: 3px; color: inherit; background: transparent; font-size: inherit; font-weight: 600; transform: none; }
-.ops-sort .ops-icon { width: 12px; height: 12px; flex-basis: 12px; color: #9aa9b9; }
+/* Let each reservation column share space instead of giving all spare width to Member/Location. */
+#reservation-management .ops-table th { width: auto; }
+#reservation-management .ops-table th[data-column="user"] { width: 14%; }
+#reservation-management .ops-table th[data-column="lot"] { width: 18%; }
+#reservation-management .ops-table th.ops-number,
+#reservation-management .ops-table th[data-column="status"],
+#reservation-management .ops-table th[data-column="actions"] { width: 1%; }
+#reservation-management td[data-column="user"] .ops-cell-text { min-width: 80px; max-width: 150px; }
+#reservation-management td[data-column="lot"] .ops-cell-text { min-width: 110px; max-width: 180px; }
+.ops-table .ops-number .ops-cell-text { max-width: none; }
+.ops-panel .ops-sort { display: inline-flex; align-items: center; justify-content: flex-start; width: auto; gap: 6px; min-height: 36px; margin: 0 -8px; padding: 6px 8px; border: 0; border-radius: 4px; color: inherit; background: transparent; font: inherit; font-weight: 600; text-align: inherit; cursor: pointer; transform: none; transition: color 120ms ease, background-color 120ms ease; }
+.ops-panel .ops-number .ops-sort { justify-content: flex-end; }
+.ops-sort .ops-icon { width: 16px; height: 16px; flex: 0 0 16px; color: #697586; }
+.ops-panel .ops-sort:hover { color: #123b6d; background: #e9f0f7; transform: none; }
+.ops-panel .ops-sort:focus-visible { outline: 2px solid #123b6d; outline-offset: 2px; background: transparent; }
+.ops-table th:is([aria-sort="ascending"], [aria-sort="descending"]) .ops-sort-label { color: #123b6d; text-decoration: none; }
 .ops-table th[aria-sort="ascending"] .ops-sort-up, .ops-table th[aria-sort="descending"] .ops-sort-down { stroke: #123b6d; stroke-width: 2; }
-.ops-table th[aria-sort="ascending"] .ops-sort-down, .ops-table th[aria-sort="descending"] .ops-sort-up { opacity: 0.15; }
 .ops-badge { display: inline-block; padding: 3px 8px; border-radius: 5px; font-size: 12px; font-weight: 500; line-height: 18px; background: #edf1f6; color: #43556c; }
 .ops-badge--active { background: #e9f6ee; color: #246b44; }
 .ops-badge--blocked, .ops-badge--cancelled { background: #fcecee; color: #9e3b4c; }
 .ops-badge--completed { background: #ebf2fb; color: #315d91; }
 .ops-row-actions, .ops-status-form { display: flex; align-items: center; gap: 6px; margin: 0; }
+.operations-page .ops-table [data-column="actions"] { text-align: right; }
+.ops-row-actions { justify-content: flex-end; }
 .ops-row-actions .ops-button { min-height: 32px; padding: 5px 8px; font-size: 12px; }
 .ops-status-form select { width: 128px; height: 32px; min-height: 32px; padding: 4px 6px; font-size: 12px; }
 .ops-panel[data-density="compact"] .ops-table td { height: 44px; padding-top: 6px; padding-bottom: 6px; }
@@ -95,10 +106,6 @@ body:has(.operations-page) > header nav span { max-width: 240px; overflow: hidde
 .ops-add-location label { margin: 0; }
 .ops-reports h2 { margin: 0 0 14px; }
 .ops-panel [hidden], .ops-dialog [hidden] { display: none; }
-@media (max-width: 980px) {
-  body:has(.operations-page) > header { justify-content: space-between; gap: 12px; }
-  body:has(.operations-page) > header nav { justify-content: flex-start; }
-}
 @media (max-width: 600px) {
   .ops-panel-heading { padding: 16px; }
   .ops-toolbar, .ops-tools, .ops-filter-tags { padding-left: 16px; padding-right: 16px; }
