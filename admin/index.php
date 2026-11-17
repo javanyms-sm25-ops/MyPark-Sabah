@@ -31,6 +31,14 @@ try {
     exit;
 }
 $lots = $_SESSION['demo_lots'];
+$availability = $snapshot['parking_availability'] ?? null;
+if ($availability !== null) {
+    $mapsConfigPath = dirname(__DIR__) . '/config/maps.local.php';
+    $mapsConfig = is_file($mapsConfigPath) ? require $mapsConfigPath : [];
+    $mapsApiKey = trim((string)($mapsConfig['api_key'] ?? ''));
+    $mapsId = trim((string)($mapsConfig['map_id'] ?? '')) ?: 'DEMO_MAP_ID';
+    $availabilityTime = new DateTimeImmutable($availability['refreshed_at']);
+}
 head('Operations');
 ?>
 <link rel="stylesheet" href="assets/css/operations.css">
@@ -49,6 +57,26 @@ head('Operations');
     <div class="card"><small><?= te('Active stays') ?></small><b data-ops-stat="active"><?= $snapshot['summary']['active'] ?></b></div>
     <div class="card"><small><?= te('Demo revenue') ?></small><b data-ops-stat="revenue">RM <?= number_format($snapshot['summary']['revenue'], 2) ?></b></div>
   </div>
+  <?php if ($availability !== null): ?>
+    <section class="ops-panel" id="parking-availability" aria-labelledby="parking-availability-heading"
+      data-maps-key="<?= e($mapsApiKey) ?>" data-maps-id="<?= e($mapsId) ?>">
+      <div class="ops-panel-heading ops-availability-heading">
+        <h2 id="parking-availability-heading"><?= te('Parking Availability Map') ?></h2>
+        <div class="ops-availability-tools">
+          <span><?= te('Last refresh') ?> <time data-availability-time datetime="<?= e($availability['refreshed_at']) ?>"><?= e($availabilityTime->format('j M Y, H:i:s')) ?> MYT</time></span>
+          <button class="ops-button" type="button" data-availability-refresh hidden><?= te('Refresh availability') ?></button>
+        </div>
+      </div>
+      <p class="ops-caption"><?= te('Select a marker or location to filter the reservations below.') ?></p>
+      <p class="ops-caption" data-maps-message role="status" hidden></p>
+      <p class="ops-notice" data-availability-error role="alert" hidden></p>
+      <div class="ops-availability-layout">
+        <div class="ops-map-canvas" data-parking-map role="region" aria-label="<?= te('Map of parking locations') ?>" hidden></div>
+        <ul class="ops-availability-list" data-availability-locations aria-label="<?= te('Parking locations') ?>"></ul>
+      </div>
+      <noscript><p class="ops-caption"><?= te('Enable JavaScript to use the parking availability map.') ?></p></noscript>
+    </section>
+  <?php endif; ?>
   <section class="ops-panel" id="reservation-management" aria-labelledby="reservation-heading">
     <div class="ops-panel-heading"><h2 id="reservation-heading"><?= te('Reservation Management') ?></h2><span class="ops-count" data-total><?= count($snapshot['reservations']) ?> records</span></div>
     <div data-table-host="reservations"><p class="ops-initial"><?= te('Preparing reservation table…') ?></p></div>
@@ -69,7 +97,9 @@ head('Operations');
   </noscript>
   <h2><?= te('Parking locations') ?></h2>
   <div class="lot-grid">
-    <?php foreach ($lots as $lot): ?><article class="card"><h3><?= e($lot['name']) ?></h3><p><?= e($lot['city']) ?> · RM <?= number_format($lot['rate'], 2) ?>/hour · <?= (int)$lot['capacity'] ?> spaces</p></article><?php endforeach; ?>
+    <?php foreach ($lots as $lot): $capacity = ops_lot_capacity($lot); ?>
+      <article class="card"><h3><?= e($lot['name']) ?></h3><p><?= e($lot['city']) ?> · RM <?= number_format($lot['rate'], 2) ?>/hour · <?= $capacity === null ? te('Capacity unavailable') : te('{count} spaces', ['count' => $capacity]) ?></p></article>
+    <?php endforeach; ?>
   </div>
   <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
     <form method="post" class="card ops-add-location">
@@ -87,5 +117,6 @@ head('Operations');
 <dialog class="ops-dialog" id="ops-dialog" aria-labelledby="ops-dialog-title"><h2 id="ops-dialog-title"></h2><div data-dialog-body></div><div class="ops-dialog-actions"><button type="button" data-dialog-cancel><?= te('Close') ?></button><button type="button" data-dialog-confirm hidden><?= te('Confirm') ?></button></div></dialog>
 <script type="application/json" id="operations-data"><?= json_encode($snapshot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>
 <script src="assets/js/operations-table.js" defer></script>
+<?php if ($availability !== null): ?><script src="assets/js/parking-availability-map.js" defer></script><?php endif; ?>
 <script src="assets/js/operations.js" defer></script>
 <?php foot(); ?>

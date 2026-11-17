@@ -26,6 +26,35 @@ function ops_valid_csrf(array $input): void {
     }
 }
 
+function ops_lot_capacity(array $lot): ?int {
+    $capacity = filter_var($lot['capacity'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+    return $capacity === false ? null : $capacity;
+}
+
+function ops_parking_availability(array $lots, array $activeReservations): array {
+    $occupiedByLot = array_count_values(array_column($activeReservations, 'lot_id'));
+    $locations = [];
+    foreach ($lots as $lot) {
+        $id = (int)$lot['id'];
+        $capacity = ops_lot_capacity($lot);
+        $occupied = $occupiedByLot[$id] ?? 0;
+        $lat = filter_var($lot['lat'] ?? null, FILTER_VALIDATE_FLOAT);
+        $lng = filter_var($lot['lng'] ?? null, FILTER_VALIDATE_FLOAT);
+        $position = $lat !== false && $lng !== false && abs($lat) <= 90 && abs($lng) <= 180
+            ? ['lat' => $lat, 'lng' => $lng] : null;
+        $locations[] = [
+            'id' => $id,
+            'name' => (string)$lot['name'],
+            'city' => (string)($lot['city'] ?? ''),
+            'position' => $position,
+            'capacity' => $capacity,
+            'occupied' => $occupied,
+            'available' => $capacity === null ? null : max(0, $capacity - $occupied),
+        ];
+    }
+    return ['locations' => $locations, 'refreshed_at' => date(DATE_ATOM)];
+}
+
 function ops_snapshot(array $actor): array {
     $accounts = array_map(static fn($user) => [
         'id' => (int)$user['id'], 'name' => (string)$user['name'], 'email' => (string)$user['email'],
@@ -44,7 +73,8 @@ function ops_snapshot(array $actor): array {
             'allowed_statuses' => OPS_TRANSITIONS[$booking['status']] ?? []
         ];
     }, $_SESSION['demo_bookings']);
-    return [
+    $active = array_filter($reservations, static fn($b) => $b['status'] === 'active');
+    $snapshot = [
         'accounts' => array_values($accounts), 'reservations' => array_values($reservations),
         'roles' => OPS_ROLES, 'reservation_statuses' => array_keys(OPS_TRANSITIONS),
         'account_statuses' => ['active', 'blocked'], 'csrf' => csrf(), 'actor_id' => $actor['id'],
@@ -53,12 +83,16 @@ function ops_snapshot(array $actor): array {
         'revision' => $_SESSION['ops_revision'] ?? 0,
         'summary' => [
             'lots' => count($_SESSION['demo_lots']), 'reservations' => count($reservations),
-            'active' => count(array_filter($reservations, static fn($b) => $b['status'] === 'active')),
+            'active' => count($active),
             'completed' => count(array_filter($reservations, static fn($b) => $b['status'] === 'completed')),
             'cancelled' => count(array_filter($reservations, static fn($b) => $b['status'] === 'cancelled')),
             'revenue' => array_sum(array_map(static fn($b) => in_array($b['status'], ['active', 'completed'], true) ? $b['fee'] : 0, $reservations))
         ]
     ];
+    if ($actor['role'] === 'superadmin') {
+        $snapshot['parking_availability'] = ops_parking_availability($_SESSION['demo_lots'], $active);
+    }
+    return $snapshot;
 }
 
 function ops_mutate(array $actor, array $input): string {

@@ -58,3 +58,27 @@ Parking starts when you confirm the review. Future reservations are not supporte
 Email OTP/reset delivery, SMS, a payment gateway and live support are not connected.
 Photo rotation is a preview; saving keeps the original image.
 Third-party fonts, chatbot and ticket QR library require Internet access.
+
+Super Admin parking availability
+Open admin/ as Super Admin. The panel above Reservation Management uses the same
+Operations snapshot as the table. Each active stay counts as one occupied bay
+at its location. Available bays = max(0, capacity minus occupied bays). Completed
+and cancelled stays do not occupy bays. Missing capacity is shown as
+"Capacity unavailable". Counts come from this browser's MyPark demo session.
+Select a marker or a location in the list to set the table's Location filter.
+Completing a stay or using Refresh availability updates the counts and time.
+
+To turn on the Google map, enable Maps JavaScript API and billing in your Google
+Cloud project. Restrict a browser API key to Maps JavaScript API and to the sites
+that serve MyPark, for example http://localhost:8000/* for the PHP dev server.
+Create the ignored file config/maps.local.php with:
+
+<?php
+return [
+    'api_key' => 'YOUR_MAPS_JAVASCRIPT_API_KEY',
+    'map_id' => 'DEMO_MAP_ID', // Optional: use your own JavaScript map ID.
+];
+
+Google setup: https://developers.google.com/maps/documentation/javascript/get-api-key
+The location list works without the key. Locations need valid lat/lng values
+to appear as map markers.

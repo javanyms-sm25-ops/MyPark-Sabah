@@ -106,6 +106,39 @@
 .ops-add-location label { margin: 0; }
 .ops-reports h2 { margin: 0 0 14px; }
 .ops-panel [hidden], .ops-dialog [hidden] { display: none; }
+.ops-availability-heading { justify-content: space-between; }
+.ops-availability-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; color: #52647a; font-size: 13px; }
+.ops-availability-tools time { color: #172b4d; font-weight: 600; }
+.ops-availability-layout { display: grid; align-items: start; gap: 14px; padding: 0 20px 20px; }
+.ops-availability-layout.has-map { grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr); }
+.ops-map-canvas { height: clamp(300px, 46vh, 400px); min-width: 0; border: 1px solid #dce3ec; border-radius: 8px; background: #eef4fa; }
+.ops-availability-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 8px; padding: 0; margin: 0; list-style: none; }
+.has-map .ops-availability-list { grid-template-columns: 1fr; max-height: 400px; overflow: auto; }
+.ops-panel .ops-availability-location {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d6dee8;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b4d;
+  text-align: start;
+  white-space: normal;
+}
+.ops-panel .ops-availability-location:hover { background: #f5f9fd; }
+.ops-panel .ops-availability-location[aria-pressed="true"] { border-color: #21629d; background: #ebf3fb; }
+.ops-panel .ops-availability-location:focus-visible { outline-offset: -3px; }
+.ops-availability-details { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.ops-availability-name { font-size: 14px; line-height: 1.45; }
+.ops-availability-city, .ops-availability-note { font-size: 12px; font-weight: 400; color: #52647a; }
+.ops-availability-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
+.ops-availability-counts > span { display: grid; align-content: start; gap: 1px; font-weight: 400; font-size: 11px; line-height: 1.4; color: #52647a; }
+.ops-availability-counts strong { font-size: 16px; color: #123b6d; font-variant-numeric: tabular-nums; }
+.ops-map-canvas .ops-availability-details { min-width: min(200px, 50vw); }
+@media (max-width: 760px) {
+  .ops-availability-layout.has-map { grid-template-columns: 1fr; }
+  .has-map .ops-availability-list { max-height: none; }
+}
 @media (max-width: 600px) {
   .ops-panel-heading { padding: 16px; }
   .ops-toolbar, .ops-tools, .ops-filter-tags { padding-left: 16px; padding-right: 16px; }
@@ -119,4 +152,5 @@
   .ops-table-footer { padding: 12px 16px; }
   .ops-result-count { width: 100%; }
   .ops-notice { flex-wrap: wrap; margin-left: 16px; margin-right: 16px; }
+  .ops-availability-layout { padding-left: 16px; padding-right: 16px; }
 }
