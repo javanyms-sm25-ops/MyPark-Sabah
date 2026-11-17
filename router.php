@@ -11,12 +11,16 @@ $page = match ($path) {
     '/admin/' => 'admin/index.php',
     default => ltrim($path, '/'),
 };
+if (in_array($path, ['/login.php', '/register.php'], true)) {
+    header('Location: /pages' . $path, true, 308);
+    exit;
+}
 if ($path === '/admin') {
     header('Location: /admin/', true, 308);
     exit;
 }
 $pages = [
-    'index.php', 'login.php', 'logout.php', 'register.php', 'forgot.php',
+    'index.php', 'pages/login.php', 'logout.php', 'pages/register.php', 'forgot.php',
     'dashboard.php', 'history.php', 'profile.php', 'support.php', 'ticket.php',
     'wallet.php', 'staff.php', 'admin/index.php', 'api/availability.php',
     'api/export.php', 'api/operations.php', 'api/staff.php',

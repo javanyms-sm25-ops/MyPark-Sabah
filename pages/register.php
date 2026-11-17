@@ -1,5 +1,6 @@
 <?php
-require __DIR__ . '/includes/bootstrap.php';
+const MYPARK_AUTH_PAGE = true;
+require dirname(__DIR__) . '/includes/bootstrap.php';
 
 $errors = [];
 
@@ -39,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 head('Register');
 ?>
 
-<form method="post" class="card narrow registration-form" id="registration-form" novalidate>
+<form method="post" action="pages/register.php" class="card narrow registration-form" id="registration-form" novalidate>
   <h2>Create member account</h2>
   <p class="registration-summary" id="registration-summary" role="alert" tabindex="-1" <?= !$errors ? 'hidden' : '' ?>>Please check the highlighted fields below.</p>
   <input type="hidden" name="csrf" value="<?= csrf() ?>">
@@ -75,4 +76,4 @@ head('Register');
 </form>
 
 <script src="assets/js/register-validation.js" defer></script>
-<?php foot(); ?>
+<?php foot(showChatbot: false); ?>

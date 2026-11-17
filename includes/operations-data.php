@@ -66,6 +66,7 @@ function ops_mutate(array $actor, array $input): string {
     $action = $input['action'] ?? '';
     $id = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT);
     if ($action === 'status') {
+        complete_expired_bookings();
         foreach ($_SESSION['demo_bookings'] as &$booking) {
             if ($booking['id'] !== $id) continue;
             $next = $input['status'] ?? '';

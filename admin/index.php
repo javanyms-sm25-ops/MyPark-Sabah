@@ -18,7 +18,7 @@ try {
 } catch (RuntimeException $error) {
     $status = in_array($error->getCode(), [400, 401, 403, 404, 409, 422], true) ? $error->getCode() : 500;
     if ($isJson) ops_json(['error' => $error->getMessage()], $status);
-    if ($status === 401) { header('Location: ../login.php'); exit; }
+    if ($status === 401) { header('Location: ../pages/login.php'); exit; }
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('Operation failed: ' . $error->getMessage());
         header('Location: ./');

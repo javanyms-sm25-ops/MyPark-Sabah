@@ -33,14 +33,15 @@ head('Parking History');
     <thead><tr><th>Location</th><th>Plate</th><th>Duration</th><th>Fee</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
     <tbody>
       <?php foreach ($bookings as $booking): ?>
+        <?php $expiry = $booking['status'] === 'active' ? booking_expiry($booking) : null; ?>
         <tr data-status="<?= e($booking['status']) ?>" data-search="<?= e(strtolower($booking['plate'] . ' ' . $booking['lot'] . ' ' . $booking['status'])) ?>">
           <td><?= e($booking['lot']) ?></td>
           <td><?= e($booking['plate']) ?></td>
           <td><?= $booking['hours'] ?>h</td>
           <td>RM <?= number_format($booking['fee'], 2) ?></td>
-          <td><span class="tag <?= e($booking['status']) ?>"><?= e($booking['status']) ?></span><?php if ($booking['status'] === 'active'): ?><span class="parking-timer" data-expires="<?= (int) ($booking['expires_at'] ?? (time() + ($booking['hours'] * 3600))) ?>">--:--:--</span><small class="timer-label">Time remaining</small><?php endif; ?></td>
+          <td><span class="tag <?= e($booking['status']) ?>"><?= e($booking['status']) ?></span><?php if ($expiry !== null): ?><span class="parking-timer" data-expires="<?= $expiry ?>">--:--:--</span><small class="timer-label">Time remaining</small><?php endif; ?></td>
           <td><?= e($booking['created_at']) ?></td>
-          <td><a class="btn" href="ticket.php?id=<?= $booking['id'] ?>">Ticket</a><?php if ($booking['status'] === 'active'): ?><form method="post" class="inline"><input type="hidden" name="csrf" value="<?= csrf() ?>"><input type="hidden" name="id" value="<?= $booking['id'] ?>"><button name="action" value="cancel" class="danger">Cancel</button></form><?php endif; ?></td>
+          <td><a class="btn" href="ticket.php?id=<?= $booking['id'] ?>">Ticket</a><?php if ($booking['status'] === 'active'): ?><form method="post" class="inline" data-booking-cancel><input type="hidden" name="csrf" value="<?= csrf() ?>"><input type="hidden" name="id" value="<?= $booking['id'] ?>"><button name="action" value="cancel" class="danger">Cancel</button></form><?php endif; ?></td>
         </tr>
       <?php endforeach; ?>
       <?php if (!$bookings): ?><tr><td colspan="7">No parking history yet.</td></tr><?php endif; ?>
