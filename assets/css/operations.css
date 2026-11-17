@@ -134,6 +134,17 @@
 .ops-availability-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
 .ops-availability-counts > span { display: grid; align-content: start; gap: 1px; font-weight: 400; font-size: 11px; line-height: 1.4; color: #52647a; }
 .ops-availability-counts strong { font-size: 16px; color: #123b6d; font-variant-numeric: tabular-nums; }
+.ops-availability-bay { padding-top: 6px; }
+.ops-availability-bay + .ops-availability-bay { border-top: 1px solid #dce3ec; }
+.ops-availability-bay-label { display: block; font-size: 12px; }
+.ops-oku-access { margin: 0 20px 16px; }
+.ops-oku-access-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; }
+.ops-oku-filter label { margin: 0; }
+.operations-page .ops-oku-table td { white-space: normal; overflow-wrap: anywhere; }
+.ops-oku-decision label { margin: 8px 0; }
+.ops-oku-decision textarea { display: block; width: min(100%, 22rem); margin-top: 4px; padding: 8px; color: inherit; background: #fff; border: 1px solid #d6dee8; border-radius: 7px; font: inherit; resize: vertical; }
+.ops-oku-capacity-hint { grid-column: 1 / -1; margin: 0; }
+#oku-verification, #oku-bay-capacity { scroll-margin-top: 120px; }
 .ops-map-canvas .ops-availability-details { min-width: min(200px, 50vw); }
 @media (max-width: 760px) {
   .ops-availability-layout.has-map { grid-template-columns: 1fr; }

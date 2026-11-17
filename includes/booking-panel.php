@@ -5,6 +5,7 @@ $durationChoice = in_array($draft['hours'], ['1', '2', '3', '4'], true) ? $draft
 $manualVehicle = !$vehicles || $draft['vehicle_id'] === 'manual';
 $bookingContext = parking_resume_fields($draft);
 $manageVehiclesUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $bookingContext) . '#my-vehicles';
+$okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $bookingContext) . '#oku-parking-verification';
 ?>
 <section class="card" id="bookingPanel" aria-labelledby="parking-heading">
   <h2 id="parking-heading" tabindex="-1"><?= te($review ? 'Review your parking session' : 'Start parking') ?></h2>
@@ -12,6 +13,7 @@ $manageVehiclesUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $
     <p><?= te('Parking starts when you select Start parking now. The times below are estimates in Malaysia time.') ?></p>
     <dl class="parking-summary">
       <div><dt><?= te('Location') ?></dt><dd><?= e($review['lot']['name']) ?> · <?= e($review['lot']['city']) ?></dd></div>
+      <div><dt><?= te('Parking bay type') ?></dt><dd><?= te(PARKING_BAY_TYPES[$review['bay_type']]) ?></dd></div>
       <div><dt><?= te('Vehicle plate') ?></dt><dd><?= e($review['plate']) ?></dd></div>
       <div><dt><?= te('Duration') ?></dt><dd><?= te($review['hours'] === 1 ? '{count} hour' : '{count} hours', ['count' => $review['hours']]) ?></dd></div>
       <div><dt><?= te('Estimated start') ?></dt><dd><?= e(date('d M Y, H:i', $review['reviewed_at'])) ?> MYT</dd></div>
@@ -54,6 +56,20 @@ $manageVehiclesUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $
         <?php endforeach; ?>
       </select>
       <p class="booking-error" id="bookingLocationError" <?= !isset($errors['location']) ? 'hidden' : '' ?>><?= te($errors['location'] ?? '') ?></p>
+
+      <?php if ($customer): ?>
+        <label for="bay_type"><?= te('Parking bay type') ?></label>
+        <select id="bay_type" name="bay_type" aria-describedby="bookingBayError<?= oku_is_approved($userId) ? '' : ' booking-oku-help' ?>"
+          <?= isset($errors['bay_type']) ? 'aria-invalid="true"' : '' ?>>
+          <?php foreach (PARKING_BAY_TYPES as $key => $label): ?>
+            <option value="<?= e($key) ?>" <?= ($draft['bay_type'] ?? 'regular') === $key ? 'selected' : '' ?>><?= te($label) ?></option>
+          <?php endforeach; ?>
+        </select>
+      <?php endif; ?>
+      <p class="booking-error" id="bookingBayError" <?= !isset($errors['bay_type']) ? 'hidden' : '' ?>><?= te($errors['bay_type'] ?? '') ?></p>
+      <?php if ($customer && !oku_is_approved($userId)): ?>
+        <p class="hint" id="booking-oku-help"><a href="<?= e($okuProfileUrl) ?>"><?= te('OKU Parking Verification') ?></a> · <?= te('Approval is required to book OKU parking.') ?></p>
+      <?php endif; ?>
 
       <div class="vehicle-toolbar">
         <label for="<?= $vehicles ? 'savedVehicle' : 'plate' ?>"><?= te($vehicles ? 'Vehicle' : 'Vehicle plate') ?></label>

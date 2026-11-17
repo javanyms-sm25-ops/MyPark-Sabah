@@ -37,6 +37,7 @@
   const form = document.getElementById('bookForm');
   if (!form) return;
   const location = document.getElementById('lot_id');
+  const bayType = document.getElementById('bay_type');
   const vehicle = document.getElementById('savedVehicle');
   const manual = document.getElementById('manualVehicle');
   const plate = document.getElementById('plate');
@@ -52,6 +53,7 @@
   const addForm = document.getElementById('addBookingVehicleForm');
   const fieldErrors = {
     location: document.getElementById('bookingLocationError'),
+    bay: document.getElementById('bookingBayError'),
     vehicle: document.getElementById('bookingVehicleError'),
     plate: document.getElementById('bookingPlateError'),
     hours: document.getElementById('bookingHoursError')
@@ -103,6 +105,7 @@
     setError('location', location);
     updateParkingContext();
   });
+  bayType?.addEventListener('change', () => setError('bay', bayType));
   document.querySelectorAll('[data-book-lot]').forEach(link => {
     link.addEventListener('click', event => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;

@@ -39,8 +39,9 @@ return [
 MyPark stores demo data in a private app folder under PHP's session.save_path
 (or the system temporary folder if that setting is empty). PHP must be able to
 write there. Keep this location outside the web root.
-Accounts, saved vehicles, issued compounds and digital receipts survive sign-out in the same
-browser. Sign-out clears booking history, wallet activity, maintenance and reviews.
+Accounts, saved vehicles, parking locations, OKU verifications, issued compounds
+and digital receipts survive sign-out in the same browser. Sign-out clears
+booking history, wallet activity, maintenance and customer support reviews.
 The browser's demo session expires after roughly a month of inactivity.
 Do not use this prototype for real payments or official enforcement.
 
@@ -62,8 +63,8 @@ Third-party fonts, chatbot and ticket QR library require Internet access.
 Super Admin parking availability
 Open admin/ as Super Admin. The panel above Reservation Management uses the same
 Operations snapshot as the table. Each active stay counts as one occupied bay
-at its location. Available bays = max(0, capacity minus occupied bays). Completed
-and cancelled stays do not occupy bays. Missing capacity is shown as
+at its location. Available bays = max(0, capacity minus occupied bays) for each
+bay type. Completed and cancelled stays do not occupy bays. Missing capacity is shown as
 "Capacity unavailable". Counts come from this browser's MyPark demo session.
 Select a marker or a location in the list to set the table's Location filter.
 Completing a stay or using Refresh availability updates the counts and time.
@@ -82,3 +83,31 @@ return [
 Google setup: https://developers.google.com/maps/documentation/javascript/get-api-key
 The location list works without the key. Locations need valid lat/lng values
 to appear as map markers.
+
+OKU Parking Verification (demo)
+Use fictional proof and the demo accounts in the same browser. A member
+submits through Profile > OKU Parking Verification. A Super Admin can review
+in Operations > OKU Verification, or grant review access to an Admin there.
+An Admin without a grant and Staff cannot review or open proof. Keep document
+numbers out of rejection reasons. A rejected member can submit a new proof.
+
+There is no project policy for which supporting documents to accept in Sabah.
+Confirm this policy before accepting real proof. The demo uses the existing
+profile upload formats (JPG, PNG and WebP) with a 2 MB server-side limit.
+Approval applies only to parking inside MyPark Sabah.
+
+The app keeps pending proof in its private PHP file session and removes it
+when a decision is recorded. The decision, reviewer and timestamp stay in the
+session. Keep PHP's file session storage outside the web root, enable uploads
+and Fileinfo, and set PHP upload/post limits to accommodate the 2 MB proof.
+Keep request-body logging disabled for uploads and verification requests.
+The existing browser-specific session model does not share reviews across
+separate browsers. No database migration is needed for this prototype.
+
+Use Operations > Set OKU bay allocation to reserve bays within a location's
+existing total. New demo sessions start with one OKU bay at Kota Kinabalu
+Waterfront. Locations missing an allocation default to zero. Existing stays
+without a bay type count as regular. Verified members can choose the OKU type
+at booking or switch an active stay from History. A switch is for remaining
+time at the same location and retains the current fee. Booking review,
+confirmation, history changes and the map use the same per-type counts.

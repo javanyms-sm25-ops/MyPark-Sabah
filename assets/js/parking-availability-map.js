@@ -35,17 +35,22 @@
       const content = element('span', 'ops-availability-details');
       content.append(element('strong', 'ops-availability-name', location.name));
       if (location.city) content.append(element('span', 'ops-availability-city', location.city));
-      const counts = element('span', 'ops-availability-counts');
-      [
-        ['Capacity', location.capacity],
-        ['Occupied bays', location.occupied],
-        ['Available bays', location.available]
-      ].forEach(([label, value]) => {
-        const stat = element('span');
-        stat.append(element('strong', '', value ?? '—'), element('span', '', translate(label)));
-        counts.append(stat);
-      });
-      content.append(counts);
+      for (const [type, label] of [['regular', 'Regular parking'], ['oku', 'OKU parking']]) {
+        const bay = location.bays[type];
+        const group = element('span', 'ops-availability-bay');
+        const counts = element('span', 'ops-availability-counts');
+        [
+          ['Capacity', bay.capacity],
+          ['Occupied bays', bay.occupied],
+          ['Available bays', bay.available]
+        ].forEach(([key, value]) => {
+          const stat = element('span');
+          stat.append(element('strong', '', value ?? '—'), element('span', '', translate(key)));
+          counts.append(stat);
+        });
+        group.append(element('strong', 'ops-availability-bay-label', translate(label)), counts);
+        content.append(group);
+      }
       if (location.capacity === null) {
         content.append(element('span', 'ops-availability-note', translate('Capacity unavailable')));
       }

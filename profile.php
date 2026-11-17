@@ -2,17 +2,30 @@
 require __DIR__ . '/includes/bootstrap.php';
 require_login();
 require __DIR__ . '/includes/parking-booking.php';
+require_once __DIR__ . '/includes/oku-verification.php';
 
 $bookingContext = ($_GET['from'] ?? '') === 'booking' ? ['from' => 'booking'] + parking_resume_fields($_GET) : [];
 $vehiclesPage = 'profile.php' . ($bookingContext ? '?' . http_build_query($bookingContext) : '');
 $editor = is_string($_GET['vehicle_edit'] ?? null) ? $_GET['vehicle_edit'] : '';
 $vehicleError = '';
+$okuError = '';
 $vehicleFormInput = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
 }
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vehicle_action'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['oku_action'])) {
+    try {
+        if ($_POST['oku_action'] !== 'submit') throw new RuntimeException('Unknown OKU operation.', 400);
+        oku_submit(me(), $_FILES['oku_proof'] ?? []);
+        flash('OKU proof submitted for review.');
+        header('Location: ' . $vehiclesPage . '#oku-parking-verification', true, 303);
+        exit;
+    } catch (RuntimeException $error) {
+        $okuError = $error->getMessage();
+        http_response_code($error->getCode());
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vehicle_action'])) {
     if (me()['role'] !== 'user') {
         http_response_code(403);
         exit('Vehicle management is available to customers.');
@@ -75,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vehicle_action'])) {
     header('Location: profile.php');
     exit;
 }
+if (me()['role'] === 'user') header('Cache-Control: private, no-store');
 head('Profile');
 ?>
 <h1><?= te('My profile') ?></h1>
@@ -89,6 +103,7 @@ head('Profile');
   <p class="hint"><?= te('Rotation changes the preview only; the original image is saved.') ?></p>
 </form>
 <?php if (me()['role'] === 'user'): ?>
+  <?php require __DIR__ . '/includes/oku-profile.php'; ?>
   <?php
     $vehicles = saved_vehicles(me()['id']);
     $defaultVehicle = default_vehicle_id(me()['id']);
@@ -150,4 +165,4 @@ head('Profile');
     <?php endif; ?>
   </section>
 <?php endif; ?>
-<?php foot(); ?>
+<?php foot(showChatbot: me()['role'] !== 'user'); ?>
