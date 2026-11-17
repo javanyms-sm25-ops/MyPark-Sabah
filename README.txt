@@ -23,9 +23,18 @@ Scripts: assets/js/
 Images: assets/images/
 Admin: admin/; staff: staff.php; browser data endpoints: api/
 Legacy SQLite archive: storage/parking.db. The Session prototype does not open it.
-Copy config/recaptcha.example.php to config/recaptcha.local.php if the local
-file is missing. Set the v3 keys and allowed hostnames there. The local config
-is ignored by Git. Enable PHP cURL for login verification.
+If config/recaptcha.local.php is missing, create it with the following content.
+Replace both placeholders with your development reCAPTCHA v3 keys. Use the
+hostname you open in the browser and register it for the key in Google.
+The local config is ignored by Git. Enable PHP cURL for login verification.
+
+<?php
+return [
+    'site_key' => 'YOUR_V3_SITE_KEY',
+    'secret_key' => 'YOUR_V3_SECRET_KEY',
+    'allowed_hostnames' => ['localhost'],
+    'min_score' => 0.5,
+];
 
 MyPark stores demo data in a private app folder under PHP's session.save_path
 (or the system temporary folder if that setting is empty). PHP must be able to
