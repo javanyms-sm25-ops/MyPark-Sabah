@@ -2,7 +2,12 @@
 require __DIR__ . '/includes/bootstrap.php';
 
 if (me()) {
-    header('Location: ' . (me()['role'] === 'staff' ? 'staff.php' : 'dashboard.php'));
+    $home = match (me()['role']) {
+        'superadmin' => 'admin/',
+        'staff' => 'staff.php',
+        default => 'dashboard.php',
+    };
+    header('Location: ' . $home);
     exit;
 }
 

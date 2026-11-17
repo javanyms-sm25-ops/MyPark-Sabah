@@ -118,11 +118,15 @@
       menuButton.innerHTML = isOpen ? '×' : '☰';
     });
 
-    const currentPage = window.location.pathname.split('/').pop() || 'index.php';
+    const pagePath = pathname => pathname.replace(/\/index\.php$/, '/').replace(/\/$/, '');
+    const currentPage = pagePath(window.location.pathname);
     navigation.querySelectorAll('a[href]').forEach(function (link) {
-      const linkPage = link.getAttribute('href').split('#')[0];
-      if (linkPage === currentPage || (currentPage === 'index.php' && linkPage === 'dashboard.php')) {
+      const destination = new URL(link.href);
+      if (!link.classList.contains('notification-link') &&
+          destination.origin === window.location.origin &&
+          pagePath(destination.pathname) === currentPage) {
         link.classList.add('nav-active');
+        link.setAttribute('aria-current', 'page');
       }
       link.addEventListener('click', function () {
         navigation.classList.remove('is-open');
