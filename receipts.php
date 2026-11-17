@@ -1,6 +1,6 @@
 <?php
-require 'includes.php';
-require_once 'receipt-data.php';
+require __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/receipt-data.php';
 require_login();
 
 header('Cache-Control: private, no-store');

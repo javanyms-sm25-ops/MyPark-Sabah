@@ -1,6 +1,6 @@
 <?php
-require 'includes.php';
-require_once 'receipt-data.php';
+require __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/receipt-data.php';
 
 if (me()) demo_wallet();
 receipt_sync();
@@ -17,5 +17,5 @@ $_SESSION = [
 ];
 session_regenerate_id(true);
 session_write_close();
-header('Location: login.php');
+header('Location: pages/login.php');
 exit;

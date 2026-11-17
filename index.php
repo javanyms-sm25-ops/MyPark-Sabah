@@ -1,5 +1,5 @@
 <?php
-require 'includes.php';
+require __DIR__ . '/includes/bootstrap.php';
 
 if (me()) {
     header('Location: ' . (me()['role'] === 'staff' ? 'staff.php' : 'dashboard.php'));
@@ -16,8 +16,8 @@ head('Home');
     <p>Book your next parking spot in seconds, pay by the hour, and keep every trip smooth from arrival to departure.</p>
 
     <div class="home-hero__actions">
-      <a class="btn" href="register.php">Get started</a>
-      <a class="btn btn-ghost" href="login.php">Log in</a>
+      <a class="btn" href="pages/register.php">Get started</a>
+      <a class="btn btn-ghost" href="pages/login.php">Log in</a>
     </div>
 
     <ul class="home-hero__stats" aria-label="MyPark metrics">
@@ -118,8 +118,8 @@ head('Home');
       <h2>Parking that feels as easy as the rest of your day.</h2>
     </div>
     <div class="promo-panel__actions">
-      <a class="btn" href="register.php">Create account</a>
-      <a class="btn btn-ghost btn-ghost--dark" href="login.php">Sign in</a>
+      <a class="btn" href="pages/register.php">Create account</a>
+      <a class="btn btn-ghost btn-ghost--dark" href="pages/login.php">Sign in</a>
     </div>
   </div>
 </section>

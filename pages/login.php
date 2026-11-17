@@ -1,5 +1,11 @@
 <?php
-require 'includes.php';
+const MYPARK_AUTH_PAGE = true;
+require dirname(__DIR__) . '/includes/bootstrap.php';
+require dirname(__DIR__) . '/includes/login-recaptcha.php';
+
+$recaptchaPath = dirname(__DIR__) . '/config/recaptcha.local.php';
+$recaptchaConfig = is_file($recaptchaPath) ? require $recaptchaPath : [];
+$recaptchaSiteKey = trim((string)($recaptchaConfig['site_key'] ?? ''));
 
 $error = '';
 $fieldErrors = [];
@@ -18,6 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$fieldErrors) {
+        $error = login_recaptcha_error($recaptchaConfig, $_POST['g-recaptcha-response'] ?? '');
+    }
+
+    if (!$fieldErrors && $error === '') {
         $user = null;
         $userIndex = null;
 
@@ -39,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['demo_last_active'] = time();
             $_SESSION['user'] = ['id' => $user['id'], 'name' => $user['name'], 'email' => $user['email'], 'role' => $user['role']];
             foreach (['phone', 'photo'] as $key) if (isset($user[$key])) $_SESSION['user'][$key] = $user[$key];
-            header('Location: ' . ($user['role'] === 'staff' ? 'staff.php' : ($user['role'] === 'user' ? 'dashboard.php' : 'admin.php')));
+            header('Location: ' . ($user['role'] === 'staff' ? '../staff.php' : ($user['role'] === 'user' ? '../dashboard.php' : '../admin/')));
             exit;
         } else {
             $attempts = ($_SESSION['failures'][$email] ?? 0) + 1;
@@ -58,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 head('Login');
 ?>
 
-<form method="post" class="card narrow login-form" id="login-form" novalidate>
+<form method="post" action="pages/login.php" class="card narrow login-form" id="login-form" data-recaptcha-site-key="<?= e($recaptchaSiteKey) ?>" novalidate>
   <h2>Welcome back</h2>
   <p class="muted">Find and reserve parking across Sabah.</p>
   <input type="hidden" name="csrf" value="<?= csrf() ?>">
@@ -78,10 +88,13 @@ head('Login');
   <p class="login-error" id="login-request-error" role="alert" tabindex="-1" <?= !$error ? 'hidden' : '' ?>><span data-request-error><?= e($error) ?></span></p>
   <button class="login-submit" type="submit"><span class="login-spinner" aria-hidden="true" hidden></span><span data-submit-label>Sign in</span></button>
   <span class="validation-sr-only" id="login-status" role="status" aria-live="polite"></span>
-  <p class="login-signup">Don’t have an account? <a href="register.php">Sign up</a></p>
+  <p class="login-signup">Don’t have an account? <a href="pages/register.php">Sign up</a></p>
   <details class="login-demo"><summary>Demo accounts</summary><p class="hint">Superadmin: superadmin@park.com / super123<br>Admin: admin@park.com / admin123<br>Staff: staff@park.com / staff123<br>Member: user@park.com / user123</p></details>
 
 </form>
 
+<?php if ($recaptchaSiteKey !== ''): ?>
+<script src="https://www.google.com/recaptcha/api.js?render=<?= rawurlencode($recaptchaSiteKey) ?>" async></script>
+<?php endif; ?>
 <script src="assets/js/login-validation.js" defer></script>
-<?php foot(); ?>
+<?php foot(showChatbot: false); ?>

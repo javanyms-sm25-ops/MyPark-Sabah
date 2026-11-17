@@ -1,7 +1,7 @@
 <?php
-require 'includes.php';
-require_once 'staff-data.php';
-$json = ($_GET['format'] ?? '') === 'json';
+require __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/staff-data.php';
+$json = defined('MYPARK_JSON_REQUEST') || ($_GET['format'] ?? '') === 'json';
 $page = $_GET['page'] ?? 'dashboard';
 $pages = ['dashboard' => 'Staff Dashboard', 'fines' => 'Fine Management', 'vehicles' => 'Vehicle Lookup', 'maintenance' => 'Parking Maintenance'];
 try {
@@ -17,7 +17,7 @@ try {
 } catch (RuntimeException $error) {
     $status = in_array($error->getCode(), [400, 401, 403, 404, 409, 422], true) ? $error->getCode() : 500;
     if ($json) staff_json(['error' => $error->getMessage(), 'fields' => $error instanceof StaffValidationException ? $error->fields : (object)[]], $status);
-    if ($status === 401) { header('Location: login.php'); exit; }
+    if ($status === 401) { header('Location: pages/login.php'); exit; }
     http_response_code($status); echo e($error->getMessage()); exit;
 }
 head($pages[$page]);

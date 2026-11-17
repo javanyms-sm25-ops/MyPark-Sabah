@@ -15,6 +15,34 @@
   const status = document.getElementById('login-status');
   let submitting = false;
 
+  async function requestRecaptchaToken() {
+    const siteKey = form.dataset.recaptchaSiteKey;
+    if (!siteKey) throw new Error('Missing verification configuration');
+
+    let timeout;
+    try {
+      return await Promise.race([
+        new Promise((resolve, reject) => {
+          const captcha = window.grecaptcha;
+          if (!captcha || typeof captcha.ready !== 'function') {
+            reject(new Error('Verification script not ready'));
+            return;
+          }
+          captcha.ready(() => {
+            Promise.resolve()
+              .then(() => captcha.execute(siteKey, { action: 'login' }))
+              .then(resolve, reject);
+          });
+        }),
+        new Promise((_, reject) => {
+          timeout = window.setTimeout(() => reject(new Error('Verification timed out')), 10000);
+        })
+      ]);
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
   function setSubmitting(value) {
     submitting = value;
     submitButton.disabled = value;
@@ -77,6 +105,14 @@
     const payload = new FormData(form);
     setSubmitting(true);
     try {
+      try {
+        const token = await requestRecaptchaToken();
+        if (typeof token !== 'string' || token.trim() === '') throw new Error('Missing token');
+        payload.set('g-recaptcha-response', token);
+      } catch (_) {
+        showRequestError('Security verification is unavailable. Please try signing in again.');
+        return;
+      }
       let response;
       try {
         response = await window.fetch(form.action, {

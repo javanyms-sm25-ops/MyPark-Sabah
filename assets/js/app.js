@@ -259,8 +259,24 @@
 
   function updateParkingTimers() {
     const now = Math.floor(Date.now() / 1000);
+    let statusChanged = false;
     document.querySelectorAll('.parking-timer').forEach(function (timer) {
       const secondsLeft = Math.max(0, Number(timer.dataset.expires) - now);
+      const historyRow = timer.closest('#historyTable tr[data-status="active"]');
+      if (secondsLeft === 0 && historyRow) {
+        historyRow.dataset.status = 'completed';
+        historyRow.dataset.search = historyRow.dataset.search.replace(/ active$/, ' completed');
+        const badge = historyRow.querySelector('.tag');
+        badge.classList.replace('active', 'completed');
+        badge.textContent = 'completed';
+        const cancelForm = historyRow.querySelector('[data-booking-cancel]');
+        if (cancelForm?.contains(document.activeElement)) historyRow.querySelector('.btn')?.focus();
+        cancelForm?.remove();
+        timer.nextElementSibling?.remove();
+        timer.remove();
+        statusChanged = true;
+        return;
+      }
       timer.textContent = formatRemainingTime(secondsLeft);
       timer.classList.toggle('timer-warning', secondsLeft > 0 && secondsLeft <= 300);
       timer.classList.toggle('timer-expired', secondsLeft === 0);
@@ -284,6 +300,7 @@
           (secondsLeft <= 300 ? 'Less than 5 minutes remaining' : 'Time remaining');
       }
     });
+    if (statusChanged) filterHistory();
   }
 
   if (document.querySelector('.parking-timer')) {
@@ -448,7 +465,7 @@
   }
 
   function refreshAvailability() {
-    fetch('api.php')
+    fetch('api/availability.php')
       .then(function (response) { return response.json(); })
       .then(function (slots) {
         slots.forEach(function (item) {

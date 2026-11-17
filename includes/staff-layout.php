@@ -13,10 +13,11 @@ function staff_head(string $title): void {
     $message = flash();
     ?>
     <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <?php if (defined('MYPARK_ADMIN_PAGE') || defined('MYPARK_AUTH_PAGE')): ?><base href="../"><?php endif; ?>
     <title><?= e($title) ?> · MyPark Sabah Staff</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/staff.css"></head>
+    <link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/css/staff.css"></head>
     <body class="staff-portal<?= $profile ? ' staff-profile-page' : '' ?>">
     <a class="staff-skip" href="#staff-main">Skip to content</a>
     <div class="staff-backdrop" id="staff-backdrop" hidden></div>
@@ -36,7 +37,7 @@ function staff_head(string $title): void {
     <?php
 }
 
-function staff_foot(bool $showChat = true): void {
+function staff_foot(bool $showChatbot = true): void {
     ?>
       </main>
       <p class="staff-storage-note">Private parking prototype. Compounds and digital receipts are saved in this browser across sign-outs.</p>
@@ -46,7 +47,7 @@ function staff_foot(bool $showChat = true): void {
     <div id="toast-alert" class="pe-toast-announcer" role="alert" aria-live="assertive" aria-atomic="true"></div>
     <script src="assets/js/toasts.js"></script><script src="assets/js/app.js"></script>
     <script src="assets/js/operations-table.js"></script><script src="assets/js/staff.js"></script>
-    <?php if ($showChat): ?>
+    <?php if ($showChatbot): ?>
       <script src="https://cdn.botpress.cloud/webchat/v5.0/inject.js"></script>
       <script src="https://files.bpcontent.cloud/2026/11/13/14/20261113143638-NZ5LEIAP.js" defer></script>
     <?php endif; ?>

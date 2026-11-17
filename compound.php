@@ -1,6 +1,6 @@
 <?php
-require 'includes.php';
-require 'staff-data.php';
+require __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/staff-data.php';
 require_login();
 
 $actor = me();

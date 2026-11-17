@@ -1,7 +1,8 @@
 <?php
-require 'includes.php';
-require 'operations-data.php';
-$isJson = ($_GET['format'] ?? '') === 'json';
+const MYPARK_ADMIN_PAGE = true;
+require dirname(__DIR__) . '/includes/bootstrap.php';
+require dirname(__DIR__) . '/includes/operations-data.php';
+$isJson = defined('MYPARK_JSON_REQUEST') || ($_GET['format'] ?? '') === 'json';
 try {
     $actor = ops_actor();
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -9,7 +10,7 @@ try {
         $message = ops_mutate($actor, $_POST);
         if ($isJson) ops_json(['message' => $message, 'data' => ops_snapshot($actor)]);
         flash($message);
-        header('Location: admin.php');
+        header('Location: ./');
         exit;
     }
     $snapshot = ops_snapshot($actor);
@@ -17,10 +18,10 @@ try {
 } catch (RuntimeException $error) {
     $status = in_array($error->getCode(), [400, 401, 403, 404, 409, 422], true) ? $error->getCode() : 500;
     if ($isJson) ops_json(['error' => $error->getMessage()], $status);
-    if ($status === 401) { header('Location: login.php'); exit; }
+    if ($status === 401) { header('Location: ../pages/login.php'); exit; }
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('Operation failed: ' . $error->getMessage());
-        header('Location: admin.php');
+        header('Location: ./');
         exit;
     }
     http_response_code($status);
@@ -81,7 +82,7 @@ head('Operations');
   <?php endif; ?>
   <section class="card ops-reports"><h2>Reservation reports</h2><div class="stats">
     <?php foreach (['active', 'completed', 'cancelled'] as $status): ?><div><small><?= ucfirst($status) ?></small><b data-ops-stat="<?= $status ?>"><?= $snapshot['summary'][$status] ?></b></div><?php endforeach; ?>
-  </div><?php if ($snapshot['can_export']): ?><a class="btn" href="export.php">Export all reservations (CSV)</a><?php endif; ?></section>
+  </div><?php if ($snapshot['can_export']): ?><a class="btn" href="api/export.php">Export all reservations (CSV)</a><?php endif; ?></section>
 </div>
 <dialog class="ops-dialog" id="ops-dialog" aria-labelledby="ops-dialog-title"><h2 id="ops-dialog-title"></h2><div data-dialog-body></div><div class="ops-dialog-actions"><button type="button" data-dialog-cancel>Close</button><button type="button" data-dialog-confirm hidden>Confirm</button></div></dialog>
 <script type="application/json" id="operations-data"><?= json_encode($snapshot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>

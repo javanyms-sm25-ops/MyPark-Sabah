@@ -4,7 +4,8 @@ function start_demo_session(): void {
     $now = time();
     $lifetime = 31 * 86400;
     $legacyName = session_name();
-    $suffix = substr(hash('sha256', __DIR__), 0, 12);
+    // Keep using the project root so previously saved sessions still load.
+    $suffix = substr(hash('sha256', dirname(__DIR__)), 0, 12);
     $name = 'MyPark' . $suffix;
     $savePathParts = explode(';', session_save_path());
     $basePath = end($savePathParts) ?: sys_get_temp_dir();

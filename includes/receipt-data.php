@@ -80,7 +80,7 @@ function receipt_sync(): void {
             'Vehicle plate' => $booking['plate'],
             'Location' => $booking['lot'] . (!empty($booking['city']) ? ', ' . $booking['city'] : ''),
             'Parking starts' => receipt_time($start->getTimestamp()),
-            'Parking ends' => receipt_time($booking['expires_at'] ?? $start->getTimestamp() + $booking['hours'] * 3600),
+            'Parking ends' => receipt_time(booking_expiry($booking) ?? $start->getTimestamp() + $booking['hours'] * 3600),
             'Duration' => $booking['hours'] . ($booking['hours'] === 1 ? ' hour' : ' hours'),
         ];
         receipt_add($booking, $booking['user_id'], 'parking', (int) round($booking['fee'] * 100), $details, $oldest);

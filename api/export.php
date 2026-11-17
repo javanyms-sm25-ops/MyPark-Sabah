@@ -1,6 +1,6 @@
 <?php
-require 'includes.php';
-require 'operations-data.php';
+require dirname(__DIR__) . '/includes/bootstrap.php';
+require dirname(__DIR__) . '/includes/operations-data.php';
 try {
     $actor = ops_actor();
     if (!in_array($actor['role'], ['admin', 'superadmin'], true)) throw new RuntimeException('Only administrators can export records.', 403);
