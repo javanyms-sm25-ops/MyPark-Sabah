@@ -52,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'status' => 'paid',
             'compound' => $paid['code'],
             'reference' => $paid['payment_reference'],
+            'plate' => $paid['plate'],
         ];
         $_SESSION['staff_fines'][$id] = $paid;
         staff_audit('fine', $id, 'paid', $actor, $fine, $paid, 'MyPark demo wallet payment');
@@ -91,6 +92,7 @@ head('Scan & Pay Compound');
   <div class="compound-wallet">
     <span>Demo wallet balance <strong><?= staff_money((int) round($wallet['balance'] * 100)) ?></strong></span>
     <a href="wallet.php">Top up wallet</a>
+    <a href="receipts.php?type=compound">View compound receipts</a>
   </div>
   <?php if ($error): ?><p class="error" role="alert"><?= e($error) ?></p><?php endif; ?>
 

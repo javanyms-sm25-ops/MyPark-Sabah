@@ -5,10 +5,11 @@ function staff_head(string $title): void {
     try { $actor = staff_actor(); }
     catch (RuntimeException $error) { http_response_code($error->getCode()); exit(e($error->getMessage())); }
     $profile = basename($_SERVER['SCRIPT_NAME'] ?? '') === 'profile.php';
-    $page = $profile ? 'profile' : ($_GET['page'] ?? 'dashboard');
+    $receipts = basename($_SERVER['SCRIPT_NAME'] ?? '') === 'receipts.php';
+    $page = $profile ? 'profile' : ($receipts ? 'receipts' : ($_GET['page'] ?? 'dashboard'));
     $links = ['dashboard' => ['Dashboard', 'staff.php'], 'fines' => ['Fine Management', 'staff.php?page=fines'],
         'vehicles' => ['Vehicle Lookup', 'staff.php?page=vehicles'], 'maintenance' => ['Parking Maintenance', 'staff.php?page=maintenance'],
-        'profile' => ['My Profile', 'profile.php']];
+        'receipts' => ['Receipts', 'receipts.php'], 'profile' => ['My Profile', 'profile.php']];
     $message = flash();
     ?>
     <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -35,18 +36,20 @@ function staff_head(string $title): void {
     <?php
 }
 
-function staff_foot(): void {
+function staff_foot(bool $showChat = true): void {
     ?>
       </main>
-      <p class="staff-storage-note">Private parking prototype. Records are stored for this session only; signing out clears them. MySQL will be connected later.</p>
+      <p class="staff-storage-note">Private parking prototype. Compounds and digital receipts are saved in this browser across sign-outs.</p>
     </div>
     <div id="toast-stack" class="pe-toast-stack" role="region" aria-label="Notifications"></div>
     <div id="toast-status" class="pe-toast-announcer" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="toast-alert" class="pe-toast-announcer" role="alert" aria-live="assertive" aria-atomic="true"></div>
     <script src="assets/js/toasts.js"></script><script src="assets/js/app.js"></script>
     <script src="assets/js/operations-table.js"></script><script src="assets/js/staff.js"></script>
-    <script src="https://cdn.botpress.cloud/webchat/v5.0/inject.js"></script>
-    <script src="https://files.bpcontent.cloud/2026/11/13/14/20261113143638-NZ5LEIAP.js" defer></script>
+    <?php if ($showChat): ?>
+      <script src="https://cdn.botpress.cloud/webchat/v5.0/inject.js"></script>
+      <script src="https://files.bpcontent.cloud/2026/11/13/14/20261113143638-NZ5LEIAP.js" defer></script>
+    <?php endif; ?>
     </body></html>
     <?php
 }

@@ -60,6 +60,7 @@ head('Wallet');
 </div>
 
 <h2>Wallet activity</h2>
+<p><a class="btn" href="receipts.php?type=topup">View wallet top-up receipts</a></p>
 <div class="table-wrap">
   <table>
     <thead><tr><th>Date</th><th>Transaction</th><th>Amount</th><th>Status</th></tr></thead>

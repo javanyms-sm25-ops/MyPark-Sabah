@@ -17,6 +17,7 @@ head('Parking History');
 
 <p class="eyebrow">RESERVATION RECORDS</p>
 <h1>My parking history</h1>
+<p><a class="btn" href="receipts.php?type=parking">View parking receipts</a></p>
 
 <section class="row card">
   <input id="historySearch" placeholder="Search plate, location or status">

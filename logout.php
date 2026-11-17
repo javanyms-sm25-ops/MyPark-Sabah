@@ -1,9 +1,16 @@
 <?php
 require 'includes.php';
+require_once 'receipt-data.php';
+
+if (me()) demo_wallet();
+receipt_sync();
 
 // Keep issued compounds in this browser so a demo payer can sign in after staff.
 $fineAudit = array_filter($_SESSION['staff_audit'] ?? [], fn($key) => str_starts_with($key, 'fine:'), ARRAY_FILTER_USE_KEY);
 $_SESSION = [
+    'demo_users' => $_SESSION['demo_users'],
+    'demo_receipts' => $_SESSION['demo_receipts'],
+    'demo_cookie_refreshed_at' => time(),
     'staff_fines' => $_SESSION['staff_fines'] ?? [],
     'staff_counters' => ['fine' => $_SESSION['staff_counters']['fine'] ?? 0, 'maintenance' => 0],
     'staff_audit' => $fineAudit,
