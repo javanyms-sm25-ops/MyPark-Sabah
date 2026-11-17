@@ -15,9 +15,15 @@ Scripts: assets/js/
 Staff entry point: staff.php; other roles use the existing dashboard/Operations pages.
 
 Records are stored in the current PHP session. Signing out or session expiry clears
-accounts created in that session, bookings, top-ups, fines, maintenance and reviews.
-Separate browser sessions do not share these records. Do not use this prototype
+accounts created in that session, bookings, wallet activity, maintenance and reviews.
+Issued compounds and their payment status survive sign-out in the same browser
+until the PHP session expires. Separate browser sessions do not share these records.
+Do not use this prototype
 for real payments or official enforcement. MySQL integration is planned later.
+
+To try compound payments, create a fine in Staff → Fine Management, sign out,
+then sign in as a member, admin or superadmin in the same browser. Open Compounds
+and search for the fine number or plate. Payments use demo wallet credit.
 
 Demo top-ups do not charge money, and bookings do not deduct the wallet balance.
 Email OTP/reset delivery, SMS, a payment gateway and live support are not connected.

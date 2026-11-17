@@ -38,6 +38,9 @@ head('Operations');
     <p class="eyebrow">SABAH PARKING OPERATIONS · <?= e(OPS_ROLES[$actor['role']]) ?></p>
     <h1>Operations dashboard</h1>
     <p class="ops-subtitle">Manage reservations and member access.</p>
+    <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
+      <a class="btn" href="compound.php">Check and pay compounds</a>
+    <?php endif; ?>
   </div>
   <div class="stats">
     <div class="card"><small>Parking locations</small><b data-ops-stat="lots"><?= $snapshot['summary']['lots'] ?></b></div>

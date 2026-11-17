@@ -3,6 +3,7 @@ require 'includes.php';
 require_login();
 
 $userId = me()['id'];
+$wallet = demo_wallet();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
@@ -73,7 +74,7 @@ head('Sabah Parking');
   </div>
   <aside class="dashboard-wallet" aria-labelledby="dashboard-wallet-title"
     data-wallet-user="<?= e($userId) ?>"
-    data-wallet-balance="RM <?= e(number_format($_SESSION['demo_wallet_balance'], 2)) ?>">
+    data-wallet-balance="RM <?= e(number_format($wallet['balance'], 2)) ?>">
     <p id="dashboard-wallet-title" class="dashboard-wallet__label">Wallet balance</p>
     <div class="dashboard-wallet__row">
       <strong id="dashboard-wallet-amount" class="dashboard-wallet__amount" aria-live="polite" aria-atomic="true">RM ••••</strong>

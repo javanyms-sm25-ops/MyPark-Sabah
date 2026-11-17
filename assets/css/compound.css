@@ -1,0 +1,135 @@
+.compound-page {
+  max-width: 820px;
+  margin-inline: auto;
+}
+
+.compound-hero {
+  padding: clamp(16px, 5vw, 40px);
+  border-radius: 20px;
+  background: linear-gradient(155deg, #872b17 0%, #ac3815 37%, #df710b 78%, #efac38 100%);
+}
+
+.compound-hero h1 {
+  margin: 0 0 18px;
+  color: #fff;
+  font-size: clamp(1.65rem, 5vw, 2.6rem);
+}
+
+.compound-search {
+  margin: 0;
+}
+
+.compound-search label {
+  margin-top: 0;
+  font-weight: 600;
+}
+
+.compound-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.compound-search-row input {
+  min-width: 0;
+  margin-top: 0;
+}
+
+.compound-scan,
+.compound-wallet,
+.compound-result-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.compound-scan {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: .9rem;
+}
+
+.compound-scan-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #172438;
+}
+
+.compound-scan-button[hidden],
+#compound-scan-status:empty {
+  display: none;
+}
+
+.compound-barcode {
+  width: 20px;
+  height: 17px;
+  background: repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 3px, currentColor 3px 5px, transparent 5px 7px);
+}
+
+.compound-wallet {
+  margin-block: 18px 24px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.compound-wallet strong {
+  margin-inline-start: 6px;
+}
+
+.compound-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 16px;
+}
+
+.compound-result h3 {
+  margin: 0;
+}
+
+.compound-result dl {
+  display: grid;
+  gap: 8px;
+}
+
+.compound-result dl div {
+  display: grid;
+  grid-template-columns: 5em minmax(0, 1fr);
+  gap: 8px;
+}
+
+.compound-result dt {
+  font-weight: 600;
+}
+
+.compound-result dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.compound-camera {
+  width: min(480px, calc(100% - 32px));
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text);
+}
+
+.compound-camera::backdrop {
+  background: rgb(10 20 30 / 65%);
+}
+
+.compound-camera video {
+  display: block;
+  width: 100%;
+  max-height: 50vh;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  background: #101820;
+}

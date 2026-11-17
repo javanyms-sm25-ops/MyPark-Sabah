@@ -2,6 +2,7 @@
 require 'includes.php';
 require_login();
 
+$wallet =& demo_wallet();
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -12,8 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($amount === false || !is_finite($amount) || $amount < 10 || $amount > 500 || fmod($amount, 10.0) !== 0.0) {
         $error = 'Top up amount must be between RM 10.00 and RM 500.00, in multiples of RM 10.';
     } else {
-        $_SESSION['demo_wallet_balance'] += $amount;
-        $_SESSION['demo_wallet_transactions'][] = [
+        $wallet['balance'] += $amount;
+        $wallet['transactions'][] = [
+            'type' => 'topup',
             'amount' => $amount,
             'created_at' => date('Y-m-d H:i'),
             'status' => 'paid'
@@ -24,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$transactions = array_reverse($_SESSION['demo_wallet_transactions']);
+$transactions = array_reverse($wallet['transactions']);
 head('Wallet');
 ?>
 
@@ -34,8 +36,10 @@ head('Wallet');
 <div class="wallet-layout">
   <section class="wallet-balance fade-in">
     <small>Available balance</small>
-    <b>RM <?= number_format($_SESSION['demo_wallet_balance'], 2) ?></b>
-    <span>Use wallet credit for future parking payments.</span>
+    <b>RM <?= number_format($wallet['balance'], 2) ?></b>
+    <?php if (me()['role'] !== 'staff'): ?>
+      <span>Use demo credit to <a href="compound.php">pay compounds</a>.</span>
+    <?php endif; ?>
   </section>
 
   <section class="card wallet-topup">
@@ -55,15 +59,25 @@ head('Wallet');
   </section>
 </div>
 
-<h2>Top up history</h2>
+<h2>Wallet activity</h2>
 <div class="table-wrap">
   <table>
-    <thead><tr><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+    <thead><tr><th>Date</th><th>Transaction</th><th>Amount</th><th>Status</th></tr></thead>
     <tbody>
       <?php foreach ($transactions as $transaction): ?>
-        <tr><td><?= e($transaction['created_at']) ?></td><td>+ RM <?= number_format($transaction['amount'], 2) ?></td><td><span class="tag paid">Paid</span></td></tr>
+        <?php $isCompound = ($transaction['type'] ?? 'topup') === 'compound'; ?>
+        <tr>
+          <td><?= e($transaction['created_at']) ?></td>
+          <td>
+            <?php if ($isCompound): ?>
+              Compound <?= e($transaction['compound']) ?><br><small>Receipt <?= e($transaction['reference']) ?></small>
+            <?php else: ?>Top up<?php endif; ?>
+          </td>
+          <td><?= $isCompound ? '−' : '+' ?> RM <?= number_format($transaction['amount'], 2) ?></td>
+          <td><span class="tag paid">Paid</span></td>
+        </tr>
       <?php endforeach; ?>
-      <?php if (!$transactions): ?><tr><td colspan="3">No wallet top ups yet.</td></tr><?php endif; ?>
+      <?php if (!$transactions): ?><tr><td colspan="4">No wallet activity yet.</td></tr><?php endif; ?>
     </tbody>
   </table>
 </div>

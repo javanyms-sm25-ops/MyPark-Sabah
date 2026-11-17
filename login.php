@@ -33,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'This account is blocked.';
         } elseif ($user && password_verify($_POST['password'] ?? '', $user['password'])) {
             $_SESSION['failures'][$email] = 0;
+            if (me()) demo_wallet();
             session_regenerate_id(true);
             $_SESSION['user'] = ['id' => $user['id'], 'name' => $user['name'], 'email' => $user['email'], 'role' => $user['role']];
             foreach (['phone', 'photo'] as $key) if (isset($user[$key])) $_SESSION['user'][$key] = $user[$key];
