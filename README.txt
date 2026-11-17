@@ -39,7 +39,7 @@ return [
 MyPark stores demo data in a private app folder under PHP's session.save_path
 (or the system temporary folder if that setting is empty). PHP must be able to
 write there. Keep this location outside the web root.
-Accounts, issued compounds and digital receipts survive sign-out in the same
+Accounts, saved vehicles, issued compounds and digital receipts survive sign-out in the same
 browser. Sign-out clears booking history, wallet activity, maintenance and reviews.
 The browser's demo session expires after roughly a month of inactivity.
 Do not use this prototype for real payments or official enforcement.
@@ -54,6 +54,7 @@ details and email drafts require the original account in the same browser. The
 email action opens a draft in your mail app and you can print or save as PDF.
 
 Demo top-ups do not charge money, and bookings do not deduct the wallet balance.
+Parking starts when you confirm the review. Future reservations are not supported.
 Email OTP/reset delivery, SMS, a payment gateway and live support are not connected.
 Photo rotation is a preview; saving keeps the original image.
 Third-party fonts, chatbot and ticket QR library require Internet access.

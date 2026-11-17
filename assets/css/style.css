@@ -1450,6 +1450,164 @@ main > table {
   text-align: center;
 }
 
+#bookingPanel,
+#my-vehicles,
+#vehicle-editor {
+  scroll-margin-top: 7rem;
+}
+
+#bookingPanel [hidden] {
+  display: none;
+}
+
+.vehicle-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  margin-top: 16px;
+}
+
+.vehicle-toolbar h2,
+.vehicle-toolbar label {
+  margin: 0;
+}
+
+#my-vehicles > .vehicle-toolbar {
+  justify-content: space-between;
+  margin: 0 0 14px;
+}
+
+#manageBookingVehicles,
+.vehicle-secondary-link {
+  color: var(--navy);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.manual-vehicle {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.vehicle-save-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.vehicle-save-option input {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  min-height: 0;
+  margin: 0;
+  accent-color: var(--navy);
+}
+
+.booking-error {
+  margin: 6px 0 12px;
+  color: var(--red);
+  font-size: 0.85rem;
+}
+
+#bookForm [aria-invalid="true"] {
+  border-color: var(--red);
+}
+
+.parking-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.parking-summary > div {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.parking-summary dt {
+  color: var(--muted-text);
+  font-size: 0.85rem;
+}
+
+.parking-summary dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.parking-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.parking-vehicle-dialog {
+  width: min(440px, calc(100% - 28px));
+  max-height: calc(100dvh - 28px);
+  overflow: auto;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.parking-vehicle-dialog::backdrop {
+  background: rgb(15 34 55 / 45%);
+}
+
+.parking-vehicle-dialog h2 {
+  margin: 0 0 14px;
+}
+
+.parking-vehicle-dialog .vehicle-secondary-link {
+  display: inline-block;
+  margin-top: 12px;
+}
+
+.vehicle-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.vehicle-list-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+.vehicle-list-item button {
+  min-height: 34px;
+  padding: 5px 9px;
+  font-size: 0.85rem;
+}
+
+.vehicle-editor {
+  margin: 0 0 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.vehicle-editor .parking-actions,
+.parking-vehicle-dialog .parking-actions {
+  margin-top: 14px;
+}
+
 /* Native radio controls keep duration selection keyboard accessible. */
 .duration-picker {
   min-width: 0;

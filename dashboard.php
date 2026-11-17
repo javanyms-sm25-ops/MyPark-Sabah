@@ -8,61 +8,108 @@ if (me()['role'] === 'superadmin') {
 }
 
 $userId = me()['id'];
+require __DIR__ . '/includes/parking-booking.php';
 $wallet = demo_wallet();
+$customer = me()['role'] === 'user';
+$vehicles = $customer ? saved_vehicles($userId) : [];
+$defaultVehicle = $customer ? default_vehicle_id($userId) : null;
+$resume = parking_resume_fields($_GET);
+$requestedVehicle = $_GET['vehicle_id'] ?? '';
+$draft = [
+    'lot_id' => (string)($resume['lot_id'] ?? ''),
+    'hours' => (string)($resume['hours'] ?? 1),
+    'vehicle_id' => $vehicles ? ($defaultVehicle ?? '') : 'manual',
+    'plate' => '',
+    'save_vehicle' => false,
+];
+if (is_string($requestedVehicle) && isset($vehicles[$requestedVehicle])) {
+    $draft['vehicle_id'] = $requestedVehicle;
+}
+$errors = [];
+$bookingError = '';
+$review = null;
+$addVehicleError = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
     $action = $_POST['action'] ?? '';
 
-    if ($action === 'book') {
-        $lotId = (int) ($_POST['lot_id'] ?? 0);
-        $hours = filter_var($_POST['hours'] ?? '', FILTER_VALIDATE_INT);
-        $plate = strtoupper(trim($_POST['plate'] ?? ''));
-        $selectedLot = null;
-
-        foreach ($_SESSION['demo_lots'] as $lot) {
-            if ($lot['id'] === $lotId) $selectedLot = $lot;
-        }
-
-        if (!$selectedLot) {
-            flash('Parking location not found.');
-        } elseif (!preg_match('/^[A-Z]{1,3} ?\d{1,4} ?[A-Z]?$/', $plate)) {
-            flash('Enter a valid plate number, for example SAB 1234.');
-        } elseif ($hours === false || $hours < 1 || $hours > 24) {
-            flash('Duration must be 1-24 hours.');
-        } elseif (count(array_filter($_SESSION['demo_bookings'], fn($booking) => $booking['lot_id'] === $lotId && $booking['status'] === 'active')) >= $selectedLot['capacity']) {
-            flash('This parking location is full. Please choose another location.');
-        } else {
-            $bookingId = max(array_column($_SESSION['demo_bookings'], 'id') ?: [0]) + 1;
-            $_SESSION['demo_bookings'][] = [
-                'id' => $bookingId,
-                'user_id' => $userId,
-                'user' => me()['name'],
-                'lot_id' => $lotId,
-                'lot' => $selectedLot['name'],
-                'city' => $selectedLot['city'],
-                'slot' => 'P' . str_pad((string) $bookingId, 2, '0', STR_PAD_LEFT),
-                'plate' => $plate,
-                'hours' => $hours,
-                'fee' => $hours * $selectedLot['rate'],
-                'status' => 'active',
-                'created_at' => date('Y-m-d H:i'),
-                'expires_at' => time() + ($hours * 3600)
-            ];
-            $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
-            flash('Parking reserved. Your e-ticket is ready.');
-        }
-    }
-
     if ($action === 'cancel') {
         flash(cancel_booking((int) ($_POST['id'] ?? 0), $userId));
+        header('Location: dashboard.php', true, 303);
+        exit;
     }
 
-    header('Location: dashboard.php');
-    exit;
+    if ($action === 'add_booking_vehicle') {
+        if (!$customer) {
+            http_response_code(403);
+            exit('Vehicle management is available to customers.');
+        }
+        $resume = parking_resume_fields($_POST);
+        foreach ($resume as $key => $value) $draft[$key] = (string)$value;
+        try {
+            $added = change_saved_vehicle($userId, ['vehicle_action' => 'add'] + $_POST);
+            flash($added['message']);
+            header('Location: dashboard.php?' . http_build_query($resume + ['vehicle_id' => $added['id']]) . '#bookingPanel', true, 303);
+            exit;
+        } catch (InvalidArgumentException $error) {
+            $addVehicleError = $error->getMessage();
+            http_response_code(422);
+        }
+    } elseif ($action === 'review_parking') {
+        unset($_SESSION['parking_reviews'][$userId]);
+        $draft = parking_draft_from_post($_POST);
+        $checked = validate_parking_draft(me(), $draft);
+        $errors = $checked['errors'];
+        if ($errors) {
+            http_response_code(422);
+        } else {
+            $review = $checked['details'] + ['token' => bin2hex(random_bytes(32)), 'reviewed_at' => time()];
+            $_SESSION['parking_reviews'][$userId] = [
+                'token' => $review['token'],
+                'draft' => $draft,
+                'fee' => $review['fee'],
+                'plate' => $review['plate'],
+                'reviewed_at' => $review['reviewed_at'],
+            ];
+        }
+    } elseif ($action === 'start_parking' || $action === 'edit_parking') {
+        $pending = $_SESSION['parking_reviews'][$userId] ?? null;
+        if ($pending === null || !hash_equals($pending['token'], $_POST['review_token'] ?? '')) {
+            http_response_code(409);
+            $bookingError = 'This review is no longer valid. Check your parking details again.';
+        } else {
+            // PHP holds the session lock here, so a second submission cannot use the same review.
+            unset($_SESSION['parking_reviews'][$userId]);
+            $draft = $pending['draft'];
+            if ($action === 'start_parking') {
+                $checked = validate_parking_draft(me(), $draft);
+                $errors = $checked['errors'];
+                $details = $checked['details'];
+                if (time() - $pending['reviewed_at'] >= 600) {
+                    $bookingError = 'This review has expired. Review your parking details again.';
+                } elseif (!$errors && ($details['fee'] !== $pending['fee'] || $details['plate'] !== $pending['plate'])) {
+                    $bookingError = 'The fee or vehicle details changed. Review the updated details before starting.';
+                } elseif (!$errors) {
+                    start_parking(me(), $details);
+                    flash('Parking session created. Your e-ticket is ready.');
+                    header('Location: dashboard.php', true, 303);
+                    exit;
+                }
+                http_response_code(409);
+            }
+        }
+    } else {
+        http_response_code(400);
+        $bookingError = 'Review your parking details before starting.';
+    }
 }
 
 $lots = $_SESSION['demo_lots'];
+$occupiedByLot = array_count_values(array_column(
+    array_filter($_SESSION['demo_bookings'], static fn($booking) => $booking['status'] === 'active'),
+    'lot_id'
+));
 $bookings = array_values(array_filter($_SESSION['demo_bookings'], fn($booking) => $booking['user_id'] === $userId));
 $activeBookings = array_filter($bookings, fn($booking) => $booking['status'] === 'active');
 $completedBookings = array_filter($bookings, fn($booking) => $booking['status'] === 'completed');
@@ -125,45 +172,15 @@ head('Sabah Parking');
       <h3><?= e($lot['name']) ?></h3>
       <p><?= e($lot['address']) ?> · <?= e($lot['city']) ?></p>
       <p class="rate">RM <?= number_format($lot['rate'], 2) ?><small> / hour</small></p>
-      <p><?= $lot['capacity'] ?> spaces · <span class="tag available">Available</span></p>
+      <?php $full = ($occupiedByLot[$lot['id']] ?? 0) >= $lot['capacity']; ?>
+      <p><?= $lot['capacity'] ?> spaces · <span class="tag <?= $full ? 'cancelled' : 'available' ?>"><?= $full ? 'Full' : 'Available' ?></span></p>
       <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $lot['lat'] ?>,<?= $lot['lng'] ?>" target="_blank" rel="noopener">View map</a>
-      <button type="button" data-book-lot="<?= $lot['id'] ?>" data-name="<?= e($lot['name']) ?>" data-rate="<?= $lot['rate'] ?>">Reserve parking</button>
+      <a class="btn" data-book-lot="<?= $lot['id'] ?>" href="dashboard.php?lot_id=<?= $lot['id'] ?>#bookingPanel">Select location</a>
     </article>
   <?php endforeach; ?>
 </section>
 
-<section class="card" id="bookingPanel">
-  <h2>Reserve a parking space</h2>
-  <ol class="booking-steps">
-    <li><b>1</b> Choose a location</li>
-    <li><b>2</b> Add vehicle details</li>
-    <li><b>3</b> Confirm reservation</li>
-  </ol>
-  <form method="post" id="bookForm">
-    <input type="hidden" name="csrf" value="<?= csrf() ?>">
-    <input type="hidden" name="action" value="book">
-    <input type="hidden" name="lot_id" id="lot_id">
-    <p>Selected: <b id="lotLabel">Choose a location above</b></p>
-    <label>Vehicle plate<input name="plate" id="plate" placeholder="SAB 1234" required></label>
-    <fieldset class="duration-picker" id="durationPicker" hidden>
-      <legend>Parking duration</legend>
-      <div class="duration-options">
-        <label class="duration-option"><input type="radio" name="duration_choice" value="1" checked><span>1 hour</span></label>
-        <label class="duration-option"><input type="radio" name="duration_choice" value="2"><span>2 hours</span></label>
-        <label class="duration-option"><input type="radio" name="duration_choice" value="3"><span>3 hours</span></label>
-        <label class="duration-option"><input type="radio" name="duration_choice" value="4"><span>4 hours</span></label>
-        <label class="duration-option"><input type="radio" name="duration_choice" value="custom" aria-controls="customDuration"><span>Custom</span></label>
-      </div>
-    </fieldset>
-    <div class="duration-custom" id="customDuration">
-      <label for="hours">Duration (hours)</label>
-      <input type="number" name="hours" id="hours" min="1" max="24" step="1" value="1" aria-describedby="durationHint" required>
-      <small id="durationHint">Choose a whole number from 1 to 24 hours.</small>
-    </div>
-    <p>Estimated fee: <b id="fee">RM 0.00</b></p>
-    <button>Confirm reservation</button>
-  </form>
-</section>
+<?php require __DIR__ . '/includes/booking-panel.php'; ?>
 
 <p class="section-link"><a class="btn" href="history.php">View parking history</a></p>
 <h2>Sabah parking map</h2>
