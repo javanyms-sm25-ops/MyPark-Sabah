@@ -1,6 +1,8 @@
 /* Login errors stay beside their fields; authentication remains on the server. */
 (function () {
   'use strict';
+  const translate = window.MyParkLocale?.text ?? (message => message);
+
 
   const form = document.getElementById('login-form');
   if (!form) return;
@@ -47,8 +49,8 @@
     submitting = value;
     submitButton.disabled = value;
     spinner.hidden = !value;
-    submitLabel.textContent = value ? 'Signing in…' : 'Sign in';
-    status.textContent = value ? 'Signing in…' : '';
+    submitLabel.textContent = value ? translate('Signing in…') : translate('Sign in');
+    status.textContent = value ? translate('Signing in…') : '';
     form.setAttribute('aria-busy', String(value));
     fields.forEach(function (field) { field.readOnly = value; });
   }
@@ -61,11 +63,11 @@
 
   function validate(field) {
     if (field.name === 'password') {
-      return field.value === '' ? 'Please enter your password.' : '';
+      return field.value === '' ? translate('Please enter your password.') : '';
     }
-    if (!field.value.trim()) return 'Please enter your email address.';
+    if (!field.value.trim()) return translate('Please enter your email address.');
     if (field.validity.typeMismatch || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value.trim())) {
-      return 'Please enter a valid email address.';
+      return translate('Please enter a valid email address.');
     }
     return '';
   }
@@ -110,7 +112,7 @@
         if (typeof token !== 'string' || token.trim() === '') throw new Error('Missing token');
         payload.set('g-recaptcha-response', token);
       } catch (_) {
-        showRequestError('Security verification is unavailable. Please try signing in again.');
+        showRequestError(translate('Security verification is unavailable. Please try signing in again.'));
         return;
       }
       let response;

@@ -11,29 +11,30 @@ function staff_head(string $title): void {
         'vehicles' => ['Vehicle Lookup', 'staff.php?page=vehicles'], 'maintenance' => ['Parking Maintenance', 'staff.php?page=maintenance'],
         'receipts' => ['Receipts', 'receipts.php'], 'profile' => ['My Profile', 'profile.php']];
     $message = flash();
+    header('Content-Language: ' . current_language());
     ?>
-    <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <!doctype html><html lang="<?= e(current_language()) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
     <?php if (defined('MYPARK_ADMIN_PAGE') || defined('MYPARK_AUTH_PAGE')): ?><base href="../"><?php endif; ?>
-    <title><?= e($title) ?> · MyPark Sabah Staff</title>
+    <title><?= te($title) ?> · MyPark Sabah</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/css/staff.css"></head>
     <body class="staff-portal<?= $profile ? ' staff-profile-page' : '' ?>">
-    <a class="staff-skip" href="#staff-main">Skip to content</a>
+    <a class="staff-skip" href="#staff-main"><?= te('Skip to content') ?></a>
     <div class="staff-backdrop" id="staff-backdrop" hidden></div>
-    <aside class="staff-sidebar" id="staff-sidebar" aria-label="Staff navigation">
-      <button type="button" class="staff-sidebar-close staff-button staff-secondary">Close menu</button>
-      <a class="staff-brand" href="staff.php"><span class="staff-monogram" aria-hidden="true">MP</span><span>MyPark Sabah<small>Staff workspace</small></span></a>
-      <p class="staff-nav-label">WORKSPACE</p>
-      <nav aria-label="Staff pages">
-        <?php foreach ($links as $key => [$label, $href]): ?><a href="<?= e($href) ?>" <?= $page === $key ? 'aria-current="page"' : '' ?>><?= e($label) ?></a><?php endforeach; ?>
+    <aside class="staff-sidebar" id="staff-sidebar" aria-label="<?= te('Staff navigation') ?>">
+      <button type="button" class="staff-sidebar-close staff-button staff-secondary"><?= te('Close menu') ?></button>
+      <a class="staff-brand" href="staff.php"><span class="staff-monogram" aria-hidden="true">MP</span><span>MyPark Sabah<small><?= te('Staff workspace') ?></small></span></a>
+      <p class="staff-nav-label"><?= te('WORKSPACE') ?></p>
+      <nav aria-label="<?= te('Staff pages') ?>">
+        <?php foreach ($links as $key => [$label, $href]): ?><a href="<?= e($href) ?>" <?= $page === $key ? 'aria-current="page"' : '' ?>><?= te($label) ?></a><?php endforeach; ?>
       </nav>
-      <div class="staff-sidebar-bottom"><strong><?= e(me()['name']) ?></strong><span>Staff · Sabah</span><a href="logout.php">Logout</a></div>
+      <div class="staff-sidebar-bottom"><strong><?= e(me()['name']) ?></strong><span><?= te('Staff') ?> · Sabah</span><?php language_switcher(); ?><a href="logout.php"><?= te('Logout') ?></a></div>
     </aside>
     <div class="staff-workspace">
-      <header class="staff-topbar"><button type="button" class="staff-menu-toggle" aria-controls="staff-sidebar" aria-expanded="false">Menu</button><span><?= e($links[$page][0] ?? $title) ?></span><span class="staff-context">Private parking · Staff portal</span></header>
+      <header class="staff-topbar"><button type="button" class="staff-menu-toggle" aria-controls="staff-sidebar" aria-expanded="false"><?= te('Menu') ?></button><span><?= te($links[$page][0] ?? $title) ?></span><span class="staff-context"><?= te('Private parking · Staff portal') ?></span></header>
       <main id="staff-main" class="staff-main" tabindex="-1">
-        <?php if ($message): ?><div class="flash"><?= e($message) ?></div><?php endif; ?>
+        <?php localized_flash($message ?? ''); ?>
     <?php
 }
 
@@ -42,9 +43,10 @@ function staff_foot(bool $showChatbot = true): void {
       </main>
       <p class="staff-storage-note">Private parking prototype. Compounds and digital receipts are saved in this browser across sign-outs.</p>
     </div>
-    <div id="toast-stack" class="pe-toast-stack" role="region" aria-label="Notifications"></div>
+    <div id="toast-stack" class="pe-toast-stack" role="region" aria-label="<?= te('Notifications') ?>"></div>
     <div id="toast-status" class="pe-toast-announcer" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="toast-alert" class="pe-toast-announcer" role="alert" aria-live="assertive" aria-atomic="true"></div>
+    <?php locale_client_scripts(); ?>
     <script src="assets/js/toasts.js"></script><script src="assets/js/app.js"></script>
     <script src="assets/js/operations-table.js"></script><script src="assets/js/staff.js"></script>
     <?php if ($showChatbot): ?>

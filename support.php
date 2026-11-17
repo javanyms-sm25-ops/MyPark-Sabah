@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 head('Support');
 ?>
-<h1>Parking support</h1>
+<h1><?= te('Parking support') ?></h1>
 <p class="muted">Prototype chat. Live agent connection can be enabled in the final backend.</p>
 <section class="card chat" id="chat">
   <?php foreach ($_SESSION['demo_chat'] as $message): ?>
@@ -36,22 +36,22 @@ head('Support');
   <?php endforeach; ?>
   <form method="post">
     <input type="hidden" name="csrf" value="<?= csrf() ?>">
-    <label>Message<input name="message" required maxlength="2000" placeholder="How can we help?"></label><button>Send</button>
+    <label><?= te('Message') ?><input name="message" required maxlength="2000" placeholder="<?= te('How can we help?') ?>"></label><button><?= te('Send') ?></button>
   </form>
 </section>
-<h2>Rate your parking experience</h2>
+<h2><?= te('Rate your parking experience') ?></h2>
 <form method="post" class="card">
   <input type="hidden" name="csrf" value="<?= csrf() ?>"><input type="hidden" name="action" value="review">
-  <label>Rating<select name="rating">
+  <label><?= te('Rating') ?><select name="rating">
     <?php foreach ([5 => 'Excellent', 4 => 'Good', 3 => 'Okay', 2 => 'Poor', 1 => 'Bad'] as $value => $label): ?>
-      <option value="<?= $value ?>"><?= $value ?> - <?= e($label) ?></option>
+      <option value="<?= $value ?>"><?= $value ?> - <?= te($label) ?></option>
     <?php endforeach; ?>
   </select></label>
-  <label>Review<input name="review" placeholder="Share feedback" maxlength="2000" required></label><button>Submit review</button>
+  <label><?= te('Review') ?><input name="review" placeholder="<?= te('Share feedback') ?>" maxlength="2000" required></label><button><?= te('Submit review') ?></button>
 </form>
 <?php $reviews = array_filter($_SESSION['demo_reviews'], fn($review) => $review['user_id'] === me()['id']); ?>
 <?php if ($reviews): ?>
-  <h2>Your reviews</h2>
+  <h2><?= te('Your reviews') ?></h2>
   <?php foreach (array_reverse($reviews) as $review): ?>
     <article class="card"><b><?= (int)$review['rating'] ?>/5</b><small> · <?= e($review['at']) ?></small><p><?= e($review['review']) ?></p></article>
   <?php endforeach; ?>

@@ -119,18 +119,18 @@ head('Sabah Parking');
 
 <section class="hero fade-in dashboard-hero">
   <div class="dashboard-hero__content">
-  <p class="eyebrow">WELCOME BACK, <?= e(me()['name']) ?></p>
-  <h1>Find your space.<br><span>Enjoy the journey.</span></h1>
-  <p>Discover convenient parking in Kota Kinabalu, Sandakan, Tawau and beyond.</p>
-  <a class="btn" href="#locations">Explore locations</a>
+  <p class="eyebrow"><?= te('WELCOME BACK, {name}', ['name' => me()['name']]) ?></p>
+  <h1><?= te('Find your space.') ?><br><span><?= te('Enjoy the journey.') ?></span></h1>
+  <p><?= te('Discover convenient parking in Kota Kinabalu, Sandakan, Tawau and beyond.') ?></p>
+  <a class="btn" href="#locations"><?= te('Explore locations') ?></a>
   </div>
   <aside class="dashboard-wallet" aria-labelledby="dashboard-wallet-title"
     data-wallet-user="<?= e($userId) ?>"
     data-wallet-balance="RM <?= e(number_format($wallet['balance'], 2)) ?>">
-    <p id="dashboard-wallet-title" class="dashboard-wallet__label">Wallet balance</p>
+    <p id="dashboard-wallet-title" class="dashboard-wallet__label"><?= te('Wallet balance') ?></p>
     <div class="dashboard-wallet__row">
       <strong id="dashboard-wallet-amount" class="dashboard-wallet__amount" aria-live="polite" aria-atomic="true">RM ••••</strong>
-      <button type="button" class="dashboard-wallet__toggle" aria-label="Show wallet balance"
+      <button type="button" class="dashboard-wallet__toggle" aria-label="<?= te('Show wallet balance') ?>"
         aria-controls="dashboard-wallet-amount" hidden>
         <svg class="dashboard-wallet__eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
           <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
@@ -139,32 +139,32 @@ head('Sabah Parking');
         </svg>
       </button>
     </div>
-    <a class="dashboard-wallet__link" href="wallet.php">Manage wallet <span aria-hidden="true">→</span></a>
+    <a class="dashboard-wallet__link" href="wallet.php"><?= te('Manage wallet') ?> <span aria-hidden="true">→</span></a>
   </aside>
 </section>
 
 <section class="stats">
-  <div class="card"><small>Active parking</small><b><?= count($activeBookings) ?></b></div>
-  <div class="card"><small>Completed visits</small><b><?= count($completedBookings) ?></b></div>
-  <div class="card"><small>Reward points</small><b><?= count($bookings) * 25 ?></b></div>
+  <div class="card"><small><?= te('Active parking') ?></small><b><?= count($activeBookings) ?></b></div>
+  <div class="card"><small><?= te('Completed visits') ?></small><b><?= count($completedBookings) ?></b></div>
+  <div class="card"><small><?= te('Reward points') ?></small><b><?= count($bookings) * 25 ?></b></div>
 </section>
 
 <section class="row card filters" aria-label="Search parking locations">
-  <input id="lotSearch" placeholder="Search city or parking lot">
+  <input id="lotSearch" placeholder="<?= te('Search city or parking lot') ?>">
   <select id="cityFilter">
-    <option value="">All Sabah locations</option>
+    <option value=""><?= te('All Sabah locations') ?></option>
     <?php foreach (array_unique(array_column($lots, 'city')) as $city): ?>
       <option><?= e($city) ?></option>
     <?php endforeach; ?>
   </select>
   <select id="priceFilter">
-    <option value="">Any hourly rate</option>
-    <option value="low">Under RM 2.50</option>
-    <option value="high">RM 2.50 and above</option>
+    <option value=""><?= te('Any hourly rate') ?></option>
+    <option value="low"><?= te('Under RM 2.50') ?></option>
+    <option value="high"><?= te('RM 2.50 and above') ?></option>
   </select>
 </section>
 
-<h2 id="locations">Popular parking locations</h2>
+<h2 id="locations"><?= te('Popular parking locations') ?></h2>
 <section class="lot-grid">
   <?php foreach ($lots as $lot): ?>
     <article class="card lot-card" data-city="<?= e($lot['city']) ?>" data-name="<?= e(strtolower($lot['name'] . ' ' . $lot['city'])) ?>" data-rate="<?= $lot['rate'] ?>">
@@ -173,17 +173,17 @@ head('Sabah Parking');
       <p><?= e($lot['address']) ?> · <?= e($lot['city']) ?></p>
       <p class="rate">RM <?= number_format($lot['rate'], 2) ?><small> / hour</small></p>
       <?php $full = ($occupiedByLot[$lot['id']] ?? 0) >= $lot['capacity']; ?>
-      <p><?= $lot['capacity'] ?> spaces · <span class="tag <?= $full ? 'cancelled' : 'available' ?>"><?= $full ? 'Full' : 'Available' ?></span></p>
-      <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $lot['lat'] ?>,<?= $lot['lng'] ?>" target="_blank" rel="noopener">View map</a>
-      <a class="btn" data-book-lot="<?= $lot['id'] ?>" href="dashboard.php?lot_id=<?= $lot['id'] ?>#bookingPanel">Select location</a>
+      <p><?= $lot['capacity'] ?> spaces · <span class="tag <?= $full ? 'cancelled' : 'available' ?>"><?= te($full ? 'Full' : 'Available') ?></span></p>
+      <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $lot['lat'] ?>,<?= $lot['lng'] ?>" target="_blank" rel="noopener"><?= te('View map') ?></a>
+      <a class="btn" data-book-lot="<?= $lot['id'] ?>" href="dashboard.php?lot_id=<?= $lot['id'] ?>#bookingPanel"><?= te('Select location') ?></a>
     </article>
   <?php endforeach; ?>
 </section>
 
 <?php require __DIR__ . '/includes/booking-panel.php'; ?>
 
-<p class="section-link"><a class="btn" href="history.php">View parking history</a></p>
-<h2>Sabah parking map</h2>
+<p class="section-link"><a class="btn" href="history.php"><?= te('View parking history') ?></a></p>
+<h2><?= te('Sabah parking map') ?></h2>
 <iframe class="map" loading="lazy" src="https://maps.google.com/maps?q=Sabah%20Malaysia&amp;t=&amp;z=7&amp;ie=UTF8&amp;iwloc=&amp;output=embed" title="Map of Sabah"></iframe>
 
 <?php foot(); ?>

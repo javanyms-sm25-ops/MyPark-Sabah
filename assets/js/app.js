@@ -2,6 +2,8 @@
 // Password controls are independent and never store or change the entered value.
 (function () {
   'use strict';
+  const translate = window.MyParkLocale?.text ?? (message => message);
+
 
   document.querySelectorAll('.password-field__control').forEach(function (control) {
     const input = control.querySelector('input[type="password"]');
@@ -15,7 +17,7 @@
 
     function updateToggle() {
       const visible = input.type === 'text';
-      const label = visible ? 'Hide password' : 'Show password';
+      const label = visible ? translate('Hide password') : translate('Show password');
       toggle.setAttribute('aria-label', label);
       toggle.title = label;
       toggle.classList.toggle('is-password-visible', visible);
@@ -44,6 +46,8 @@
 // Dashboard wallet presentation only; no balance values are written to storage.
 (function () {
   'use strict';
+  const translate = window.MyParkLocale?.text ?? (message => message);
+
 
   const wallet = document.querySelector('.dashboard-wallet');
   if (!wallet) return;
@@ -61,8 +65,8 @@
 
   function renderBalance() {
     amount.textContent = hidden ? 'RM ••••' : wallet.dataset.walletBalance;
-    toggle.setAttribute('aria-label', hidden ? 'Show wallet balance' : 'Hide wallet balance');
-    toggle.title = hidden ? 'Show wallet balance' : 'Hide wallet balance';
+    toggle.setAttribute('aria-label', hidden ? translate('Show wallet balance') : translate('Hide wallet balance'));
+    toggle.title = hidden ? translate('Show wallet balance') : translate('Hide wallet balance');
     wallet.classList.toggle('is-balance-visible', !hidden);
   }
 
@@ -81,6 +85,8 @@
 
 (function () {
   'use strict';
+  const translate = window.MyParkLocale?.text ?? (message => message);
+
 
   const root = document.documentElement;
 
@@ -106,7 +112,7 @@
     const menuButton = document.createElement('button');
     menuButton.type = 'button';
     menuButton.className = 'nav-toggle';
-    menuButton.setAttribute('aria-label', 'Open navigation menu');
+    menuButton.setAttribute('aria-label', translate('Open navigation menu'));
     menuButton.setAttribute('aria-expanded', 'false');
     menuButton.innerHTML = '☰';
     logo.insertAdjacentElement('afterend', menuButton);
@@ -114,7 +120,7 @@
     menuButton.addEventListener('click', function () {
       const isOpen = navigation.classList.toggle('is-open');
       menuButton.setAttribute('aria-expanded', String(isOpen));
-      menuButton.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+      menuButton.setAttribute('aria-label', isOpen ? translate('Close navigation menu') : translate('Open navigation menu'));
       menuButton.innerHTML = isOpen ? '×' : '☰';
     });
 
@@ -200,10 +206,11 @@
       const historyRow = timer.closest('#historyTable tr[data-status="active"]');
       if (secondsLeft === 0 && historyRow) {
         historyRow.dataset.status = 'completed';
-        historyRow.dataset.search = historyRow.dataset.search.replace(/ active$/, ' completed');
+        historyRow.dataset.search = [historyRow.cells[0].textContent, historyRow.cells[1].textContent,
+          'completed', translate('Completed')].join(' ').toLowerCase();
         const badge = historyRow.querySelector('.tag');
         badge.classList.replace('active', 'completed');
-        badge.textContent = 'completed';
+        badge.textContent = translate('Completed');
         const cancelForm = historyRow.querySelector('[data-booking-cancel]');
         if (cancelForm?.contains(document.activeElement)) historyRow.querySelector('.btn')?.focus();
         cancelForm?.remove();
@@ -221,7 +228,7 @@
         if (timer.dataset.toastThreshold !== threshold) {
           timer.dataset.toastThreshold = threshold;
           const row = timer.closest('tr');
-          const plate = row ? row.cells[1].textContent.trim() : 'Your vehicle';
+          const plate = row ? row.cells[1].textContent.trim() : translate('Your vehicle');
           window.MyParkToast.show(plate + ': your parking session ends in ' + threshold + ' minutes or less.', 'warning', {
             key: 'parking:' + plate + ':' + timer.dataset.expires + ':' + threshold,
             details: true
@@ -231,8 +238,8 @@
 
       const label = timer.nextElementSibling;
       if (label && label.classList.contains('timer-label')) {
-        label.textContent = secondsLeft === 0 ? 'Parking time expired' :
-          (secondsLeft <= 300 ? 'Less than 5 minutes remaining' : 'Time remaining');
+        label.textContent = secondsLeft === 0 ? translate('Parking time expired') :
+          (secondsLeft <= 300 ? translate('Less than 5 minutes remaining') : translate('Time remaining'));
       }
     });
     if (statusChanged) filterHistory();
@@ -253,7 +260,9 @@
     let pages = 1;
     const controls = document.createElement('div');
     controls.className = 'pagination';
-    controls.innerHTML = '<button type="button" class="page-prev">Previous</button><span class="page-count"></span><button type="button" class="page-next">Next</button>';
+    controls.innerHTML = '<button type="button" class="page-prev"></button><span class="page-count"></span><button type="button" class="page-next"></button>';
+    controls.querySelector('.page-prev').textContent = translate('Previous');
+    controls.querySelector('.page-next').textContent = translate('Next');
     table.parentNode.insertAdjacentElement('afterend', controls);
 
     function showPage(resetPage = false) {
@@ -268,7 +277,8 @@
         row.hidden = !visibleRows.has(row);
       });
       controls.querySelector('.page-count').textContent = matchingRows.length
-        ? 'Page ' + page + ' of ' + pages : 'No matching records';
+        ? (window.MyParkLocale?.text('Page {page} of {pages}', { page, pages }) ?? 'Page ' + page + ' of ' + pages)
+        : translate('No matching records');
       controls.querySelector('.page-prev').disabled = page === 1;
       controls.querySelector('.page-next').disabled = page === pages;
     }

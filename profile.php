@@ -77,16 +77,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vehicle_action'])) {
 }
 head('Profile');
 ?>
-<h1>My profile</h1>
+<h1><?= te('My profile') ?></h1>
 <form method="post" enctype="multipart/form-data" class="card narrow">
   <input type="hidden" name="csrf" value="<?= csrf() ?>">
   <?php if (!empty(me()['photo'])): ?><img class="avatar" src="<?= e(me()['photo']) ?>" alt="Profile photo"><?php endif; ?>
-  <label>Profile photo<input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="user"></label>
-  <label>Name<input name="name" value="<?= e(me()['name']) ?>" minlength="2" maxlength="100" required></label>
-  <label>Email<input value="<?= e(me()['email']) ?>" disabled></label>
-  <label>Phone<input name="phone" value="<?= e(me()['phone'] ?? '') ?>" maxlength="50"></label>
-  <div class="row"><button type="button" data-rotate>Rotate photo</button><button>Save profile</button></div>
-  <p class="hint">Rotation changes the preview only; the original image is saved.</p>
+  <label><?= te('Profile photo') ?><input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="user"></label>
+  <label><?= te('Name') ?><input name="name" value="<?= e(me()['name']) ?>" minlength="2" maxlength="100" required></label>
+  <label><?= te('Email') ?><input value="<?= e(me()['email']) ?>" disabled></label>
+  <label><?= te('Phone') ?><input name="phone" value="<?= e(me()['phone'] ?? '') ?>" maxlength="50"></label>
+  <div class="row"><button type="button" data-rotate><?= te('Rotate photo') ?></button><button><?= te('Save profile') ?></button></div>
+  <p class="hint"><?= te('Rotation changes the preview only; the original image is saved.') ?></p>
 </form>
 <?php if (me()['role'] === 'user'): ?>
   <?php
@@ -99,30 +99,30 @@ head('Profile');
   ?>
   <section class="card narrow" id="my-vehicles" aria-labelledby="my-vehicles-title">
     <div class="vehicle-toolbar">
-      <h2 id="my-vehicles-title">My vehicles</h2>
-      <a class="btn" href="<?= e('profile.php?' . http_build_query($bookingContext + ['vehicle_edit' => 'new']) . '#vehicle-editor') ?>">Add vehicle</a>
+      <h2 id="my-vehicles-title"><?= te('My vehicles') ?></h2>
+      <a class="btn" href="<?= e('profile.php?' . http_build_query($bookingContext + ['vehicle_edit' => 'new']) . '#vehicle-editor') ?>"><?= te('Add vehicle') ?></a>
     </div>
     <?php if ($bookingContext): ?>
-      <p><a class="vehicle-secondary-link" href="<?= e('dashboard.php?' . http_build_query(parking_resume_fields($bookingContext)) . '#bookingPanel') ?>">Back to parking</a></p>
+      <p><a class="vehicle-secondary-link" href="<?= e('dashboard.php?' . http_build_query(parking_resume_fields($bookingContext)) . '#bookingPanel') ?>"><?= te('Back to parking') ?></a></p>
     <?php endif; ?>
-    <?php if ($vehicleError): ?><p class="booking-error" role="alert"><?= e($vehicleError) ?></p><?php endif; ?>
+    <?php if ($vehicleError): ?><p class="booking-error" role="alert"><?= te($vehicleError) ?></p><?php endif; ?>
     <?php if ($editing): ?>
       <form class="vehicle-editor" method="post" action="<?= e($editorUrl) ?>" id="vehicle-editor" aria-labelledby="vehicle-editor-title">
-        <h3 id="vehicle-editor-title"><?= $editVehicle === null ? 'Add vehicle' : 'Edit vehicle' ?></h3>
+        <h3 id="vehicle-editor-title"><?= te($editVehicle === null ? 'Add vehicle' : 'Edit vehicle') ?></h3>
         <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
         <input type="hidden" name="vehicle_action" value="<?= $editVehicle === null ? 'add' : 'edit' ?>">
         <?php if ($editVehicle !== null): ?><input type="hidden" name="vehicle_id" value="<?= e($editor) ?>"><?php endif; ?>
-        <label for="profile-vehicle-plate">Vehicle plate</label>
+        <label for="profile-vehicle-plate"><?= te('Vehicle plate') ?></label>
         <input id="profile-vehicle-plate" name="plate" value="<?= e($initialVehicle['plate']) ?>" placeholder="SAB 1234" maxlength="10" required>
-        <label for="profile-vehicle-name">Vehicle name (optional)</label>
+        <label for="profile-vehicle-name"><?= te('Vehicle name (optional)') ?></label>
         <input id="profile-vehicle-name" name="vehicle_name" value="<?= e($initialVehicle['name']) ?>" maxlength="40">
         <div class="parking-actions">
-          <button>Save</button>
-          <a class="vehicle-secondary-link" href="<?= e($vehiclesPage . '#my-vehicles') ?>">Cancel</a>
+          <button><?= te('Save') ?></button>
+          <a class="vehicle-secondary-link" href="<?= e($vehiclesPage . '#my-vehicles') ?>"><?= te('Cancel') ?></a>
         </div>
       </form>
     <?php endif; ?>
-    <?php if (!$vehicles): ?><p>No saved vehicles yet.</p><?php endif; ?>
+    <?php if (!$vehicles): ?><p><?= te('No saved vehicles yet.') ?></p><?php endif; ?>
     <?php if ($vehicles): ?>
       <ul class="vehicle-list">
         <?php foreach ($vehicles as $vehicleId => $vehicle): ?>
@@ -130,18 +130,18 @@ head('Profile');
           <li class="vehicle-list-item">
             <div>
               <strong><?= e($vehicle['plate']) ?></strong>
-              <?php if ($isDefault): ?><span class="tag active">Default</span><?php endif; ?>
+              <?php if ($isDefault): ?><span class="tag active"><?= te('Default') ?></span><?php endif; ?>
               <?php if ($vehicle['name'] !== ''): ?><div class="muted"><?= e($vehicle['name']) ?></div><?php endif; ?>
             </div>
             <div class="parking-actions">
-              <a class="vehicle-secondary-link" href="<?= e('profile.php?' . http_build_query($bookingContext + ['vehicle_edit' => $vehicleId]) . '#vehicle-editor') ?>" aria-label="Edit <?= e($vehicle['plate']) ?>">Edit</a>
+              <a class="vehicle-secondary-link" href="<?= e('profile.php?' . http_build_query($bookingContext + ['vehicle_edit' => $vehicleId]) . '#vehicle-editor') ?>" aria-label="Edit <?= e($vehicle['plate']) ?>"><?= te('Edit') ?></a>
               <form method="post" action="<?= e($vehiclesPage . '#my-vehicles') ?>" class="parking-actions">
                 <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
                 <input type="hidden" name="vehicle_id" value="<?= e($vehicleId) ?>">
                 <?php if (!$isDefault): ?>
-                  <button class="ghost" name="vehicle_action" value="default" aria-label="Set <?= e($vehicle['plate']) ?> as default">Set as default</button>
+                  <button class="ghost" name="vehicle_action" value="default" aria-label="Set <?= e($vehicle['plate']) ?> as default"><?= te('Set as default') ?></button>
                 <?php endif; ?>
-                <button class="danger" name="vehicle_action" value="delete" aria-label="Remove <?= e($vehicle['plate']) ?>" data-confirm="Remove <?= e($vehicle['plate']) ?> from your saved vehicles?">Remove</button>
+                <button class="danger" name="vehicle_action" value="delete" aria-label="Remove <?= e($vehicle['plate']) ?>" data-confirm="Remove <?= e($vehicle['plate']) ?> from your saved vehicles?"><?= te('Remove') ?></button>
               </form>
             </div>
           </li>

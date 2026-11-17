@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/demo-session.php';
 start_demo_session();
+require_once __DIR__ . '/localization.php';
+remember_selected_language();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 // Front-end prototype store. Demo data lives in the session; no database connection is made.
 $_SESSION['demo_users'] ??= [
@@ -96,5 +98,87 @@ function flash(?string $message = null): ?string {
     unset($_SESSION['flash']);
     return $message;
 }
-function head($title){if((me()['role']??'')==='staff'){require_once __DIR__ . '/staff-layout.php';staff_head($title);return;}$u=me();$f=flash();$notice=$u?count(array_filter($_SESSION['demo_bookings']??[],fn($b)=>$b['user_id']===$u['id']&&$b['status']==='active')):0;echo '<!doctype html><html lang="en"><head><meta charset="utf-8">' . ((defined('MYPARK_ADMIN_PAGE') || defined('MYPARK_AUTH_PAGE')) ? '<base href="../">' : '') . '<meta name="viewport" content="width=device-width,initial-scale=1"><title>'.e($title).' - MyPark Sabah</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"><script src="assets/js/loading.js"></script><link rel="stylesheet" href="assets/css/style.css"></head><body><header><a class="logo" href="index.php">🅿 MyPark Sabah</a><nav aria-label="Main menu">';if($u){if($u['role']!=='superadmin')echo '<a href="dashboard.php">Parking</a>';echo '<a href="history.php">History</a><a href="receipts.php">Receipts</a><a href="wallet.php">Wallet</a><a href="compound.php">Compounds</a><a href="profile.php">Profile</a><a href="support.php">Support</a>';if(in_array($u['role'],['admin','superadmin','staff'],true))echo '<a href="admin/">Operations</a>';echo '<a class="notification-link" href="history.php" aria-label="Parking notifications">🔔'.($notice?'<b>'.$notice.'</b>':'').'</a>';echo '<span>'.e($u['name']).' · '.e($u['role']).'</span><a href="logout.php">Logout</a>';}else echo '<a href="pages/login.php">Login</a><a href="pages/register.php">Register</a>';echo '<button id="themeBtn" class="ghost" type="button">🌓</button></nav></header><main>';if($f)echo '<div class="flash">'.e($f).'</div>';}
-function foot(bool $showChatbot = true){if((me()['role']??'')==='staff'){require_once __DIR__ . '/staff-layout.php';staff_foot($showChatbot);return;}echo '</main><footer><section><b>MyPark Sabah</b><p>Simple parking reservations across Sabah.</p></section><section><b>Contact</b><p>support@mypark-sabah.demo<br>+60 88 000 000</p></section><section><b>Help</b><p><a href="support.php">Customer support</a><br><a href="profile.php">My profile</a></p></section></footer><div id="toast-stack" class="pe-toast-stack" role="region" aria-label="Notifications"></div><div id="toast-status" class="pe-toast-announcer" role="status" aria-live="polite" aria-atomic="true"></div><div id="toast-alert" class="pe-toast-announcer" role="alert" aria-live="assertive" aria-atomic="true"></div><script src="assets/js/toasts.js"></script><script src="assets/js/app.js"></script> ' . ($showChatbot ? '<script src="https://cdn.botpress.cloud/webchat/v5.0/inject.js"></script><script src="https://files.bpcontent.cloud/2026/11/13/14/20261113143638-NZ5LEIAP.js" defer></script>' : '') . '</body></html>';}
+function head(string $title): void {
+    if ((me()['role'] ?? '') === 'staff') {
+        require_once __DIR__ . '/staff-layout.php';
+        staff_head($title);
+        return;
+    }
+    $user = me();
+    $message = flash();
+    $notice = $user ? count(array_filter($_SESSION['demo_bookings'], fn($booking) =>
+        $booking['user_id'] === $user['id'] && $booking['status'] === 'active')) : 0;
+    $links = $user ? [
+        'dashboard.php' => 'Parking',
+        'history.php' => 'History',
+        'receipts.php' => 'Receipts',
+        'wallet.php' => 'Wallet',
+        'compound.php' => 'Compounds',
+        'profile.php' => 'Profile',
+        'support.php' => 'Support',
+    ] : ['pages/login.php' => 'Login', 'pages/register.php' => 'Register'];
+    if (($user['role'] ?? '') === 'superadmin') unset($links['dashboard.php']);
+    if (in_array($user['role'] ?? '', ['admin', 'superadmin'], true)) $links['admin/'] = 'Operations';
+    header('Content-Language: ' . current_language());
+    ?>
+    <!doctype html>
+    <html lang="<?= e(current_language()) ?>">
+    <head>
+      <meta charset="utf-8">
+      <?php if (defined('MYPARK_ADMIN_PAGE') || defined('MYPARK_AUTH_PAGE')): ?><base href="../"><?php endif; ?>
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title><?= te($title) ?> - MyPark Sabah</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+      <script src="assets/js/loading.js"></script>
+      <link rel="stylesheet" href="assets/css/style.css">
+    </head>
+    <body>
+      <header>
+        <a class="logo" href="index.php">🅿 MyPark Sabah</a>
+        <nav aria-label="<?= te('Main menu') ?>">
+          <?php foreach ($links as $href => $label): ?><a href="<?= e($href) ?>"><?= te($label) ?></a><?php endforeach; ?>
+          <?php if ($user): ?>
+            <a class="notification-link" href="history.php" aria-label="<?= te('Parking notifications') ?>">🔔<?php if ($notice): ?><b><?= $notice ?></b><?php endif; ?></a>
+            <span><?= e($user['name']) ?> · <?= te(match ($user['role']) {
+                'user' => 'Member', 'superadmin' => 'Super Admin', default => ucfirst($user['role'])
+            }) ?></span>
+            <a href="logout.php"><?= te('Logout') ?></a>
+          <?php endif; ?>
+          <?php language_switcher(); ?>
+          <button id="themeBtn" class="ghost" type="button" aria-label="<?= te('Toggle theme') ?>">🌓</button>
+        </nav>
+      </header>
+      <main>
+      <?php localized_flash($message ?? ''); ?>
+    <?php
+}
+
+function foot(bool $showChatbot = true): void {
+    if ((me()['role'] ?? '') === 'staff') {
+        require_once __DIR__ . '/staff-layout.php';
+        staff_foot($showChatbot);
+        return;
+    }
+    ?>
+      </main>
+      <footer>
+        <section><b>MyPark Sabah</b><p><?= te('Simple parking reservations across Sabah.') ?></p></section>
+        <section><b><?= te('Contact') ?></b><p>support@mypark-sabah.demo<br>+60 88 000 000</p></section>
+        <section><b><?= te('Help') ?></b><p><a href="support.php"><?= te('Customer support') ?></a><br><a href="profile.php"><?= te('My profile') ?></a></p></section>
+      </footer>
+      <div id="toast-stack" class="pe-toast-stack" role="region" aria-label="<?= te('Notifications') ?>"></div>
+      <div id="toast-status" class="pe-toast-announcer" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div id="toast-alert" class="pe-toast-announcer" role="alert" aria-live="assertive" aria-atomic="true"></div>
+      <?php locale_client_scripts(); ?>
+      <script src="assets/js/toasts.js"></script>
+      <script src="assets/js/app.js"></script>
+      <?php if ($showChatbot): ?>
+        <script src="https://cdn.botpress.cloud/webchat/v5.0/inject.js"></script>
+        <script src="https://files.bpcontent.cloud/2026/11/13/14/20261113143638-NZ5LEIAP.js" defer></script>
+      <?php endif; ?>
+    </body>
+    </html>
+    <?php
+}

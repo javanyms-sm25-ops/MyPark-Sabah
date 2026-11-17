@@ -71,18 +71,18 @@ head('Scan & Pay Compound');
 <link rel="stylesheet" href="assets/css/compound.css">
 <div class="compound-page">
   <section class="compound-hero" aria-labelledby="compound-title">
-    <h1 id="compound-title">Scan &amp; Pay Compound</h1>
+    <h1 id="compound-title"><?= te('Scan & Pay Compound') ?></h1>
     <div class="card compound-search">
       <form action="compound.php" method="get" id="compound-lookup" role="search">
-        <label for="compound-query">Compound number or vehicle plate</label>
+        <label for="compound-query"><?= te('Compound number or vehicle plate') ?></label>
         <div class="compound-search-row">
           <input id="compound-query" name="q" value="<?= e($query) ?>" maxlength="24" placeholder="F-000001 or SAB 1234" autocomplete="off" autocapitalize="characters" spellcheck="false" required>
-          <button type="submit">Search</button>
+          <button type="submit"><?= te('Search') ?></button>
         </div>
       </form>
       <div class="compound-scan">
-        <span>Or scan the barcode on your compound notice</span>
-        <button type="button" id="compound-scan" class="compound-scan-button" hidden><span class="compound-barcode" aria-hidden="true"></span> Scan barcode</button>
+        <span><?= te('Or scan the barcode on your compound notice') ?></span>
+        <button type="button" id="compound-scan" class="compound-scan-button" hidden><span class="compound-barcode" aria-hidden="true"></span> <?= te('Scan barcode') ?></button>
         <noscript><p>Enter the number above to look up your compound.</p></noscript>
       </div>
       <p id="compound-scan-status" class="hint" role="status"></p>
@@ -90,28 +90,28 @@ head('Scan & Pay Compound');
   </section>
 
   <div class="compound-wallet">
-    <span>Demo wallet balance <strong><?= staff_money((int) round($wallet['balance'] * 100)) ?></strong></span>
-    <a href="wallet.php">Top up wallet</a>
-    <a href="receipts.php?type=compound">View compound receipts</a>
+    <span><?= te('Demo wallet balance') ?> <strong><?= staff_money((int) round($wallet['balance'] * 100)) ?></strong></span>
+    <a href="wallet.php"><?= te('Top up wallet') ?></a>
+    <a href="receipts.php?type=compound"><?= te('View compound receipts') ?></a>
   </div>
-  <?php if ($error): ?><p class="error" role="alert"><?= e($error) ?></p><?php endif; ?>
+  <?php if ($error): ?><p class="error" role="alert"><?= te($error) ?></p><?php endif; ?>
 
   <?php if ($query !== ''): ?>
     <section aria-labelledby="compound-results-title">
-      <h2 id="compound-results-title">Search results</h2>
+      <h2 id="compound-results-title"><?= te('Search results') ?></h2>
       <?php if (!$results): ?><p class="card">No compounds found for <?= e($query) ?>. Check the number and try again.</p><?php endif; ?>
       <div class="compound-results">
         <?php foreach ($results as $fine): ?>
           <article class="card compound-result">
             <div class="compound-result-heading">
               <h3><?= e($fine['code']) ?></h3>
-              <span class="tag <?= e($fine['status']) ?>"><?= e(STAFF_FINE_STATUSES[$fine['status']]) ?></span>
+              <span class="tag <?= e($fine['status']) ?>"><?= te(STAFF_FINE_STATUSES[$fine['status']]) ?></span>
             </div>
             <dl>
-              <div><dt>Vehicle</dt><dd><?= e($fine['plate']) ?></dd></div>
-              <div><dt>Violation</dt><dd><?= e($fine['violation']) ?></dd></div>
-              <div><dt>Issued</dt><dd><?= e(date('d M Y, g:i a', $fine['occurred_ts'])) ?></dd></div>
-              <div><dt>Amount</dt><dd><strong><?= staff_money($fine['amount_cents']) ?></strong></dd></div>
+              <div><dt><?= te('Vehicle') ?></dt><dd><?= e($fine['plate']) ?></dd></div>
+              <div><dt><?= te('Violation') ?></dt><dd><?= e($fine['violation']) ?></dd></div>
+              <div><dt><?= te('Issued') ?></dt><dd><?= e(date('d M Y, g:i a', $fine['occurred_ts'])) ?></dd></div>
+              <div><dt><?= te('Amount') ?></dt><dd><strong><?= staff_money($fine['amount_cents']) ?></strong></dd></div>
             </dl>
 
             <?php if ($fine['status'] === 'unpaid'): ?>
@@ -130,10 +130,10 @@ head('Scan & Pay Compound');
 </div>
 
 <dialog id="compound-camera" class="compound-camera" aria-labelledby="compound-camera-title">
-  <h2 id="compound-camera-title">Scan compound barcode</h2>
-  <p id="compound-camera-status" role="status">Requesting camera access…</p>
+  <h2 id="compound-camera-title"><?= te('Scan compound barcode') ?></h2>
+  <p id="compound-camera-status" role="status"><?= te('Requesting camera access…') ?></p>
   <video muted playsinline aria-label="Barcode camera preview"></video>
-  <form method="dialog"><button type="submit">Close camera</button></form>
+  <form method="dialog"><button type="submit"><?= te('Close camera') ?></button></form>
 </dialog>
 <script src="assets/js/compound.js" defer></script>
 <?php foot(); ?>

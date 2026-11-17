@@ -1,12 +1,14 @@
 /* Shared operation feedback; text is inserted safely and focus is never stolen. */
 (function () {
   'use strict';
+  const translate = window.MyParkLocale?.text ?? (message => message);
+
   const stack = document.getElementById('toast-stack');
   if (!stack) return;
   const polite = document.getElementById('toast-status');
   const urgent = document.getElementById('toast-alert');
   const active = new Map();
-  const titles = { success: 'Success', info: 'Information', warning: 'Reminder', error: 'Something went wrong' };
+  const titles = { success: translate('Success'), info: translate('Information'), warning: translate('Reminder'), error: translate('Something went wrong') };
   const icons = { success: '✓', info: 'i', warning: '!', error: '!' };
 
   function show(message, type = 'info', options = {}) {
@@ -26,12 +28,12 @@
     const heading = document.createElement('strong');
     heading.textContent = titles[type];
     const text = document.createElement('p');
-    text.textContent = message;
+    text.textContent = translate(message);
     body.append(heading, text);
     if (options.details) {
       const link = document.createElement('a');
       link.href = 'history.php';
-      link.textContent = 'View parking details';
+      link.textContent = translate('View parking details');
       body.append(link);
     }
     const close = document.createElement('button');
@@ -99,7 +101,7 @@
     if (!message) return;
     const failure = element.classList.contains('error') || /not found|must be|enter a valid|use jpg|invalid|failed|cannot|can be cancelled|location is full/i.test(message);
     const success = /updated|created|reserved|cancelled|added|topped up|registered/i.test(message);
-    const type = failure ? 'error' : success ? 'success' : 'info';
+    const type = element.dataset.toastType || (failure ? 'error' : success ? 'success' : 'info');
     show(message, type);
     if (type !== 'error') element.hidden = true;
   });

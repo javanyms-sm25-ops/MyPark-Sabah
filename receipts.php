@@ -53,40 +53,40 @@ head($confirmEmail ? 'Email receipt' : 'Digital receipts');
 <div class="receipts-page">
   <?php if (!$showDetails): ?>
     <div class="receipts-hero">
-      <h1>Digital receipts</h1>
-      <p>View, print or email receipts from the past 30 days.</p>
+      <h1><?= te('Digital receipts') ?></h1>
+      <p><?= te('View, print or email receipts from the past 30 days.') ?></p>
     </div>
 
     <nav class="receipts-categories" aria-label="Receipt categories">
       <?php foreach (['all' => 'All receipts'] + RECEIPT_TYPES as $key => $label): ?>
-        <a href="receipts.php?<?= e(http_build_query(array_replace($filters, ['type' => $key]))) ?>" <?= $key === $category ? 'aria-current="page"' : '' ?>><?= e($label) ?></a>
+        <a href="receipts.php?<?= e(http_build_query(array_replace($filters, ['type' => $key]))) ?>" <?= $key === $category ? 'aria-current="page"' : '' ?>><?= te($label) ?></a>
       <?php endforeach; ?>
     </nav>
 
     <form class="card receipts-filter" method="get" action="receipts.php" aria-labelledby="receipts-filter-title">
-      <h2 id="receipts-filter-title">Filter by date</h2>
+      <h2 id="receipts-filter-title"><?= te('Filter by date') ?></h2>
       <p id="receipts-date-help">Choose dates from <?= e($firstDay->format('j M Y')) ?> to <?= e($today->format('j M Y')) ?> (Malaysia time).</p>
       <input type="hidden" name="type" value="<?= e($category) ?>">
       <div class="receipts-filter-fields">
         <div>
-          <label for="receipt-start">Start date</label>
+          <label for="receipt-start"><?= te('Start date') ?></label>
           <input type="date" id="receipt-start" name="start" min="<?= e($minDate) ?>" max="<?= e($maxDate) ?>" value="<?= e($filters['start']) ?>" aria-describedby="receipts-date-help" required>
         </div>
         <div>
-          <label for="receipt-end">End date</label>
+          <label for="receipt-end"><?= te('End date') ?></label>
           <input type="date" id="receipt-end" name="end" min="<?= e($minDate) ?>" max="<?= e($maxDate) ?>" value="<?= e($filters['end']) ?>" aria-describedby="receipts-date-help" required>
         </div>
-        <button type="submit">Apply dates</button>
-        <a class="receipts-link" href="receipts.php?type=<?= e($category) ?>">Reset dates</a>
+        <button type="submit"><?= te('Apply dates') ?></button>
+        <a class="receipts-link" href="receipts.php?type=<?= e($category) ?>"><?= te('Reset dates') ?></a>
       </div>
-      <?php if ($filterError): ?><p class="error" role="alert"><?= e($filterError) ?></p><?php endif; ?>
+      <?php if ($filterError): ?><p class="error" role="alert"><?= te($filterError) ?></p><?php endif; ?>
     </form>
 
     <section aria-labelledby="receipt-results-title">
       <h2 id="receipt-results-title"><?= count($receipts) ?> <?= count($receipts) === 1 ? 'receipt' : 'receipts' ?> found</h2>
       <?php if (!$receipts): ?>
         <div class="card">
-          <h3>No receipts for these dates</h3>
+          <h3><?= te('No receipts for these dates') ?></h3>
           <p>Try a different date range or choose All receipts to see every transaction type.</p>
         </div>
       <?php endif; ?>
@@ -98,20 +98,20 @@ head($confirmEmail ? 'Email receipt' : 'Digital receipts');
         ?>
           <li class="card receipt-row">
             <div>
-              <h3><?= e(receipt_title($item)) ?><?= $summary !== '' ? ' · ' . e($summary) : '' ?></h3>
+              <h3><?= te(receipt_title($item)) ?><?= $summary !== '' ? ' · ' . e($summary) : '' ?></h3>
               <p><time datetime="<?= e(date(DATE_ATOM, $item['at'])) ?>"><?= e(receipt_time($item['at'])) ?></time></p>
             </div>
             <p class="receipt-row-amount"><?= e(receipt_money($item['amount_cents'])) ?></p>
-            <a class="btn" href="<?= e($itemUrl) ?>">View receipt<span class="receipt-sr-only"> <?= e($item['id']) ?></span></a>
+            <a class="btn" href="<?= e($itemUrl) ?>"><?= te('View receipt') ?><span class="receipt-sr-only"> <?= e($item['id']) ?></span></a>
           </li>
         <?php endforeach; ?>
       </ul>
     </section>
   <?php elseif (!$receipt): ?>
     <section class="card">
-      <h1>Receipt unavailable</h1>
+      <h1><?= te('Receipt unavailable') ?></h1>
       <p>Only receipts from your account and from the past 30 days are available.</p>
-      <a class="btn" href="<?= e($listUrl) ?>">Back to receipts</a>
+      <a class="btn" href="<?= e($listUrl) ?>"><?= te('Back to receipts') ?></a>
     </section>
   <?php elseif ($confirmEmail):
       $detailUrl = $listUrl . '&id=' . $receipt['id'];
@@ -121,31 +121,31 @@ head($confirmEmail ? 'Email receipt' : 'Digital receipts');
           . '&body=' . rawurlencode(receipt_text($receipt));
   ?>
     <section class="card receipt-email" aria-labelledby="receipt-email-title">
-      <h1 id="receipt-email-title">Email this receipt</h1>
+      <h1 id="receipt-email-title"><?= te('Email this receipt') ?></h1>
       <p>Open an email draft addressed to <strong><?= e($email) ?></strong>?</p>
       <p>The receipt will be in the message. You can review it and select Send in your email app.</p>
       <div class="receipt-actions">
-        <a class="btn" href="<?= e($mailUrl) ?>">Open email draft</a>
-        <a class="receipts-link" href="<?= e($detailUrl) ?>">Cancel</a>
+        <a class="btn" href="<?= e($mailUrl) ?>"><?= te('Open email draft') ?></a>
+        <a class="receipts-link" href="<?= e($detailUrl) ?>"><?= te('Cancel') ?></a>
       </div>
     </section>
   <?php else: ?>
-    <a class="receipts-link receipt-back" href="<?= e($listUrl) ?>">Back to receipts</a>
+    <a class="receipts-link receipt-back" href="<?= e($listUrl) ?>"><?= te('Back to receipts') ?></a>
     <article class="card receipt-detail" aria-labelledby="receipt-title">
       <p class="receipt-brand">MyPark Sabah</p>
-      <h1 id="receipt-title"><?= e(receipt_title($receipt)) ?></h1>
+      <h1 id="receipt-title"><?= te(receipt_title($receipt)) ?></h1>
       <dl class="receipt-details">
-        <div><dt>Receipt number</dt><dd><?= e($receipt['id']) ?></dd></div>
-        <div><dt>Date (Malaysia time)</dt><dd><time datetime="<?= e(date(DATE_ATOM, $receipt['at'])) ?>"><?= e(receipt_time($receipt['at'])) ?></time></dd></div>
+        <div><dt><?= te('Receipt number') ?></dt><dd><?= e($receipt['id']) ?></dd></div>
+        <div><dt><?= te('Date (Malaysia time)') ?></dt><dd><time datetime="<?= e(date(DATE_ATOM, $receipt['at'])) ?>"><?= e(receipt_time($receipt['at'])) ?></time></dd></div>
         <?php foreach ($receipt['details'] as $label => $value): ?>
-          <div><dt><?= e($label) ?></dt><dd><?= e($value) ?></dd></div>
+          <div><dt><?= te($label) ?></dt><dd><?= e($value) ?></dd></div>
         <?php endforeach; ?>
         <div class="receipt-total"><dt><?= e(receipt_amount_label($receipt)) ?></dt><dd><?= e(receipt_money($receipt['amount_cents'])) ?></dd></div>
       </dl>
       <p><?= $receipt['type'] === 'parking' ? 'Demo booking. No payment was collected.' : 'Demo transaction.' ?></p>
       <div class="receipt-actions">
-        <button type="button" onclick="window.print()">Print or save as PDF</button>
-        <a class="btn" href="<?= e($listUrl . '&id=' . $receipt['id'] . '&email=1') ?>">Email receipt</a>
+        <button type="button" onclick="window.print()"><?= te('Print or save as PDF') ?></button>
+        <a class="btn" href="<?= e($listUrl . '&id=' . $receipt['id'] . '&email=1') ?>"><?= te('Email receipt') ?></a>
       </div>
     </article>
   <?php endif; ?>

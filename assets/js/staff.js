@@ -1,6 +1,8 @@
 /* Staff-only interface. Records and mutations remain in the PHP session store. */
 (function () {
   'use strict';
+  const translate = window.MyParkLocale?.text ?? (message => message);
+
   const body = document.body;
   if (!body.classList.contains('staff-portal')) return;
   const el = (tag, cls, text) => {
@@ -70,7 +72,8 @@
     dialogBody.replaceChildren(); dialog.showModal(); closeDialog.focus();
   }
   function badge(status, kind = 'fine') {
-    return el('span', 'staff-badge staff-badge--' + status, (kind === 'fine' ? data.fine_statuses : data.maintenance_statuses)[status] || status);
+    const label = (kind === 'fine' ? data.fine_statuses : data.maintenance_statuses)[status] || status;
+    return el('span', 'staff-badge staff-badge--' + status, translate(label));
   }
   function showPageError(text) {
     pageError.querySelector('span').textContent = text; pageError.hidden = false;
@@ -99,7 +102,7 @@
   async function refresh() {
     refreshController?.abort(); refreshController = new AbortController();
     const current = ++sequence;
-    refreshButton.disabled = true; requestStatus.hidden = false; requestStatus.textContent = 'Refreshing records…'; pageError.hidden = true;
+    refreshButton.disabled = true; requestStatus.hidden = false; requestStatus.textContent = translate('Refreshing records…'); pageError.hidden = true;
     try {
       const response = await fetch('api/staff.php?page=' + page, { credentials: 'same-origin', cache: 'no-store', signal: refreshController.signal });
       const result = await readResponse(response); if (current === sequence) applyData(result.data);
@@ -110,10 +113,10 @@
   refreshButton.addEventListener('click', refresh); document.getElementById('staff-retry').addEventListener('click', refresh);
 
   const fineColumns = [
-    ['code', 'Fine ID'], ['plate', 'Vehicle Plate'], ['violation', 'Violation Type'], ['occurred_ts', 'Date'],
-    ['amount_cents', 'Amount (RM)', true], ['status', 'Status'], ['actions', 'Actions']
+        ['code', translate('Fine ID')], ['plate', translate('Vehicle Plate')], ['violation', translate('Violation Type')], ['occurred_ts', translate('Date')],
+    ['amount_cents', translate('Amount (RM)'), true], ['status', translate('Status')], ['actions', translate('Actions')]
   ];
-  const maintenanceColumns = [['code', 'Record ID'], ['title', 'Issue'], ['location', 'Location'], ['status', 'Status'], ['updated_at', 'Updated'], ['actions', 'Actions']];
+  const maintenanceColumns = [['code', translate('Record ID')], ['title', translate('Issue')], ['location', translate('Location')], ['status', translate('Status')], ['updated_at', translate('Updated')], ['actions', translate('Actions')]];
   function displayValue(record, key, kind) {
     if (key === 'amount_cents') return money(record.amount_cents);
     if (key === 'occurred_ts') return dateText(record.occurred_ts * 1000);
@@ -123,22 +126,22 @@
   }
   function rowActions(record, kind) {
     const group = el('div', 'staff-row-actions');
-    const view = button('View', () => viewRecord(record, kind, view)); group.append(view);
+    const view = button(translate('View'), () => viewRecord(record, kind, view)); group.append(view);
     if (!record.can_manage) return group;
     if (kind === 'maintenance' || record.status === 'unpaid') {
-      const edit = button('Edit', () => editRecord(kind, record, edit)); group.append(edit);
+      const edit = button(translate('Edit'), () => editRecord(kind, record, edit)); group.append(edit);
     }
     if (kind === 'fine' && record.status === 'unpaid') {
-      const paid = button('Record payment', () => confirmRecord('fine_paid', record, paid)); group.append(paid);
+      const paid = button(translate('Record payment'), () => confirmRecord('fine_paid', record, paid)); group.append(paid);
     }
     if (kind === 'maintenance' || record.status !== 'void') {
       const action = kind === 'fine' ? 'fine_void' : 'maintenance_delete';
-      const remove = button(kind === 'fine' ? 'Void' : 'Delete', () => confirmRecord(action, record, remove)); remove.classList.add('staff-danger'); group.append(remove);
+      const remove = button(kind === 'fine' ? translate('Void') : translate('Delete'), () => confirmRecord(action, record, remove)); remove.classList.add('staff-danger'); group.append(remove);
     }
     return group;
   }
   function createTable(records, columns, kind, emptyText) {
-    const scroll = el('div', 'staff-table-scroll'); scroll.tabIndex = 0; scroll.setAttribute('role', 'region'); scroll.setAttribute('aria-label', kind === 'fine' ? 'Fine records' : 'Maintenance records');
+    const scroll = el('div', 'staff-table-scroll'); scroll.tabIndex = 0; scroll.setAttribute('role', 'region'); scroll.setAttribute('aria-label', kind === 'fine' ? translate('Fine records') : translate('Maintenance records'));
     const table = el('table', 'staff-table'); const head = el('thead'), header = el('tr'), tbody = el('tbody');
     columns.forEach(([key, label, number]) => { const th = el('th', number ? 'staff-number' : '', label); th.scope = 'col'; th.dataset.column = key; header.append(th); }); head.append(header);
     records.forEach(record => {
@@ -160,15 +163,15 @@
       this.host = host; this.kind = kind; this.key = kind === 'fine' ? 'fines' : 'maintenance'; this.columns = kind === 'fine' ? fineColumns : maintenanceColumns;
       this.state = { query: '', status: '', sort: kind === 'fine' ? 'occurred_ts' : 'updated_at', direction: -1, page: 1, size: 10 };
       const tools = el('div', 'staff-table-tools');
-      this.search = el('input'); this.search.type = 'search'; this.search.placeholder = kind === 'fine' ? 'Search Fine ID or Vehicle Plate' : 'Search ID, issue or location'; this.search.setAttribute('aria-label', this.search.placeholder);
+      this.search = el('input'); this.search.type = 'search'; this.search.placeholder = kind === 'fine' ? translate('Search Fine ID or Vehicle Plate') : translate('Search ID, issue or location'); this.search.setAttribute('aria-label', this.search.placeholder);
       this.search.addEventListener('input', () => { this.state.query = this.search.value; clearTimeout(this.timer); this.timer = setTimeout(() => this.resetPage(), 300); });
-      this.status = el('select'); this.status.setAttribute('aria-label', 'Filter by status'); this.status.add(new Option('All statuses', ''));
-      Object.entries(kind === 'fine' ? data.fine_statuses : data.maintenance_statuses).forEach(([value, label]) => this.status.add(new Option(label, value)));
+      this.status = el('select'); this.status.setAttribute('aria-label', translate('Filter by status')); this.status.add(new Option(translate('All statuses'), ''));
+      Object.entries(kind === 'fine' ? data.fine_statuses : data.maintenance_statuses).forEach(([value, label]) => this.status.add(new Option(translate(label), value)));
       this.status.addEventListener('change', () => { this.state.status = this.status.value; this.resetPage(); });
-      const clear = button('Clear filters', () => { this.state.query = ''; this.state.status = ''; this.search.value = ''; this.status.value = ''; this.resetPage(); this.search.focus(); });
+      const clear = button(translate('Clear filters'), () => { this.state.query = ''; this.state.status = ''; this.search.value = ''; this.status.value = ''; this.resetPage(); this.search.focus(); });
       tools.append(this.search, this.status, clear); this.output = el('div');
       const footer = el('div', 'staff-table-footer'); this.count = el('span', 'staff-muted'); this.count.setAttribute('role', 'status');
-      const label = el('label', 'staff-page-size', 'Rows per page'), select = el('select');
+      const label = el('label', 'staff-page-size', translate('Rows per page')), select = el('select');
       [10, 25, 50].forEach(n => select.add(new Option(String(n), String(n)))); select.addEventListener('change', () => { this.state.size = Number(select.value); this.resetPage(); }); label.append(select);
       this.pages = el('nav', 'staff-pagination'); this.pages.setAttribute('aria-label', this.key + ' pages'); footer.append(this.count, label, this.pages); host.append(tools, this.output, footer); this.render();
     }
@@ -188,7 +191,7 @@
         return compare ? compare * state.direction : a.id - b.id;
       });
       const paged = window.MyParkTableData.paginate(rows, state.page, state.size); state.page = paged.page;
-      const empty = data[this.key].length ? 'No matching ' + (this.kind === 'fine' ? 'fine records.' : 'maintenance records.') : this.kind === 'fine' ? 'No fine records yet.' : 'No maintenance records yet.';
+      const empty = data[this.key].length ? 'No matching ' + (this.kind === 'fine' ? 'fine records.' : 'maintenance records.') : this.kind === 'fine' ? translate('No fine records yet.') : translate('No maintenance records yet.');
       const rendered = createTable(paged.rows, this.columns, this.kind, empty);
       this.columns.forEach(([key, label]) => {
         if (key === 'actions') return;
@@ -210,11 +213,11 @@
       this.pages.replaceChildren();
       if (paged.pages > 1) {
         const go = n => { state.page = n; this.render(); this.pages.querySelector('[aria-current="page"]')?.focus(); };
-        const prev = button('Previous', () => go(state.page - 1)); prev.disabled = state.page === 1; this.pages.append(prev);
+        const prev = button(translate('Previous'), () => go(state.page - 1)); prev.disabled = state.page === 1; this.pages.append(prev);
         window.MyParkTableData.pageNumbers(state.page, paged.pages).forEach(n => {
           if (n === '…') { this.pages.append(el('span', '', n)); return; }
           const item = button(String(n), () => go(n)); if (n === state.page) item.setAttribute('aria-current', 'page'); item.setAttribute('aria-label', 'Page ' + n); this.pages.append(item);
-        }); const next = button('Next', () => go(state.page + 1)); next.disabled = state.page === paged.pages; this.pages.append(next);
+        }); const next = button(translate('Next'), () => go(state.page + 1)); next.disabled = state.page === paged.pages; this.pages.append(next);
       }
     }
   }
@@ -249,7 +252,7 @@
     if (error) { error.textContent = text; error.hidden = !text; }
   }
   function formFooter(form, label) {
-    const actions = el('div', 'staff-form-actions'); const cancel = button('Cancel', () => { if (!submitting) dialog.close(); });
+    const actions = el('div', 'staff-form-actions'); const cancel = button(translate('Cancel'), () => { if (!submitting) dialog.close(); });
     const save = el('button', 'staff-button', label); save.type = 'submit'; save.dataset.label = label; actions.append(cancel, save); form.append(actions);
   }
   function localNow() {
@@ -258,21 +261,21 @@
   }
   function editRecord(kind, record, trigger) {
     if (kind === 'fine' && record && record.status !== 'unpaid') return;
-    openDialog(record ? 'Edit ' + record.code : kind === 'fine' ? 'New fine' : 'New maintenance record', trigger);
+    openDialog(record ? 'Edit ' + record.code : kind === 'fine' ? 'New fine' : translate('New maintenance record'), trigger);
     const { form, fields } = formBase(kind + (record ? '_update' : '_create'), record);
     if (kind === 'fine') {
-      field(fields, 'plate', 'Vehicle plate', { value: record?.plate, maxLength: 15, placeholder: 'e.g. SAB 1234' });
+      field(fields, 'plate', translate('Vehicle plate'), { value: record?.plate, maxLength: 15, placeholder: 'e.g. SAB 1234' });
       field(fields, 'violation', 'Violation type', { value: record?.violation, maxLength: 100, placeholder: 'Describe the parking violation' });
       field(fields, 'occurred_at', 'Date and time (Malaysia)', { type: 'datetime-local', value: record?.occurred_at || localNow(), max: localNow() });
-      field(fields, 'amount', 'Amount (RM)', { type: 'number', min: '0.01', max: '99999.99', step: '0.01', value: record ? (record.amount_cents / 100).toFixed(2) : '' });
+      field(fields, 'amount', translate('Amount (RM)'), { type: 'number', min: '0.01', max: '99999.99', step: '0.01', value: record ? (record.amount_cents / 100).toFixed(2) : '' });
       field(fields, 'notes', 'Notes (optional)', { tag: 'textarea', maxLength: 2000, required: false, value: record?.notes });
       if (record) field(fields, 'reason', 'Reason for correction', { tag: 'textarea', maxLength: 500 });
       form.append(el('p', 'staff-help', 'Private parking prototype only. This creates an unpaid record; it is not a government-issued fine.'));
     } else {
       field(fields, 'title', 'Issue title', { value: record?.title, maxLength: 120 });
       field(fields, 'lot_id', 'Parking location', { tag: 'select', options: [['', 'Select a location'], ...data.locations.map(l => [l.id, l.name])], value: record?.lot_id });
-      field(fields, 'description', 'Description', { tag: 'textarea', maxLength: 2000, value: record?.description });
-      field(fields, 'status', 'Status', { tag: 'select', options: Object.entries(data.maintenance_statuses), value: record?.status || 'open' });
+      field(fields, 'description', translate('Description'), { tag: 'textarea', maxLength: 2000, value: record?.description });
+      field(fields, 'status', translate('Status'), { tag: 'select', options: Object.entries(data.maintenance_statuses), value: record?.status || 'open' });
     }
     formFooter(form, record ? 'Save changes' : kind === 'fine' ? 'Create fine record' : 'Create record');
     fields.querySelector('input:not([type="hidden"]),select,textarea')?.focus();
@@ -285,7 +288,7 @@
       : voiding ? `Void ${record.code} for ${record.plate}? The original amount, payment evidence and audit history will be retained. Voiding does not process a refund.`
       : `Remove ${record.code}: ${record.title}? It will leave the active list; its audit history will be retained.`));
     if (payment) {
-      field(fields, 'payment_reference', 'Payment reference', { maxLength: 120 });
+      field(fields, 'payment_reference', translate('Payment reference'), { maxLength: 120 });
       const input = field(fields, 'confirmed', 'I confirm this payment has already been received.', { type: 'checkbox', value: '1' }); input.parentElement.classList.add('staff-checkbox');
     } else field(fields, 'reason', voiding ? 'Reason for voiding' : 'Reason for removal', { tag: 'textarea', maxLength: 500 });
     formFooter(form, payment ? 'Confirm received payment' : voiding ? 'Void fine' : 'Remove record');
@@ -300,7 +303,7 @@
     const payload = new FormData(form); payload.set('csrf', data.csrf);
     const message = form.querySelector('.staff-form-error'); message.hidden = true;
     submitting = true; closeDialog.disabled = true; form.setAttribute('aria-busy', 'true'); form.querySelector('fieldset').disabled = true;
-    form.querySelectorAll('button').forEach(b => b.disabled = true); const save = form.querySelector('[type="submit"]'); save.textContent = 'Saving…';
+    form.querySelectorAll('button').forEach(b => b.disabled = true); const save = form.querySelector('[type="submit"]'); save.textContent = translate('Saving…');
     try {
       const response = await fetch('api/staff.php?page=' + page, { method: 'POST', body: payload, credentials: 'same-origin' });
       const result = await readResponse(response); applyData(result.data); dialog.close(); pageError.hidden = true;
@@ -320,14 +323,14 @@
   function viewRecord(record, kind, trigger) {
     openDialog(record.code + ' · Details', trigger);
     const details = el('dl', 'staff-detail-grid');
-    const fields = kind === 'fine' ? [['plate', 'Vehicle plate'], ['violation', 'Violation type'], ['occurred_ts', 'Date'], ['amount_cents', 'Amount'], ['status', 'Status'], ['notes', 'Notes'], ['payment_reference', 'Payment reference'], ['void_reason', 'Void reason']]
-      : [['title', 'Issue'], ['location', 'Location'], ['description', 'Description'], ['status', 'Status']];
-    fields.push(['created_by_name', 'Created by'], ['created_at', 'Created'], ['updated_at', 'Updated']);
+    const fields = kind === 'fine' ? [['plate', translate('Vehicle plate')], ['violation', 'Violation type'], ['occurred_ts', translate('Date')], ['amount_cents', translate('Amount')], ['status', translate('Status')], ['notes', translate('Notes')], ['payment_reference', translate('Payment reference')], ['void_reason', 'Void reason']]
+      : [['title', translate('Issue')], ['location', translate('Location')], ['description', translate('Description')], ['status', translate('Status')]];
+    fields.push(['created_by_name', 'Created by'], ['created_at', translate('Created')], ['updated_at', translate('Updated')]);
     fields.forEach(([key, label]) => details.append(el('dt', '', label), el('dd', '', displayValue(record, key, kind) || '—')));
     if (kind === 'fine' && record.paid_at) details.append(el('dt', '', 'Paid amount retained'), el('dd', '', money(record.paid_amount_cents)), el('dt', '', 'Payment recorded'), el('dd', '', dateText(record.paid_at)));
     dialogBody.append(details, el('h3', '', 'Audit history'));
     const history = el('ol', 'staff-audit');
-    const tracked = { plate: 'Plate', violation: 'Violation', amount_cents: 'Amount', occurred_at: 'Date', notes: 'Notes', status: 'Status', title: 'Issue', location: 'Location', description: 'Description', payment_reference: 'Payment reference', deleted_at: 'Removed at' };
+    const tracked = { plate: translate('Plate'), violation: translate('Violation'), amount_cents: translate('Amount'), occurred_at: translate('Date'), notes: translate('Notes'), status: translate('Status'), title: translate('Issue'), location: translate('Location'), description: translate('Description'), payment_reference: translate('Payment reference'), deleted_at: 'Removed at' };
     [...record.audit].reverse().forEach(entry => {
       const item = el('li'); item.append(el('strong', '', ({ created: 'Created', update: 'Updated', paid: 'Payment recorded', void: 'Voided', delete: 'Removed' })[entry.action] || entry.action), el('p', 'staff-muted', dateText(entry.at) + ' · ' + entry.actor_name));
       if (entry.reason) item.append(el('p', '', entry.reason));
@@ -345,7 +348,7 @@
   function renderDashboard() {
     document.querySelectorAll('[data-summary]').forEach(n => { const key = n.dataset.summary; n.textContent = key === 'outstanding_cents' ? money(data.summary[key]) : data.summary[key]; });
     const recent = [...data.fines].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at) || b.id - a.id).slice(0, 5);
-    document.getElementById('staff-recent').replaceChildren(createTable(recent, fineColumns, 'fine', 'No fine records yet.'));
+    document.getElementById('staff-recent').replaceChildren(createTable(recent, fineColumns, 'fine', translate('No fine records yet.')));
   }
   function renderLookup() {
     const host = document.getElementById('staff-lookup-results'); host.replaceChildren();
@@ -354,7 +357,7 @@
     const fineCard = el('section', 'staff-card'); fineCard.append(el('h2', '', 'Related fines'), createTable(fines, fineColumns, 'fine', 'No fine records found for this vehicle.')); host.append(fineCard);
     const parkingCard = el('section', 'staff-card'); parkingCard.append(el('h2', '', 'Parking records'));
     const rows = bookings.map(r => ({ ...r, code: '#' + r.id, date: r.created_at }));
-    const scroll = createTable(rows, [['code', 'Booking ID'], ['plate', 'Vehicle Plate'], ['location', 'Location'], ['hours', 'Hours', true], ['date', 'Created']], 'maintenance', 'No parking records found for this vehicle.'); parkingCard.append(scroll); host.append(parkingCard);
+    const scroll = createTable(rows, [['code', translate('Booking ID')], ['plate', 'Vehicle Plate'], ['location', translate('Location')], ['hours', translate('Hours'), true], ['date', translate('Created')]], 'maintenance', 'No parking records found for this vehicle.'); parkingCard.append(scroll); host.append(parkingCard);
   }
   if (page === 'dashboard') renderDashboard();
   if (page === 'fines' || page === 'maintenance') {

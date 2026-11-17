@@ -1,5 +1,7 @@
 (function () {
   'use strict';
+  const translate = window.MyParkLocale?.text ?? (message => message);
+
 
   const form = document.getElementById('compound-lookup');
   const input = document.getElementById('compound-query');
@@ -56,7 +58,7 @@
     stop();
     scan = active;
     status.textContent = '';
-    cameraStatus.textContent = 'Requesting camera access…';
+    cameraStatus.textContent = translate('Requesting camera access…');
     dialog.showModal();
 
     try {

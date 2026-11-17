@@ -1,6 +1,8 @@
 /* Booking fields and review. The final price and availability come from PHP. */
 (function () {
   'use strict';
+  const translate = window.MyParkLocale?.text ?? (message => message);
+
 
   function guardSubmission(form, message) {
     if (!form) return;
@@ -27,7 +29,7 @@
 
   const reviewForm = document.getElementById('startParkingForm');
   if (reviewForm) {
-    guardSubmission(reviewForm, 'Starting parking…');
+    guardSubmission(reviewForm, translate('Starting parking…'));
     document.getElementById('parking-heading').focus();
     return;
   }
@@ -62,11 +64,11 @@
 
   function updateParkingContext() {
     const rate = location.selectedOptions[0]?.dataset.rate;
-    let estimate = 'Select a location to calculate the fee';
+    let estimate = translate('Select a location to calculate the fee');
     if (rate !== undefined) {
       estimate = validHours()
         ? 'RM ' + (Number(rate) * hours.valueAsNumber).toFixed(2)
-        : 'Enter a valid duration to calculate the fee';
+        : translate('Enter a valid duration to calculate the fee');
     }
     if (fee.textContent.trim() !== estimate) fee.textContent = estimate;
 
@@ -151,11 +153,11 @@
   updateVehicleFields();
 
   form.addEventListener('submit', event => {
-    const locationMessage = location.value ? '' : 'Select a parking location.';
-    const vehicleMessage = vehicle && !vehicle.value ? 'Choose a saved vehicle or use another vehicle.' : '';
+    const locationMessage = location.value ? '' : translate('Select a parking location.');
+    const vehicleMessage = vehicle && !vehicle.value ? translate('Choose a saved vehicle or use another vehicle.') : '';
     const plateMessage = !manual.disabled && !/^[A-Z]{1,3} ?\d{1,4} ?[A-Z]?$/.test(plate.value.trim().toUpperCase())
-      ? 'Enter a valid plate number, for example SAB 1234.' : '';
-    const hoursMessage = validHours() ? '' : 'Choose a whole number from 1 to 24 hours.';
+      ? translate('Enter a valid plate number, for example SAB 1234.') : '';
+    const hoursMessage = validHours() ? '' : translate('Choose a whole number from 1 to 24 hours.');
     setError('location', location, locationMessage);
     setError('vehicle', vehicle, vehicleMessage);
     setError('plate', plate, plateMessage);
@@ -163,13 +165,13 @@
 
     if (locationMessage || vehicleMessage || plateMessage || hoursMessage) {
       event.preventDefault();
-      summaryError.textContent = 'Check the highlighted booking details.';
+      summaryError.textContent = translate('Check the highlighted booking details.');
       summaryError.hidden = false;
       const firstInvalid = form.querySelector('[aria-invalid="true"]');
       firstInvalid?.focus();
     }
   });
-  guardSubmission(form, 'Checking details…');
+  guardSubmission(form, translate('Checking details…'));
 
   if (dialog && typeof dialog.showModal === 'function') {
     manage.addEventListener('click', event => {
@@ -180,7 +182,7 @@
     });
     dialog.querySelector('[data-close-vehicle-dialog]').addEventListener('click', () => dialog.close());
     if (dialog.hasAttribute('data-reopen')) dialog.showModal();
-    guardSubmission(addForm, 'Saving vehicle…');
+    guardSubmission(addForm, translate('Saving vehicle…'));
   }
 
   if (!summaryError.hidden) {

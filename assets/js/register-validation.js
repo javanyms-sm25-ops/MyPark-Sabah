@@ -1,6 +1,8 @@
 /* Register validation: gentle first entry, inline errors after submission. */
 (function () {
   'use strict';
+  const translate = window.MyParkLocale?.text ?? (message => message);
+
   const form = document.getElementById('registration-form');
   if (!form) return;
   const fields = Object.fromEntries(['name', 'email', 'password', 'confirm'].map(key => [key, form.elements.namedItem(key)]));
@@ -14,18 +16,18 @@
   function validate(key) {
     const value = fields[key].value;
     if (key === 'name') {
-      if (!value.trim()) return 'Please enter your name.';
-      if (Array.from(value.trim()).length < 2) return 'Name must be at least 2 characters.';
+      if (!value.trim()) return translate('Please enter your name.');
+      if (Array.from(value.trim()).length < 2) return translate('Name must be at least 2 characters.');
     }
     if (key === 'email') {
-      if (!value.trim() || fields.email.validity.typeMismatch || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return 'Enter an email address like name@example.com.';
-      if (takenEmail === value.trim().toLowerCase()) return 'Email already registered.';
+      if (!value.trim() || fields.email.validity.typeMismatch || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return translate('Enter an email address like name@example.com.');
+      if (takenEmail === value.trim().toLowerCase()) return translate('Email already registered.');
     }
-    if (key === 'password' && Array.from(value).length < 8) return 'Password must be at least 8 characters.';
-    if (key === 'password' && new TextEncoder().encode(value).length > 72) return 'Password must be no more than 72 bytes (some characters use more than one byte).';
+    if (key === 'password' && Array.from(value).length < 8) return translate('Password must be at least 8 characters.');
+    if (key === 'password' && new TextEncoder().encode(value).length > 72) return translate('Password must be no more than 72 bytes (some characters use more than one byte).');
     if (key === 'confirm') {
-      if (!value) return 'Please confirm your password.';
-      if (value !== fields.password.value) return 'Passwords do not match.';
+      if (!value) return translate('Please confirm your password.');
+      if (value !== fields.password.value) return translate('Passwords do not match.');
     }
     return '';
   }
@@ -46,7 +48,7 @@
     rule.classList.toggle('is-met', met);
     const status = met ? ' — met' : ' — not met';
     if (ruleStatus.textContent !== status) ruleStatus.textContent = status;
-    const text = fields.confirm.value && fields.password.value === fields.confirm.value ? 'Passwords match.' : '';
+    const text = fields.confirm.value && fields.password.value === fields.confirm.value ? translate('Passwords match.') : '';
     if (match.textContent !== text) match.textContent = text;
   }
 

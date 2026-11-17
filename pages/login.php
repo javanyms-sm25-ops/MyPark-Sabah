@@ -69,27 +69,27 @@ head('Login');
 ?>
 
 <form method="post" action="pages/login.php" class="card narrow login-form" id="login-form" data-recaptcha-site-key="<?= e($recaptchaSiteKey) ?>" novalidate>
-  <h2>Welcome back</h2>
-  <p class="muted">Find and reserve parking across Sabah.</p>
+  <h2><?= te('Welcome back') ?></h2>
+  <p class="muted"><?= te('Find and reserve parking across Sabah.') ?></p>
   <input type="hidden" name="csrf" value="<?= csrf() ?>">
   <div class="login-field">
-    <label for="login-email">Email address</label>
-    <input id="login-email" type="email" name="email" placeholder="Enter your email address" autocomplete="username" value="<?= e($email) ?>" aria-describedby="login-email-error" aria-invalid="<?= isset($fieldErrors['email']) ? 'true' : 'false' ?>" required>
-    <p class="field-feedback" id="login-email-error" aria-live="polite" <?= !isset($fieldErrors['email']) ? 'hidden' : '' ?>><span data-error-text><?= e($fieldErrors['email'] ?? '') ?></span></p>
+    <label for="login-email"><?= te('Email address') ?></label>
+    <input id="login-email" type="email" name="email" placeholder="<?= te('Enter your email address') ?>" autocomplete="username" value="<?= e($email) ?>" aria-describedby="login-email-error" aria-invalid="<?= isset($fieldErrors['email']) ? 'true' : 'false' ?>" required>
+    <p class="field-feedback" id="login-email-error" aria-live="polite" <?= !isset($fieldErrors['email']) ? 'hidden' : '' ?>><span data-error-text><?= te($fieldErrors['email'] ?? '') ?></span></p>
   </div>
   <div class="password-field">
-    <label for="login-password">Password</label>
+    <label for="login-password"><?= te('Password') ?></label>
     <div class="password-field__control">
-      <input id="login-password" type="password" name="password" placeholder="Enter your password" autocomplete="current-password" aria-describedby="login-password-error" aria-invalid="<?= isset($fieldErrors['password']) ? 'true' : 'false' ?>" required>
+      <input id="login-password" type="password" name="password" placeholder="<?= te('Enter your password') ?>" autocomplete="current-password" aria-describedby="login-password-error" aria-invalid="<?= isset($fieldErrors['password']) ? 'true' : 'false' ?>" required>
     </div>
-    <p class="field-feedback" id="login-password-error" aria-live="polite" <?= !isset($fieldErrors['password']) ? 'hidden' : '' ?>><span data-error-text><?= e($fieldErrors['password'] ?? '') ?></span></p>
+    <p class="field-feedback" id="login-password-error" aria-live="polite" <?= !isset($fieldErrors['password']) ? 'hidden' : '' ?>><span data-error-text><?= te($fieldErrors['password'] ?? '') ?></span></p>
   </div>
-  <p class="login-forgot"><a href="forgot.php">Forgot password?</a></p>
-  <p class="login-error" id="login-request-error" role="alert" tabindex="-1" <?= !$error ? 'hidden' : '' ?>><span data-request-error><?= e($error) ?></span></p>
-  <button class="login-submit" type="submit"><span class="login-spinner" aria-hidden="true" hidden></span><span data-submit-label>Sign in</span></button>
+  <p class="login-forgot"><a href="forgot.php"><?= te('Forgot password?') ?></a></p>
+  <p class="login-error" id="login-request-error" role="alert" tabindex="-1" <?= !$error ? 'hidden' : '' ?>><span data-request-error><?= te($error) ?></span></p>
+  <button class="login-submit" type="submit"><span class="login-spinner" aria-hidden="true" hidden></span><span data-submit-label><?= te('Sign in') ?></span></button>
   <span class="validation-sr-only" id="login-status" role="status" aria-live="polite"></span>
-  <p class="login-signup">Don’t have an account? <a href="pages/register.php">Sign up</a></p>
-  <details class="login-demo"><summary>Demo accounts</summary><p class="hint">Superadmin: superadmin@park.com / super123<br>Admin: admin@park.com / admin123<br>Staff: staff@park.com / staff123<br>Member: user@park.com / user123</p></details>
+  <p class="login-signup"><?= te('Don’t have an account?') ?> <a href="pages/register.php"><?= te('Sign up') ?></a></p>
+  <details class="login-demo"><summary><?= te('Demo accounts') ?></summary><p class="hint">Superadmin: superadmin@park.com / super123<br>Admin: admin@park.com / admin123<br>Staff: staff@park.com / staff123<br>Member: user@park.com / user123</p></details>
 
 </form>
 

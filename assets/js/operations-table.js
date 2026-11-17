@@ -26,8 +26,12 @@
     const pages = Math.max(1, Math.ceil(rows.length / size));
     page = Math.min(Math.max(1, page), pages);
     const start = (page - 1) * size;
-    return { rows: rows.slice(start, start + size), page, pages, total: rows.length,
-      label: rows.length ? `Showing ${start + 1}–${Math.min(start + size, rows.length)} of ${rows.length} results` : '0 results' };
+    const last = Math.min(start + size, rows.length);
+    const label = rows.length
+      ? (root.MyParkLocale?.text('Showing {first}–{last} of {total} results', { first: start + 1, last, total: rows.length })
+        ?? `Showing ${start + 1}–${last} of ${rows.length} results`)
+      : (root.MyParkLocale?.text('0 results') ?? '0 results');
+    return { rows: rows.slice(start, start + size), page, pages, total: rows.length, label };
   }
   function pageNumbers(page, pages) {
     const chosen = [...new Set([1, pages, page - 1, page, page + 1])].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
