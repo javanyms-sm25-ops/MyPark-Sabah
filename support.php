@@ -1,5 +1,5 @@
 <?php
-require 'includes.php';
+require __DIR__ . '/includes/bootstrap.php';
 require_login();
 $_SESSION['demo_chat'] ??= [];
 $_SESSION['demo_reviews'] ??= [];

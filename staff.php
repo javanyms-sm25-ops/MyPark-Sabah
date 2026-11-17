@@ -1,7 +1,7 @@
 <?php
-require 'includes.php';
-require_once 'staff-data.php';
-$json = ($_GET['format'] ?? '') === 'json';
+require __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/staff-data.php';
+$json = defined('MYPARK_JSON_REQUEST') || ($_GET['format'] ?? '') === 'json';
 $page = $_GET['page'] ?? 'dashboard';
 $pages = ['dashboard' => 'Staff Dashboard', 'fines' => 'Fine Management', 'vehicles' => 'Vehicle Lookup', 'maintenance' => 'Parking Maintenance'];
 try {

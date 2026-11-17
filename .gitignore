@@ -6,6 +6,8 @@
 *.log
 
 # Secrets and local environment configuration
+/recaptcha.local.php
+/config/recaptcha.local.php
 .env
 .env.*
 !.env.example

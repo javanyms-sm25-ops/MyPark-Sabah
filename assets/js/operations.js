@@ -217,7 +217,7 @@
       this.changed(); this.export.disabled = true; this.export.textContent = 'Exporting…';
       const params = new URLSearchParams({ table: this.kind }); ['q', 'role', 'status', 'location', 'from', 'to', 'sort', 'dir'].forEach(k => params.set(k, this.state[k]));
       try {
-        const response = await fetch('export.php?' + params, { credentials: 'same-origin', cache: 'no-store' });
+        const response = await fetch('api/export.php?' + params, { credentials: 'same-origin', cache: 'no-store' });
         if (!response.ok) throw new Error((await response.text()).slice(0, 240) || 'Export failed.');
         if (!response.headers.get('Content-Type')?.includes('text/csv')) throw new Error('Unable to export. Please sign in again.');
         const url = URL.createObjectURL(await response.blob()), link = el('a'); link.href = url; link.download = 'mypark-' + this.kind + '.csv'; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -243,7 +243,7 @@
     refreshController?.abort(); const sequence = ++refreshSequence; refreshController = new AbortController();
     tables.forEach(t => t.loadingState(false)); table.loadingState(true); table.notice.hidden = true;
     try {
-      const response = await fetch('admin.php?format=json', { credentials: 'same-origin', cache: 'no-store', signal: refreshController.signal });
+      const response = await fetch('api/operations.php', { credentials: 'same-origin', cache: 'no-store', signal: refreshController.signal });
       const result = await readResponse(response); if (sequence === refreshSequence) applySnapshot(result.data);
     } catch (error) { if (sequence === refreshSequence && error.name !== 'AbortError') table.error('Refresh failed. Existing records have been kept. ' + error.message, () => refresh(table)); }
     finally { if (sequence === refreshSequence) table.loadingState(false); }
@@ -253,7 +253,7 @@
     refreshController?.abort(); ++refreshSequence; tables.forEach(t => t.loadingState(false)); pending.add(key); table.notice.hidden = true; table.render();
     const payload = new FormData(); Object.entries({ action, id: record.id, status, expected_status: record.status, csrf: data.csrf }).forEach(([k, v]) => payload.set(k, String(v)));
     try {
-      const result = await readResponse(await fetch('admin.php?format=json', { method: 'POST', body: payload, credentials: 'same-origin' })); applySnapshot(result.data); toast(result.message, 'success');
+      const result = await readResponse(await fetch('api/operations.php', { method: 'POST', body: payload, credentials: 'same-origin' })); applySnapshot(result.data); toast(result.message, 'success');
     } catch (error) { table.error('Update failed. ' + error.message + ' Refresh records before retrying the action.', () => refresh(table)); toast(error.message, 'error'); }
     finally {
       pending.delete(key); table.render();

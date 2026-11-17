@@ -448,7 +448,7 @@
   }
 
   function refreshAvailability() {
-    fetch('api.php')
+    fetch('api/availability.php')
       .then(function (response) { return response.json(); })
       .then(function (slots) {
         slots.forEach(function (item) {

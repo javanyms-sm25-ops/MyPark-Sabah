@@ -1,1 +1,1 @@
-<?php require 'includes.php'; session_destroy(); header('Location: login.php');
+<?php require __DIR__ . '/includes/bootstrap.php'; session_destroy(); header('Location: login.php');

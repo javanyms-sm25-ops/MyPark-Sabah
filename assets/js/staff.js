@@ -101,7 +101,7 @@
     const current = ++sequence;
     refreshButton.disabled = true; requestStatus.hidden = false; requestStatus.textContent = 'Refreshing records…'; pageError.hidden = true;
     try {
-      const response = await fetch('staff.php?format=json&page=' + page, { credentials: 'same-origin', cache: 'no-store', signal: refreshController.signal });
+      const response = await fetch('api/staff.php?page=' + page, { credentials: 'same-origin', cache: 'no-store', signal: refreshController.signal });
       const result = await readResponse(response); if (current === sequence) applyData(result.data);
     } catch (error) {
       if (current === sequence && error.name !== 'AbortError') showPageError('Refresh failed. ' + error.message);
@@ -302,7 +302,7 @@
     submitting = true; closeDialog.disabled = true; form.setAttribute('aria-busy', 'true'); form.querySelector('fieldset').disabled = true;
     form.querySelectorAll('button').forEach(b => b.disabled = true); const save = form.querySelector('[type="submit"]'); save.textContent = 'Saving…';
     try {
-      const response = await fetch('staff.php?format=json&page=' + page, { method: 'POST', body: payload, credentials: 'same-origin' });
+      const response = await fetch('api/staff.php?page=' + page, { method: 'POST', body: payload, credentials: 'same-origin' });
       const result = await readResponse(response); applyData(result.data); dialog.close(); pageError.hidden = true;
       window.MyParkToast?.show(result.message, 'success');
     } catch (error) {
