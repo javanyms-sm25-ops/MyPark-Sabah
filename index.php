@@ -14,6 +14,8 @@ if (me()) {
 head('Home');
 ?>
 
+<link rel="stylesheet" href="assets/css/home.css">
+
 <section class="home-hero hero">
   <div class="home-hero__content">
     <p class="eyebrow"><?= te('SMART PARKING FOR SABAH') ?></p>

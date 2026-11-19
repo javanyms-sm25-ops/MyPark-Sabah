@@ -1886,6 +1886,10 @@ footer a:hover {
   color: #bfe7f8;
 }
 
+/* Member verification keeps the status link clear of the sticky navigation. */
+#oku-parking-verification { scroll-margin-top: 120px; }
+.oku-rejection-reason { white-space: pre-wrap; overflow-wrap: anywhere; }
+
 /* ---------- 10. Legacy slot-grid styles ---------- */
 
 .grid {

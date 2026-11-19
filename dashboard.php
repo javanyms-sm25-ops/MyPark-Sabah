@@ -17,6 +17,7 @@ $resume = parking_resume_fields($_GET);
 $requestedVehicle = $_GET['vehicle_id'] ?? '';
 $draft = [
     'lot_id' => (string)($resume['lot_id'] ?? ''),
+    'bay_type' => 'regular',
     'hours' => (string)($resume['hours'] ?? 1),
     'vehicle_id' => $vehicles ? ($defaultVehicle ?? '') : 'manual',
     'plate' => '',
@@ -78,6 +79,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($pending === null || !hash_equals($pending['token'], $_POST['review_token'] ?? '')) {
             http_response_code(409);
             $bookingError = 'This review is no longer valid. Check your parking details again.';
+        } elseif (isset($_POST['bay_type']) && $_POST['bay_type'] !== ($pending['draft']['bay_type'] ?? 'regular')) {
+            http_response_code(422);
+            $draft = $pending['draft'];
+            $bookingError = 'Review your changes before starting parking.';
+            unset($_SESSION['parking_reviews'][$userId]);
         } else {
             // PHP holds the session lock here, so a second submission cannot use the same review.
             unset($_SESSION['parking_reviews'][$userId]);
@@ -106,10 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $lots = $_SESSION['demo_lots'];
-$occupiedByLot = array_count_values(array_column(
-    array_filter($_SESSION['demo_bookings'], static fn($booking) => $booking['status'] === 'active'),
-    'lot_id'
-));
+$occupiedByLot = parking_occupancy_by_lot($_SESSION['demo_bookings']);
 $bookings = array_values(array_filter($_SESSION['demo_bookings'], fn($booking) => $booking['user_id'] === $userId));
 $activeBookings = array_filter($bookings, fn($booking) => $booking['status'] === 'active');
 $completedBookings = array_filter($bookings, fn($booking) => $booking['status'] === 'completed');
@@ -172,8 +175,14 @@ head('Sabah Parking');
       <h3><?= e($lot['name']) ?></h3>
       <p><?= e($lot['address']) ?> · <?= e($lot['city']) ?></p>
       <p class="rate">RM <?= number_format($lot['rate'], 2) ?><small> <?= te('/ hour') ?></small></p>
-      <?php $full = ($occupiedByLot[$lot['id']] ?? 0) >= $lot['capacity']; ?>
-      <p><?= $lot['capacity'] ?> spaces · <span class="tag <?= $full ? 'cancelled' : 'available' ?>"><?= te($full ? 'Full' : 'Available') ?></span></p>
+      <?php $bays = parking_bay_counts($lot, $occupiedByLot[$lot['id']] ?? []); ?>
+      <?php if ($bays['regular']['capacity'] === null): ?>
+        <p><?= te('Capacity unavailable') ?></p>
+      <?php else: ?>
+        <p><?= te('Regular bays available: {count}', ['count' => $bays['regular']['available']]) ?>
+          <?php if ($bays['oku']['capacity'] > 0): ?> · <?= te('OKU bays available: {count}', ['count' => $bays['oku']['available']]) ?><?php endif; ?>
+        </p>
+      <?php endif; ?>
       <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $lot['lat'] ?>,<?= $lot['lng'] ?>" target="_blank" rel="noopener"><?= te('View map') ?></a>
       <a class="btn" data-book-lot="<?= $lot['id'] ?>" href="dashboard.php?lot_id=<?= $lot['id'] ?>#bookingPanel"><?= te('Select location') ?></a>
     </article>

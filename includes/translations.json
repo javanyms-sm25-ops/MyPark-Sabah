@@ -1,2050 +1,608 @@
 {
-  "Language": {
-    "zh-Hans": "语言",
-    "ms": "Bahasa"
-  },
-  "Apply": {
-    "zh-Hans": "应用",
-    "ms": "Guna"
-  },
-  "Home": {
-    "zh-Hans": "首页",
-    "ms": "Laman utama"
-  },
-  "Main menu": {
-    "zh-Hans": "主菜单",
-    "ms": "Menu utama"
-  },
-  "Parking": {
-    "zh-Hans": "停车",
-    "ms": "Parkir"
-  },
-  "History": {
-    "zh-Hans": "历史记录",
-    "ms": "Sejarah"
-  },
-  "Receipts": {
-    "zh-Hans": "收据",
-    "ms": "Resit"
-  },
-  "Wallet": {
-    "zh-Hans": "钱包",
-    "ms": "Dompet"
-  },
-  "Compounds": {
-    "zh-Hans": "停车罚单",
-    "ms": "Kompaun"
-  },
-  "Profile": {
-    "zh-Hans": "个人资料",
-    "ms": "Profil"
-  },
-  "Support": {
-    "zh-Hans": "帮助",
-    "ms": "Bantuan"
-  },
-  "Operations": {
-    "zh-Hans": "营运管理",
-    "ms": "Operasi"
-  },
-  "Parking notifications": {
-    "zh-Hans": "停车通知",
-    "ms": "Pemberitahuan parkir"
-  },
-  "Notifications": {
-    "zh-Hans": "通知",
-    "ms": "Pemberitahuan"
-  },
-  "Logout": {
-    "zh-Hans": "登出",
-    "ms": "Log keluar"
-  },
-  "Login": {
-    "zh-Hans": "登录",
-    "ms": "Log masuk"
-  },
-  "Log in": {
-    "zh-Hans": "登录",
-    "ms": "Log masuk"
-  },
-  "Sign in": {
-    "zh-Hans": "登录",
-    "ms": "Log masuk"
-  },
-  "Register": {
-    "zh-Hans": "注册",
-    "ms": "Daftar"
-  },
-  "Sign up": {
-    "zh-Hans": "注册",
-    "ms": "Daftar"
-  },
-  "Toggle theme": {
-    "zh-Hans": "切换主题",
-    "ms": "Tukar tema"
-  },
-  "Open navigation menu": {
-    "zh-Hans": "打开导航菜单",
-    "ms": "Buka menu navigasi"
-  },
-  "Close navigation menu": {
-    "zh-Hans": "关闭导航菜单",
-    "ms": "Tutup menu navigasi"
-  },
-  "Simple parking reservations across Sabah.": {
-    "zh-Hans": "在沙巴轻松办理停车。",
-    "ms": "Urus parkir anda di seluruh Sabah dengan mudah."
-  },
-  "Contact": {
-    "zh-Hans": "联系我们",
-    "ms": "Hubungi kami"
-  },
-  "Help": {
-    "zh-Hans": "帮助",
-    "ms": "Bantuan"
-  },
-  "Customer support": {
-    "zh-Hans": "客户支持",
-    "ms": "Sokongan pelanggan"
-  },
-  "My profile": {
-    "zh-Hans": "我的个人资料",
-    "ms": "Profil saya"
-  },
-  "Member": {
-    "zh-Hans": "会员",
-    "ms": "Ahli"
-  },
-  "Admin": {
-    "zh-Hans": "管理员",
-    "ms": "Pentadbir"
-  },
-  "Super Admin": {
-    "zh-Hans": "超级管理员",
-    "ms": "Pentadbir Utama"
-  },
-  "Staff": {
-    "zh-Hans": "员工",
-    "ms": "Kakitangan"
-  },
-  "Menu": {
-    "zh-Hans": "菜单",
-    "ms": "Menu"
-  },
-  "Skip to content": {
-    "zh-Hans": "跳到主要内容",
-    "ms": "Langkau ke kandungan"
-  },
-  "Close menu": {
-    "zh-Hans": "关闭菜单",
-    "ms": "Tutup menu"
-  },
-  "Staff workspace": {
-    "zh-Hans": "员工工作区",
-    "ms": "Ruang kerja kakitangan"
-  },
-  "Workspace": {
-    "zh-Hans": "工作区",
-    "ms": "Ruang kerja"
-  },
-  "Staff navigation": {
-    "zh-Hans": "员工导航",
-    "ms": "Navigasi kakitangan"
-  },
-  "Staff pages": {
-    "zh-Hans": "员工页面",
-    "ms": "Halaman kakitangan"
-  },
-  "Private parking · Staff portal": {
-    "zh-Hans": "私人停车场 · 员工门户",
-    "ms": "Parkir persendirian · Portal kakitangan"
-  },
-  "Dashboard": {
-    "zh-Hans": "仪表板",
-    "ms": "Papan pemuka"
-  },
-  "Name": {
-    "zh-Hans": "姓名",
-    "ms": "Nama"
-  },
-  "Full name": {
-    "zh-Hans": "全名",
-    "ms": "Nama penuh"
-  },
-  "Email": {
-    "zh-Hans": "电子邮箱",
-    "ms": "E-mel"
-  },
-  "Email address": {
-    "zh-Hans": "电子邮箱地址",
-    "ms": "Alamat e-mel"
-  },
-  "Phone": {
-    "zh-Hans": "电话号码",
-    "ms": "Nombor telefon"
-  },
-  "Password": {
-    "zh-Hans": "密码",
-    "ms": "Kata laluan"
-  },
-  "Confirm password": {
-    "zh-Hans": "确认密码",
-    "ms": "Sahkan kata laluan"
-  },
-  "Location": {
-    "zh-Hans": "地点",
-    "ms": "Lokasi"
-  },
-  "Date": {
-    "zh-Hans": "日期",
-    "ms": "Tarikh"
-  },
-  "Status": {
-    "zh-Hans": "状态",
-    "ms": "Status"
-  },
-  "Actions": {
-    "zh-Hans": "操作",
-    "ms": "Tindakan"
-  },
-  "Fee": {
-    "zh-Hans": "费用",
-    "ms": "Caj"
-  },
-  "Amount": {
-    "zh-Hans": "金额",
-    "ms": "Amaun"
-  },
-  "Plate": {
-    "zh-Hans": "车牌",
-    "ms": "Nombor plat"
-  },
-  "Vehicle": {
-    "zh-Hans": "车辆",
-    "ms": "Kenderaan"
-  },
-  "Vehicle plate": {
-    "zh-Hans": "车牌号码",
-    "ms": "Nombor plat kenderaan"
-  },
-  "Duration": {
-    "zh-Hans": "时长",
-    "ms": "Tempoh"
-  },
-  "Created": {
-    "zh-Hans": "创建时间",
-    "ms": "Dicipta"
-  },
-  "Role": {
-    "zh-Hans": "角色",
-    "ms": "Peranan"
-  },
-  "Active": {
-    "zh-Hans": "进行中",
-    "ms": "Aktif"
-  },
-  "Completed": {
-    "zh-Hans": "已完成",
-    "ms": "Selesai"
-  },
-  "Cancelled": {
-    "zh-Hans": "已取消",
-    "ms": "Dibatalkan"
-  },
-  "Blocked": {
-    "zh-Hans": "已停用",
-    "ms": "Disekat"
-  },
-  "Paid": {
-    "zh-Hans": "已付款",
-    "ms": "Dibayar"
-  },
-  "Unpaid": {
-    "zh-Hans": "待付款",
-    "ms": "Belum dibayar"
-  },
-  "Void": {
-    "zh-Hans": "作废",
-    "ms": "Batal"
-  },
-  "Open": {
-    "zh-Hans": "待处理",
-    "ms": "Terbuka"
-  },
-  "In progress": {
-    "zh-Hans": "处理中",
-    "ms": "Sedang diproses"
-  },
-  "Available": {
-    "zh-Hans": "有空位",
-    "ms": "Tersedia"
-  },
-  "Full": {
-    "zh-Hans": "已满",
-    "ms": "Penuh"
-  },
-  "Default": {
-    "zh-Hans": "默认",
-    "ms": "Lalai"
-  },
-  "Save": {
-    "zh-Hans": "保存",
-    "ms": "Simpan"
-  },
-  "Edit": {
-    "zh-Hans": "编辑",
-    "ms": "Sunting"
-  },
-  "Remove": {
-    "zh-Hans": "删除",
-    "ms": "Buang"
-  },
-  "Delete": {
-    "zh-Hans": "删除",
-    "ms": "Padam"
-  },
-  "Cancel": {
-    "zh-Hans": "取消",
-    "ms": "Batal"
-  },
-  "Close": {
-    "zh-Hans": "关闭",
-    "ms": "Tutup"
-  },
-  "Confirm": {
-    "zh-Hans": "确认",
-    "ms": "Sahkan"
-  },
-  "Refresh": {
-    "zh-Hans": "刷新",
-    "ms": "Muat semula"
-  },
-  "Retry": {
-    "zh-Hans": "重试",
-    "ms": "Cuba lagi"
-  },
-  "Search": {
-    "zh-Hans": "搜索",
-    "ms": "Cari"
-  },
-  "View": {
-    "zh-Hans": "查看",
-    "ms": "Lihat"
-  },
-  "View details": {
-    "zh-Hans": "查看详情",
-    "ms": "Lihat butiran"
-  },
-  "Clear": {
-    "zh-Hans": "清除",
-    "ms": "Kosongkan"
-  },
-  "Clear filters": {
-    "zh-Hans": "清除筛选",
-    "ms": "Kosongkan penapis"
-  },
-  "Previous": {
-    "zh-Hans": "上一页",
-    "ms": "Sebelumnya"
-  },
-  "Next": {
-    "zh-Hans": "下一页",
-    "ms": "Seterusnya"
-  },
-  "All statuses": {
-    "zh-Hans": "所有状态",
-    "ms": "Semua status"
-  },
-  "All locations": {
-    "zh-Hans": "所有地点",
-    "ms": "Semua lokasi"
-  },
-  "Rows per page": {
-    "zh-Hans": "每页行数",
-    "ms": "Baris setiap halaman"
-  },
-  "Page {page} of {pages}": {
-    "zh-Hans": "第 {page} 页，共 {pages} 页",
-    "ms": "Halaman {page} daripada {pages}"
-  },
-  "No matching records": {
-    "zh-Hans": "没有符合条件的记录",
-    "ms": "Tiada rekod sepadan"
-  },
-  "0 results": {
-    "zh-Hans": "0 条结果",
-    "ms": "0 hasil"
-  },
-  "Showing {first}–{last} of {total} results": {
-    "zh-Hans": "显示第 {first}–{last} 条，共 {total} 条结果",
-    "ms": "Memaparkan {first}–{last} daripada {total} hasil"
-  },
-  "Remove {plate} from your saved vehicles?": {
-    "zh-Hans": "要从常用车辆中删除 {plate} 吗？",
-    "ms": "Buang {plate} daripada senarai kenderaan anda?"
-  },
-  "{plate}: your parking session ends in {minutes} minutes or less.": {
-    "zh-Hans": "{plate}：停车将在 {minutes} 分钟内结束。",
-    "ms": "{plate}: sesi parkir anda tamat dalam {minutes} minit atau kurang."
-  },
-  "{count} records": {
-    "zh-Hans": "{count} 条记录",
-    "ms": "{count} rekod"
-  },
-  "Saving…": {
-    "zh-Hans": "保存中…",
-    "ms": "Sedang menyimpan…"
-  },
-  "Information": {
-    "zh-Hans": "信息",
-    "ms": "Maklumat"
-  },
-  "Success": {
-    "zh-Hans": "成功",
-    "ms": "Berjaya"
-  },
-  "Reminder": {
-    "zh-Hans": "提醒",
-    "ms": "Peringatan"
-  },
-  "Something went wrong": {
-    "zh-Hans": "出了点问题",
-    "ms": "Ralat telah berlaku"
-  },
-  "View parking details": {
-    "zh-Hans": "查看停车详情",
-    "ms": "Lihat butiran parkir"
-  },
-  "Welcome back": {
-    "zh-Hans": "欢迎回来",
-    "ms": "Selamat kembali"
-  },
-  "Find and reserve parking across Sabah.": {
-    "zh-Hans": "查找并办理沙巴各地的停车。",
-    "ms": "Cari dan tempah parkir di seluruh Sabah."
-  },
-  "Enter your email address": {
-    "zh-Hans": "输入您的电子邮箱地址",
-    "ms": "Masukkan alamat e-mel anda"
-  },
-  "Enter your password": {
-    "zh-Hans": "输入您的密码",
-    "ms": "Masukkan kata laluan anda"
-  },
-  "Enter password": {
-    "zh-Hans": "输入密码",
-    "ms": "Masukkan kata laluan"
-  },
-  "Forgot password?": {
-    "zh-Hans": "忘记密码？",
-    "ms": "Lupa kata laluan?"
-  },
-  "Don’t have an account?": {
-    "zh-Hans": "还没有账户？",
-    "ms": "Tiada akaun?"
-  },
-  "Already have an account?": {
-    "zh-Hans": "已有账户？",
-    "ms": "Sudah mempunyai akaun?"
-  },
-  "Demo accounts": {
-    "zh-Hans": "演示账户",
-    "ms": "Akaun demo"
-  },
-  "Create member account": {
-    "zh-Hans": "创建会员账户",
-    "ms": "Cipta akaun ahli"
-  },
-  "Create account": {
-    "zh-Hans": "创建账户",
-    "ms": "Cipta akaun"
-  },
-  "At least 8 characters": {
-    "zh-Hans": "至少 8 个字符",
-    "ms": "Sekurang-kurangnya 8 aksara"
-  },
-  "Password recovery": {
-    "zh-Hans": "找回密码",
-    "ms": "Pemulihan kata laluan"
-  },
-  "Request reset": {
-    "zh-Hans": "申请重置",
-    "ms": "Minta penetapan semula"
-  },
-  "Enter your account email to request a reset link.": {
-    "zh-Hans": "输入账户邮箱以申请密码重置链接。",
-    "ms": "Masukkan e-mel akaun anda untuk meminta pautan penetapan semula."
-  },
-  "If the address exists, a reset link will be sent when email service is configured.": {
-    "zh-Hans": "邮件服务配置完成后，若邮箱已注册，系统会发送重置链接。",
-    "ms": "Jika alamat wujud, pautan akan dihantar apabila perkhidmatan e-mel dikonfigurasi."
-  },
-  "Show password": {
-    "zh-Hans": "显示密码",
-    "ms": "Tunjukkan kata laluan"
-  },
-  "Hide password": {
-    "zh-Hans": "隐藏密码",
-    "ms": "Sembunyikan kata laluan"
-  },
-  "Signing in…": {
-    "zh-Hans": "正在登录…",
-    "ms": "Sedang log masuk…"
-  },
-  "Please enter your email address.": {
-    "zh-Hans": "请输入电子邮箱地址。",
-    "ms": "Sila masukkan alamat e-mel anda."
-  },
-  "Please enter a valid email address.": {
-    "zh-Hans": "请输入有效的电子邮箱地址。",
-    "ms": "Sila masukkan alamat e-mel yang sah."
-  },
-  "Please enter your password.": {
-    "zh-Hans": "请输入密码。",
-    "ms": "Sila masukkan kata laluan anda."
-  },
-  "Please enter your name.": {
-    "zh-Hans": "请输入姓名。",
-    "ms": "Sila masukkan nama anda."
-  },
-  "Name must be at least 2 characters.": {
-    "zh-Hans": "姓名至少需要 2 个字符。",
-    "ms": "Nama mesti mengandungi sekurang-kurangnya 2 aksara."
-  },
-  "Enter an email address like name@example.com.": {
-    "zh-Hans": "请输入类似 name@example.com 的电子邮箱地址。",
-    "ms": "Masukkan alamat e-mel seperti name@example.com."
-  },
-  "Password must be at least 8 characters.": {
-    "zh-Hans": "密码至少需要 8 个字符。",
-    "ms": "Kata laluan mesti mengandungi sekurang-kurangnya 8 aksara."
-  },
-  "Password must be no more than 72 bytes (some characters use more than one byte).": {
-    "zh-Hans": "密码不得超过 72 字节（部分字符占用多个字节）。",
-    "ms": "Kata laluan mestilah tidak melebihi 72 bait (sesetengah aksara menggunakan lebih daripada satu bait)."
-  },
-  "Please confirm your password.": {
-    "zh-Hans": "请确认密码。",
-    "ms": "Sila sahkan kata laluan."
-  },
-  "Passwords do not match.": {
-    "zh-Hans": "两次输入的密码不一致。",
-    "ms": "Kata laluan tidak sepadan."
-  },
-  "Passwords match.": {
-    "zh-Hans": "两次输入的密码一致。",
-    "ms": "Kata laluan sepadan."
-  },
-  "Email already registered.": {
-    "zh-Hans": "该邮箱已注册。",
-    "ms": "E-mel ini telah didaftarkan."
-  },
-  "Please check the highlighted fields below.": {
-    "zh-Hans": "请检查下方标出的字段。",
-    "ms": "Sila semak ruangan yang ditandakan di bawah."
-  },
-  "This account is blocked.": {
-    "zh-Hans": "此账户已停用。",
-    "ms": "Akaun ini disekat."
-  },
-  "Incorrect email or password.": {
-    "zh-Hans": "邮箱或密码错误。",
-    "ms": "E-mel atau kata laluan salah."
-  },
-  "Too many attempts. Try again later.": {
-    "zh-Hans": "尝试次数过多。请稍后再试。",
-    "ms": "Terlalu banyak percubaan. Cuba lagi kemudian."
-  },
-  "Account blocked after 3 failed attempts. Ask an administrator to unblock it.": {
-    "zh-Hans": "登录失败 3 次后账户已停用。请联系管理员。",
-    "ms": "Akaun disekat selepas 3 percubaan gagal. Hubungi pentadbir."
-  },
-  "Security verification is temporarily unavailable. Please try again later.": {
-    "zh-Hans": "安全验证暂时无法使用，请稍后再试。",
-    "ms": "Pengesahan keselamatan tidak tersedia buat sementara waktu. Sila cuba lagi nanti."
-  },
-  "Security verification did not pass. Please try signing in again.": {
-    "zh-Hans": "安全验证未通过，请重新登录。",
-    "ms": "Pengesahan keselamatan gagal. Sila cuba log masuk semula."
-  },
-  "Security verification is unavailable. Please try signing in again.": {
-    "zh-Hans": "无法进行安全验证，请重新登录。",
-    "ms": "Pengesahan keselamatan tidak tersedia. Sila cuba log masuk semula."
-  },
-  "SMART PARKING FOR SABAH": {
-    "zh-Hans": "沙巴智能停车",
-    "ms": "PARKIR PINTAR UNTUK SABAH"
-  },
-  "Park smarter.": {
-    "zh-Hans": "停车更方便。",
-    "ms": "Parkir lebih pintar."
-  },
-  "Drive easier.": {
-    "zh-Hans": "出行更轻松。",
-    "ms": "Memandu lebih mudah."
-  },
-  "Book your next parking spot in seconds, pay by the hour, and keep every trip smooth from arrival to departure.": {
-    "zh-Hans": "快速办理停车，按小时计费，从到达至离开都更轻松。",
-    "ms": "Urus parkir dalam beberapa saat, bayar mengikut jam dan nikmati perjalanan yang lancar."
-  },
-  "Get started": {
-    "zh-Hans": "开始使用",
-    "ms": "Mulakan"
-  },
-  "Daily parkers": {
-    "zh-Hans": "每日停车用户",
-    "ms": "Pengguna harian"
-  },
-  "Smart zones": {
-    "zh-Hans": "智能停车区",
-    "ms": "Zon pintar"
-  },
-  "Customer rating": {
-    "zh-Hans": "客户评分",
-    "ms": "Penilaian pelanggan"
-  },
-  "Live availability": {
-    "zh-Hans": "实时车位情况",
-    "ms": "Ketersediaan semasa"
-  },
-  "12 spaces left": {
-    "zh-Hans": "剩余 12 个车位",
-    "ms": "12 petak lagi"
-  },
-  "From": {
-    "zh-Hans": "起价",
-    "ms": "Bermula daripada"
-  },
-  "Tonight": {
-    "zh-Hans": "今晚",
-    "ms": "Malam ini"
-  },
-  "Covered": {
-    "zh-Hans": "有顶棚",
-    "ms": "Berbumbung"
-  },
-  "WHY MyPark": {
-    "zh-Hans": "为什么选择 MyPark",
-    "ms": "MENGAPA MyPark"
-  },
-  "Everything your trip needs in one place": {
-    "zh-Hans": "一站式满足停车出行需求",
-    "ms": "Segala keperluan perjalanan anda di satu tempat"
-  },
-  "Instant booking": {
-    "zh-Hans": "快速办理停车",
-    "ms": "Tempahan segera"
-  },
-  "Reserve a parking bay in minutes and keep your itinerary moving without the stress of last-minute parking hunts.": {
-    "zh-Hans": "几分钟内办理停车，省去临时找车位的烦恼。",
-    "ms": "Urus parkir dalam beberapa minit tanpa perlu mencari petak pada saat akhir."
-  },
-  "Smart locations": {
-    "zh-Hans": "便捷地点",
-    "ms": "Lokasi strategik"
-  },
-  "Find parking close to stations, malls, hotels and major city destinations across Sabah.": {
-    "zh-Hans": "在沙巴各地车站、商场、酒店和主要目的地附近找停车位。",
-    "ms": "Cari parkir berhampiran stesen, pusat beli-belah, hotel dan destinasi utama di seluruh Sabah."
-  },
-  "Fast payment": {
-    "zh-Hans": "快捷付款",
-    "ms": "Bayaran pantas"
-  },
-  "Top up your wallet, pay by the hour and get receipts instantly with a cashless experience.": {
-    "zh-Hans": "充值钱包、按小时付费并即时获取收据。",
-    "ms": "Tambah nilai dompet, bayar mengikut jam dan terima resit serta-merta tanpa wang tunai."
-  },
-  "HOW IT WORKS": {
-    "zh-Hans": "使用方法",
-    "ms": "CARA PENGGUNAAN"
-  },
-  "Reserve in three simple steps": {
-    "zh-Hans": "三个步骤，轻松办理停车",
-    "ms": "Urus parkir dalam tiga langkah mudah"
-  },
-  "Choose a location": {
-    "zh-Hans": "选择地点",
-    "ms": "Pilih lokasi"
-  },
-  "Select a parking zone near your destination and compare rates instantly.": {
-    "zh-Hans": "选择目的地附近的停车区，快速比较费率。",
-    "ms": "Pilih zon parkir berhampiran destinasi anda dan bandingkan kadar serta-merta."
-  },
-  "Set your timing": {
-    "zh-Hans": "选择停车时长",
-    "ms": "Tetapkan tempoh parkir"
-  },
-  "Pick your vehicle and duration, then confirm the details in one tap.": {
-    "zh-Hans": "选择车辆与时长，再确认停车详情。",
-    "ms": "Pilih kenderaan dan tempoh, kemudian sahkan butiran dengan satu ketikan."
-  },
-  "Enjoy the ride": {
-    "zh-Hans": "轻松出行",
-    "ms": "Nikmati perjalanan"
-  },
-  "Use your QR e-ticket and get in and out without the usual parking hassle.": {
-    "zh-Hans": "使用二维码电子票，进出停车场更方便。",
-    "ms": "Gunakan e-tiket QR untuk masuk dan keluar dengan lebih mudah."
-  },
-  "READY TO START?": {
-    "zh-Hans": "准备好了吗？",
-    "ms": "SEDIA UNTUK BERMULA?"
-  },
-  "Parking that feels as easy as the rest of your day.": {
-    "zh-Hans": "让停车也和日常出行一样轻松。",
-    "ms": "Parkir yang memudahkan urusan harian anda."
-  },
-  "Sabah Parking": {
-    "zh-Hans": "沙巴停车",
-    "ms": "Parkir Sabah"
-  },
-  "WELCOME BACK, {name}": {
-    "zh-Hans": "欢迎回来，{name}",
-    "ms": "SELAMAT KEMBALI, {name}"
-  },
-  "Find your space.": {
-    "zh-Hans": "找到停车位。",
-    "ms": "Cari tempat parkir anda."
-  },
-  "Enjoy the journey.": {
-    "zh-Hans": "享受旅程。",
-    "ms": "Nikmati perjalanan."
-  },
-  "Discover convenient parking in Kota Kinabalu, Sandakan, Tawau and beyond.": {
-    "zh-Hans": "发现亚庇、山打根、斗湖及沙巴各地的便捷停车地点。",
-    "ms": "Temui lokasi parkir di Kota Kinabalu, Sandakan, Tawau dan sekitarnya."
-  },
-  "Explore locations": {
-    "zh-Hans": "浏览停车地点",
-    "ms": "Terokai lokasi"
-  },
-  "Wallet balance": {
-    "zh-Hans": "钱包余额",
-    "ms": "Baki dompet"
-  },
-  "Show wallet balance": {
-    "zh-Hans": "显示钱包余额",
-    "ms": "Tunjukkan baki dompet"
-  },
-  "Hide wallet balance": {
-    "zh-Hans": "隐藏钱包余额",
-    "ms": "Sembunyikan baki dompet"
-  },
-  "Manage wallet": {
-    "zh-Hans": "管理钱包",
-    "ms": "Urus dompet"
-  },
-  "Active parking": {
-    "zh-Hans": "进行中的停车",
-    "ms": "Parkir aktif"
-  },
-  "Completed visits": {
-    "zh-Hans": "已完成停车",
-    "ms": "Parkir selesai"
-  },
-  "Reward points": {
-    "zh-Hans": "奖励积分",
-    "ms": "Mata ganjaran"
-  },
-  "Search city or parking lot": {
-    "zh-Hans": "搜索城市或停车场",
-    "ms": "Cari bandar atau lokasi parkir"
-  },
-  "All Sabah locations": {
-    "zh-Hans": "沙巴所有地点",
-    "ms": "Semua lokasi di Sabah"
-  },
-  "Any hourly rate": {
-    "zh-Hans": "不限每小时费率",
-    "ms": "Semua kadar sejam"
-  },
-  "Under RM 2.50": {
-    "zh-Hans": "低于 RM 2.50",
-    "ms": "Kurang daripada RM 2.50"
-  },
-  "RM 2.50 and above": {
-    "zh-Hans": "RM 2.50 及以上",
-    "ms": "RM 2.50 dan ke atas"
-  },
-  "Popular parking locations": {
-    "zh-Hans": "热门停车地点",
-    "ms": "Lokasi parkir popular"
-  },
-  "View map": {
-    "zh-Hans": "查看地图",
-    "ms": "Lihat peta"
-  },
-  "Select location": {
-    "zh-Hans": "选择地点",
-    "ms": "Pilih lokasi"
-  },
-  "View parking history": {
-    "zh-Hans": "查看停车记录",
-    "ms": "Lihat sejarah parkir"
-  },
-  "Sabah parking map": {
-    "zh-Hans": "沙巴停车地图",
-    "ms": "Peta parkir Sabah"
-  },
-  "Start parking": {
-    "zh-Hans": "开始停车",
-    "ms": "Mula parkir"
-  },
-  "Review your parking session": {
-    "zh-Hans": "核对停车详情",
-    "ms": "Semak sesi parkir anda"
-  },
-  "Parking starts when you select Start parking now. The times below are estimates in Malaysia time.": {
-    "zh-Hans": "点击「立即开始停车」后开始计时。以下是马来西亚时间的估算值。",
-    "ms": "Parkir bermula apabila anda memilih Mula parkir sekarang. Masa di bawah ialah anggaran dalam waktu Malaysia."
-  },
-  "Choose a location, vehicle and duration. Your parking time starts when you confirm.": {
-    "zh-Hans": "请选择地点、车辆和时长。确认后开始计时。",
-    "ms": "Pilih lokasi, kenderaan dan tempoh. Masa parkir bermula selepas pengesahan."
-  },
-  "Estimated start": {
-    "zh-Hans": "预计开始时间",
-    "ms": "Anggaran mula"
-  },
-  "Estimated end": {
-    "zh-Hans": "预计结束时间",
-    "ms": "Anggaran tamat"
-  },
-  "Edit details": {
-    "zh-Hans": "编辑详情",
-    "ms": "Sunting butiran"
-  },
-  "Start parking now": {
-    "zh-Hans": "立即开始停车",
-    "ms": "Mula parkir sekarang"
-  },
-  "Starting parking…": {
-    "zh-Hans": "正在开始停车…",
-    "ms": "Sedang memulakan parkir…"
-  },
-  "Choose a vehicle and duration": {
-    "zh-Hans": "选择车辆与停车时长",
-    "ms": "Pilih kenderaan dan tempoh"
-  },
-  "Review and start parking": {
-    "zh-Hans": "核对并开始停车",
-    "ms": "Semak dan mula parkir"
-  },
-  "Select a location": {
-    "zh-Hans": "选择地点",
-    "ms": "Pilih lokasi"
-  },
-  "Select a parking location.": {
-    "zh-Hans": "请选择停车地点。",
-    "ms": "Pilih lokasi parkir."
-  },
-  "Select a saved vehicle": {
-    "zh-Hans": "选择已保存的车辆",
-    "ms": "Pilih kenderaan yang disimpan"
-  },
-  "Choose a saved vehicle or use another vehicle.": {
-    "zh-Hans": "请选择已保存的车辆，或使用其他车辆。",
-    "ms": "Pilih kenderaan yang disimpan atau gunakan kenderaan lain."
-  },
-  "Choose a saved vehicle from your account, or use another vehicle.": {
-    "zh-Hans": "请选择此账户已保存的车辆，或使用其他车辆。",
-    "ms": "Pilih kenderaan yang disimpan dalam akaun anda atau gunakan kenderaan lain."
-  },
-  "Use another vehicle": {
-    "zh-Hans": "使用其他车辆",
-    "ms": "Gunakan kenderaan lain"
-  },
-  "Save this vehicle to my account": {
-    "zh-Hans": "将此车辆保存到我的账户",
-    "ms": "Simpan kenderaan ini ke akaun saya"
-  },
-  "This vehicle will also be saved to your account when you start parking.": {
-    "zh-Hans": "开始停车时，这辆车也会保存到账户。",
-    "ms": "Kenderaan ini turut disimpan dalam akaun anda apabila parkir bermula."
-  },
-  "Parking duration": {
-    "zh-Hans": "停车时长",
-    "ms": "Tempoh parkir"
-  },
-  "Duration (hours)": {
-    "zh-Hans": "时长（小时）",
-    "ms": "Tempoh (jam)"
-  },
-  "1 hour": {
-    "zh-Hans": "1 小时",
-    "ms": "1 jam"
-  },
-  "2 hours": {
-    "zh-Hans": "2 小时",
-    "ms": "2 jam"
-  },
-  "3 hours": {
-    "zh-Hans": "3 小时",
-    "ms": "3 jam"
-  },
-  "4 hours": {
-    "zh-Hans": "4 小时",
-    "ms": "4 jam"
-  },
-  "{count} hour": {
-    "zh-Hans": "{count} 小时",
-    "ms": "{count} jam"
-  },
-  "{count} hours": {
-    "zh-Hans": "{count} 小时",
-    "ms": "{count} jam"
-  },
-  "Custom": {
-    "zh-Hans": "自定义",
-    "ms": "Tersuai"
-  },
-  "Choose a whole number from 1 to 24 hours.": {
-    "zh-Hans": "请选择 1 至 24 之间的整小时时长。",
-    "ms": "Pilih bilangan jam bulat dari 1 hingga 24."
-  },
-  "Estimated fee": {
-    "zh-Hans": "预估费用",
-    "ms": "Anggaran caj"
-  },
-  "Select a location to calculate the fee": {
-    "zh-Hans": "请选择地点以计算费用",
-    "ms": "Pilih lokasi untuk mengira caj"
-  },
-  "Enter a valid duration to calculate the fee": {
-    "zh-Hans": "请输入有效时长以计算费用",
-    "ms": "Masukkan tempoh yang sah untuk mengira caj"
-  },
-  "Review parking details": {
-    "zh-Hans": "核对停车详情",
-    "ms": "Semak butiran parkir"
-  },
-  "Review your parking details before starting.": {
-    "zh-Hans": "开始前请先核对停车详情。",
-    "ms": "Semak butiran parkir sebelum memulakan sesi."
-  },
-  "Checking details…": {
-    "zh-Hans": "正在核对详情…",
-    "ms": "Sedang menyemak butiran…"
-  },
-  "Check the highlighted booking details.": {
-    "zh-Hans": "请检查标出的停车信息。",
-    "ms": "Semak butiran parkir yang ditandakan."
-  },
-  "This parking location is full. Choose another location.": {
-    "zh-Hans": "此停车地点已满，请选择其他地点。",
-    "ms": "Lokasi parkir ini penuh. Pilih lokasi lain."
-  },
-  "This review is no longer valid. Check your parking details again.": {
-    "zh-Hans": "此确认已失效，请重新核对停车详情。",
-    "ms": "Semakan ini tidak lagi sah. Semak butiran parkir anda sekali lagi."
-  },
-  "This review has expired. Review your parking details again.": {
-    "zh-Hans": "此确认已过期，请重新核对停车详情。",
-    "ms": "Semakan ini telah tamat tempoh. Semak butiran parkir anda sekali lagi."
-  },
-  "The fee or vehicle details changed. Review the updated details before starting.": {
-    "zh-Hans": "费用或车辆信息有变。开始前请核对更新后的详情。",
-    "ms": "Caj atau butiran kenderaan telah berubah. Semak butiran terkini sebelum memulakan sesi."
-  },
-  "Parking session created. Your e-ticket is ready.": {
-    "zh-Hans": "停车已开始，电子票已生成。",
-    "ms": "Sesi parkir telah bermula. E-tiket anda tersedia."
-  },
-  "Manage vehicles": {
-    "zh-Hans": "管理车辆",
-    "ms": "Urus kenderaan"
-  },
-  "Manage vehicles in Profile": {
-    "zh-Hans": "在个人资料中管理车辆",
-    "ms": "Urus kenderaan dalam Profil"
-  },
-  "My vehicles": {
-    "zh-Hans": "我的车辆",
-    "ms": "Kenderaan saya"
-  },
-  "Add vehicle": {
-    "zh-Hans": "添加车辆",
-    "ms": "Tambah kenderaan"
-  },
-  "Edit vehicle": {
-    "zh-Hans": "编辑车辆",
-    "ms": "Sunting kenderaan"
-  },
-  "Vehicle name (optional)": {
-    "zh-Hans": "车辆名称（选填）",
-    "ms": "Nama kenderaan (pilihan)"
-  },
-  "No saved vehicles yet.": {
-    "zh-Hans": "尚未保存车辆。",
-    "ms": "Belum ada kenderaan yang disimpan."
-  },
-  "Back to parking": {
-    "zh-Hans": "返回停车页面",
-    "ms": "Kembali ke parkir"
-  },
-  "Set as default": {
-    "zh-Hans": "设为默认",
-    "ms": "Tetapkan sebagai lalai"
-  },
-  "Vehicle added.": {
-    "zh-Hans": "车辆已添加。",
-    "ms": "Kenderaan telah ditambah."
-  },
-  "Vehicle updated.": {
-    "zh-Hans": "车辆已更新。",
-    "ms": "Kenderaan telah dikemas kini."
-  },
-  "Vehicle removed.": {
-    "zh-Hans": "车辆已删除。",
-    "ms": "Kenderaan telah dibuang."
-  },
-  "Default vehicle updated.": {
-    "zh-Hans": "默认车辆已更新。",
-    "ms": "Kenderaan lalai telah dikemas kini."
-  },
-  "Vehicle not found.": {
-    "zh-Hans": "找不到车辆。",
-    "ms": "Kenderaan tidak ditemui."
-  },
-  "Enter a valid plate number, for example SAB 1234.": {
-    "zh-Hans": "请输入有效车牌，例如 SAB 1234。",
-    "ms": "Masukkan nombor plat yang sah, contohnya SAB 1234."
-  },
-  "Enter a vehicle name of up to 40 characters.": {
-    "zh-Hans": "请输入不超过 40 个字符的车辆名称。",
-    "ms": "Masukkan nama kenderaan sehingga 40 aksara."
-  },
-  "This plate is already saved.": {
-    "zh-Hans": "此车牌已保存。",
-    "ms": "Nombor plat ini sudah disimpan."
-  },
-  "Saving vehicle…": {
-    "zh-Hans": "正在保存车辆…",
-    "ms": "Sedang menyimpan kenderaan…"
-  },
-  "Profile photo": {
-    "zh-Hans": "个人头像",
-    "ms": "Gambar profil"
-  },
-  "Rotate photo": {
-    "zh-Hans": "旋转照片",
-    "ms": "Putar gambar"
-  },
-  "Save profile": {
-    "zh-Hans": "保存资料",
-    "ms": "Simpan profil"
-  },
-  "Rotation changes the preview only; the original image is saved.": {
-    "zh-Hans": "旋转仅用于预览，保存的是原始照片。",
-    "ms": "Putaran hanya mengubah pratonton; gambar asal disimpan."
-  },
-  "Profile updated.": {
-    "zh-Hans": "个人资料已更新。",
-    "ms": "Profil telah dikemas kini."
-  },
-  "Parking History": {
-    "zh-Hans": "停车记录",
-    "ms": "Sejarah parkir"
-  },
-  "RESERVATION RECORDS": {
-    "zh-Hans": "停车记录",
-    "ms": "REKOD PARKIR"
-  },
-  "My parking history": {
-    "zh-Hans": "我的停车记录",
-    "ms": "Sejarah parkir saya"
-  },
-  "View parking receipts": {
-    "zh-Hans": "查看停车收据",
-    "ms": "Lihat resit parkir"
-  },
-  "Search plate, location or status": {
-    "zh-Hans": "搜索车牌、地点或状态",
-    "ms": "Cari nombor plat, lokasi atau status"
-  },
-  "No parking history yet.": {
-    "zh-Hans": "暂无停车记录。",
-    "ms": "Belum ada sejarah parkir."
-  },
-  "Ticket": {
-    "zh-Hans": "票券",
-    "ms": "Tiket"
-  },
-  "Parking e-ticket": {
-    "zh-Hans": "停车电子票",
-    "ms": "E-tiket parkir"
-  },
-  "Time remaining": {
-    "zh-Hans": "剩余时间",
-    "ms": "Baki masa"
-  },
-  "Parking time expired": {
-    "zh-Hans": "停车时间已结束",
-    "ms": "Masa parkir telah tamat"
-  },
-  "Less than 5 minutes remaining": {
-    "zh-Hans": "剩余不到 5 分钟",
-    "ms": "Kurang daripada 5 minit lagi"
-  },
-  "Your vehicle": {
-    "zh-Hans": "您的车辆",
-    "ms": "Kenderaan anda"
-  },
-  "Booking cancelled.": {
-    "zh-Hans": "停车记录已取消。",
-    "ms": "Tempahan parkir telah dibatalkan."
-  },
-  "Only active bookings can be cancelled.": {
-    "zh-Hans": "只能取消进行中的停车记录。",
-    "ms": "Hanya tempahan aktif boleh dibatalkan."
-  },
-  "Print / Save PDF": {
-    "zh-Hans": "打印／另存为 PDF",
-    "ms": "Cetak / Simpan PDF"
-  },
-  "MyPark WALLET": {
-    "zh-Hans": "MyPark 钱包",
-    "ms": "DOMPET MyPark"
-  },
-  "My wallet": {
-    "zh-Hans": "我的钱包",
-    "ms": "Dompet saya"
-  },
-  "Available balance": {
-    "zh-Hans": "可用余额",
-    "ms": "Baki tersedia"
-  },
-  "pay compounds": {
-    "zh-Hans": "支付停车罚单",
-    "ms": "bayar kompaun"
-  },
-  "Top up wallet": {
-    "zh-Hans": "钱包充值",
-    "ms": "Tambah nilai dompet"
-  },
-  "This is a demo top up. Payment gateway connection is added later.": {
-    "zh-Hans": "这是演示充值，付款网关有待接入。",
-    "ms": "Ini ialah tambah nilai demo. Gerbang pembayaran akan disambungkan kemudian."
-  },
-  "Custom amount (RM)": {
-    "zh-Hans": "自定义金额（RM）",
-    "ms": "Amaun tersuai (RM)"
-  },
-  "Top up now": {
-    "zh-Hans": "立即充值",
-    "ms": "Tambah nilai sekarang"
-  },
-  "Wallet activity": {
-    "zh-Hans": "钱包交易记录",
-    "ms": "Aktiviti dompet"
-  },
-  "View wallet top-up receipts": {
-    "zh-Hans": "查看钱包充值收据",
-    "ms": "Lihat resit tambah nilai dompet"
-  },
-  "Transaction": {
-    "zh-Hans": "交易",
-    "ms": "Transaksi"
-  },
-  "Top up": {
-    "zh-Hans": "充值",
-    "ms": "Tambah nilai"
-  },
-  "Receipt": {
-    "zh-Hans": "收据",
-    "ms": "Resit"
-  },
-  "No wallet activity yet.": {
-    "zh-Hans": "暂无钱包交易。",
-    "ms": "Belum ada aktiviti dompet."
-  },
-  "Parking support": {
-    "zh-Hans": "停车支持",
-    "ms": "Sokongan parkir"
-  },
-  "Message": {
-    "zh-Hans": "留言",
-    "ms": "Mesej"
-  },
-  "How can we help?": {
-    "zh-Hans": "我们可以怎样帮您？",
-    "ms": "Bagaimanakah kami boleh membantu?"
-  },
-  "Send": {
-    "zh-Hans": "发送",
-    "ms": "Hantar"
-  },
-  "Rate your parking experience": {
-    "zh-Hans": "为停车体验评分",
-    "ms": "Nilai pengalaman parkir anda"
-  },
-  "Rating": {
-    "zh-Hans": "评分",
-    "ms": "Penilaian"
-  },
-  "Excellent": {
-    "zh-Hans": "优秀",
-    "ms": "Cemerlang"
-  },
-  "Good": {
-    "zh-Hans": "良好",
-    "ms": "Baik"
-  },
-  "Okay": {
-    "zh-Hans": "一般",
-    "ms": "Memuaskan"
-  },
-  "Poor": {
-    "zh-Hans": "较差",
-    "ms": "Lemah"
-  },
-  "Bad": {
-    "zh-Hans": "很差",
-    "ms": "Teruk"
-  },
-  "Review": {
-    "zh-Hans": "评价",
-    "ms": "Ulasan"
-  },
-  "Share feedback": {
-    "zh-Hans": "分享反馈",
-    "ms": "Kongsi maklum balas"
-  },
-  "Submit review": {
-    "zh-Hans": "提交评价",
-    "ms": "Hantar ulasan"
-  },
-  "Your reviews": {
-    "zh-Hans": "您的评价",
-    "ms": "Ulasan anda"
-  },
-  "Digital receipts": {
-    "zh-Hans": "电子收据",
-    "ms": "Resit digital"
-  },
-  "Email receipt": {
-    "zh-Hans": "通过邮件发送收据",
-    "ms": "E-mel resit"
-  },
-  "Filter by date": {
-    "zh-Hans": "按日期筛选",
-    "ms": "Tapis mengikut tarikh"
-  },
-  "All receipts": {
-    "zh-Hans": "全部收据",
-    "ms": "Semua resit"
-  },
-  "Start date": {
-    "zh-Hans": "开始日期",
-    "ms": "Tarikh mula"
-  },
-  "End date": {
-    "zh-Hans": "结束日期",
-    "ms": "Tarikh tamat"
-  },
-  "Apply dates": {
-    "zh-Hans": "应用日期",
-    "ms": "Guna tarikh"
-  },
-  "Reset dates": {
-    "zh-Hans": "重置日期",
-    "ms": "Tetapkan semula tarikh"
-  },
-  "View receipt": {
-    "zh-Hans": "查看收据",
-    "ms": "Lihat resit"
-  },
-  "No receipts for these dates": {
-    "zh-Hans": "所选日期没有收据",
-    "ms": "Tiada resit untuk tarikh ini"
-  },
-  "Receipt unavailable": {
-    "zh-Hans": "无法查看收据",
-    "ms": "Resit tidak tersedia"
-  },
-  "Back to receipts": {
-    "zh-Hans": "返回收据",
-    "ms": "Kembali ke resit"
-  },
-  "Email this receipt": {
-    "zh-Hans": "通过邮件发送此收据",
-    "ms": "E-mel resit ini"
-  },
-  "Open email draft": {
-    "zh-Hans": "打开邮件草稿",
-    "ms": "Buka draf e-mel"
-  },
-  "Print or save as PDF": {
-    "zh-Hans": "打印或保存为 PDF",
-    "ms": "Cetak atau simpan sebagai PDF"
-  },
-  "Receipt number": {
-    "zh-Hans": "收据编号",
-    "ms": "Nombor resit"
-  },
-  "Date (Malaysia time)": {
-    "zh-Hans": "日期（马来西亚时间）",
-    "ms": "Tarikh (waktu Malaysia)"
-  },
-  "View, print or email receipts from the past 30 days.": {
-    "zh-Hans": "查看、打印或电邮过去 30 天的收据。",
-    "ms": "Lihat, cetak atau e-mel resit daripada 30 hari yang lalu."
-  },
-  "Scan & Pay Compound": {
-    "zh-Hans": "扫码与支付停车罚单",
-    "ms": "Imbas dan bayar kompaun"
-  },
-  "Compound number or vehicle plate": {
-    "zh-Hans": "罚单编号或车牌",
-    "ms": "Nombor kompaun atau nombor plat"
-  },
-  "Or scan the barcode on your compound notice": {
-    "zh-Hans": "也可扫描罚单上的条形码",
-    "ms": "Atau imbas kod bar pada notis kompaun anda"
-  },
-  "Scan barcode": {
-    "zh-Hans": "扫描条形码",
-    "ms": "Imbas kod bar"
-  },
-  "Scan compound barcode": {
-    "zh-Hans": "扫描罚单条形码",
-    "ms": "Imbas kod bar kompaun"
-  },
-  "Demo wallet balance": {
-    "zh-Hans": "演示钱包余额",
-    "ms": "Baki dompet demo"
-  },
-  "View compound receipts": {
-    "zh-Hans": "查看罚单收据",
-    "ms": "Lihat resit kompaun"
-  },
-  "Search results": {
-    "zh-Hans": "搜索结果",
-    "ms": "Hasil carian"
-  },
-  "Violation": {
-    "zh-Hans": "违规事项",
-    "ms": "Pelanggaran"
-  },
-  "Issued": {
-    "zh-Hans": "开单时间",
-    "ms": "Dikeluarkan"
-  },
-  "Close camera": {
-    "zh-Hans": "关闭相机",
-    "ms": "Tutup kamera"
-  },
-  "Requesting camera access…": {
-    "zh-Hans": "正在请求相机权限…",
-    "ms": "Meminta akses kamera…"
-  },
-  "Operations dashboard": {
-    "zh-Hans": "营运仪表板",
-    "ms": "Papan pemuka operasi"
-  },
-  "Manage reservations and member access.": {
-    "zh-Hans": "管理停车记录与会员访问权限。",
-    "ms": "Urus rekod tempahan dan akses ahli."
-  },
-  "Check and pay compounds": {
-    "zh-Hans": "查询和支付罚单",
-    "ms": "Semak dan bayar kompaun"
-  },
-  "Parking locations": {
-    "zh-Hans": "停车地点",
-    "ms": "Lokasi parkir"
-  },
-  "Reservations": {
-    "zh-Hans": "停车记录",
-    "ms": "Tempahan"
-  },
-  "Active stays": {
-    "zh-Hans": "进行中的停车",
-    "ms": "Sesi aktif"
-  },
-  "Demo revenue": {
-    "zh-Hans": "演示收入",
-    "ms": "Hasil demo"
-  },
-  "Reservation Management": {
-    "zh-Hans": "停车管理",
-    "ms": "Pengurusan tempahan"
-  },
-  "Account Management": {
-    "zh-Hans": "账户管理",
-    "ms": "Pengurusan akaun"
-  },
-  "Preparing reservation table…": {
-    "zh-Hans": "正在准备停车记录…",
-    "ms": "Menyediakan jadual tempahan…"
-  },
-  "Preparing account table…": {
-    "zh-Hans": "正在准备账户列表…",
-    "ms": "Menyediakan jadual akaun…"
-  },
-  "Only Super Admin can block or unblock accounts.": {
-    "zh-Hans": "只有超级管理员可停用或解封账户。",
-    "ms": "Hanya Pentadbir Utama boleh menyekat atau menyahsekat akaun."
-  },
-  "No reservations yet": {
-    "zh-Hans": "暂无停车记录",
-    "ms": "Belum ada tempahan"
-  },
-  "No accounts yet": {
-    "zh-Hans": "暂无账户",
-    "ms": "Belum ada akaun"
-  },
-  "No matching reservations": {
-    "zh-Hans": "没有符合条件的停车记录",
-    "ms": "Tiada tempahan sepadan"
-  },
-  "No matching accounts": {
-    "zh-Hans": "没有符合条件的账户",
-    "ms": "Tiada akaun sepadan"
-  },
-  "Add parking location": {
-    "zh-Hans": "添加停车地点",
-    "ms": "Tambah lokasi parkir"
-  },
-  "Sabah city": {
-    "zh-Hans": "沙巴城市",
-    "ms": "Bandar di Sabah"
-  },
-  "Address": {
-    "zh-Hans": "地址",
-    "ms": "Alamat"
-  },
-  "RM / hour": {
-    "zh-Hans": "RM／小时",
-    "ms": "RM / jam"
-  },
-  "Spaces": {
-    "zh-Hans": "车位数",
-    "ms": "Bilangan petak"
-  },
-  "Add location": {
-    "zh-Hans": "添加地点",
-    "ms": "Tambah lokasi"
-  },
-  "Reservation reports": {
-    "zh-Hans": "停车报表",
-    "ms": "Laporan tempahan"
-  },
-  "Export all reservations (CSV)": {
-    "zh-Hans": "导出全部停车记录（CSV）",
-    "ms": "Eksport semua tempahan (CSV)"
-  },
-  "Search name or email": {
-    "zh-Hans": "搜索姓名或邮箱",
-    "ms": "Cari nama atau e-mel"
-  },
-  "Search member, plate or location": {
-    "zh-Hans": "搜索会员、车牌或地点",
-    "ms": "Cari ahli, nombor plat atau lokasi"
-  },
-  "Clear search": {
-    "zh-Hans": "清除搜索",
-    "ms": "Kosongkan carian"
-  },
-  "Created from": {
-    "zh-Hans": "创建日期起",
-    "ms": "Tarikh cipta dari"
-  },
-  "Created to": {
-    "zh-Hans": "创建日期止",
-    "ms": "Tarikh cipta hingga"
-  },
-  "Columns": {
-    "zh-Hans": "列",
-    "ms": "Lajur"
-  },
-  "Row density": {
-    "zh-Hans": "行间距",
-    "ms": "Kepadatan baris"
-  },
-  "Comfortable": {
-    "zh-Hans": "舒适",
-    "ms": "Selesa"
-  },
-  "Compact": {
-    "zh-Hans": "紧凑",
-    "ms": "Padat"
-  },
-  "Export filtered results (CSV)": {
-    "zh-Hans": "导出筛选结果（CSV）",
-    "ms": "Eksport hasil ditapis (CSV)"
-  },
-  "All roles": {
-    "zh-Hans": "所有角色",
-    "ms": "Semua peranan"
-  },
-  "Change status…": {
-    "zh-Hans": "更改状态…",
-    "ms": "Tukar status…"
-  },
-  "Block": {
-    "zh-Hans": "停用",
-    "ms": "Sekat"
-  },
-  "Unblock": {
-    "zh-Hans": "解除停用",
-    "ms": "Nyahsekat"
-  },
-  "Block account": {
-    "zh-Hans": "停用账户",
-    "ms": "Sekat akaun"
-  },
-  "Block account?": {
-    "zh-Hans": "停用此账户？",
-    "ms": "Sekat akaun?"
-  },
-  "Account details": {
-    "zh-Hans": "账户详情",
-    "ms": "Butiran akaun"
-  },
-  "Refreshing records…": {
-    "zh-Hans": "正在刷新记录…",
-    "ms": "Memuat semula rekod…"
-  },
-  "Exporting…": {
-    "zh-Hans": "正在导出…",
-    "ms": "Sedang mengeksport…"
-  },
-  "Staff dashboard": {
-    "zh-Hans": "员工仪表板",
-    "ms": "Papan pemuka kakitangan"
-  },
-  "Fine Management": {
-    "zh-Hans": "罚单管理",
-    "ms": "Pengurusan kompaun"
-  },
-  "Vehicle Lookup": {
-    "zh-Hans": "车辆查询",
-    "ms": "Carian kenderaan"
-  },
-  "Parking Maintenance": {
-    "zh-Hans": "停车设施维护",
-    "ms": "Penyelenggaraan parkir"
-  },
-  "Total fines": {
-    "zh-Hans": "罚单总数",
-    "ms": "Jumlah kompaun"
-  },
-  "Unpaid fines": {
-    "zh-Hans": "未付款罚单",
-    "ms": "Kompaun belum dibayar"
-  },
-  "Awaiting payment": {
-    "zh-Hans": "等待付款",
-    "ms": "Menunggu bayaran"
-  },
-  "Outstanding amount": {
-    "zh-Hans": "待付金额",
-    "ms": "Amaun tertunggak"
-  },
-  "Open maintenance": {
-    "zh-Hans": "待处理维护",
-    "ms": "Penyelenggaraan terbuka"
-  },
-  "Recent fine records": {
-    "zh-Hans": "近期罚单",
-    "ms": "Rekod kompaun terkini"
-  },
-  "Manage fines": {
-    "zh-Hans": "管理罚单",
-    "ms": "Urus kompaun"
-  },
-  "Fine records": {
-    "zh-Hans": "罚单记录",
-    "ms": "Rekod kompaun"
-  },
-  "Maintenance records": {
-    "zh-Hans": "维护记录",
-    "ms": "Rekod penyelenggaraan"
-  },
-  "New Fine": {
-    "zh-Hans": "新增罚单",
-    "ms": "Kompaun baharu"
-  },
-  "New maintenance record": {
-    "zh-Hans": "新增维护记录",
-    "ms": "Rekod penyelenggaraan baharu"
-  },
-  "Find a vehicle": {
-    "zh-Hans": "查询车辆",
-    "ms": "Cari kenderaan"
-  },
-  "Enter vehicle plate": {
-    "zh-Hans": "输入车牌",
-    "ms": "Masukkan nombor plat"
-  },
-  "Search vehicle": {
-    "zh-Hans": "搜索车辆",
-    "ms": "Cari kenderaan"
-  },
-  "Search Fine ID or Vehicle Plate": {
-    "zh-Hans": "搜索罚单编号或车牌",
-    "ms": "Cari ID kompaun atau nombor plat"
-  },
-  "Search ID, issue or location": {
-    "zh-Hans": "搜索编号、问题或地点",
-    "ms": "Cari ID, isu atau lokasi"
-  },
-  "Filter by status": {
-    "zh-Hans": "按状态筛选",
-    "ms": "Tapis mengikut status"
-  },
-  "Fine ID": {
-    "zh-Hans": "罚单编号",
-    "ms": "ID kompaun"
-  },
-  "Violation Type": {
-    "zh-Hans": "违规类型",
-    "ms": "Jenis pelanggaran"
-  },
-  "Amount (RM)": {
-    "zh-Hans": "金额（RM）",
-    "ms": "Amaun (RM)"
-  },
-  "Record ID": {
-    "zh-Hans": "记录编号",
-    "ms": "ID rekod"
-  },
-  "Issue": {
-    "zh-Hans": "问题",
-    "ms": "Isu"
-  },
-  "Updated": {
-    "zh-Hans": "更新时间",
-    "ms": "Dikemas kini"
-  },
-  "Record payment": {
-    "zh-Hans": "登记付款",
-    "ms": "Rekod bayaran"
-  },
-  "No fine records yet.": {
-    "zh-Hans": "暂无罚单。",
-    "ms": "Belum ada rekod kompaun."
-  },
-  "No maintenance records yet.": {
-    "zh-Hans": "暂无维护记录。",
-    "ms": "Belum ada rekod penyelenggaraan."
-  },
-  "No matching fine records.": {
-    "zh-Hans": "没有符合条件的罚单。",
-    "ms": "Tiada rekod kompaun sepadan."
-  },
-  "No matching maintenance records.": {
-    "zh-Hans": "没有符合条件的维护记录。",
-    "ms": "Tiada rekod penyelenggaraan sepadan."
-  },
-  "Related fines": {
-    "zh-Hans": "相关罚单",
-    "ms": "Kompaun berkaitan"
-  },
-  "Parking records": {
-    "zh-Hans": "停车记录",
-    "ms": "Rekod parkir"
-  },
-  "Audit history": {
-    "zh-Hans": "审计记录",
-    "ms": "Sejarah audit"
-  },
-  "Payment reference": {
-    "zh-Hans": "付款参考编号",
-    "ms": "Rujukan bayaran"
-  },
-  "Notes": {
-    "zh-Hans": "备注",
-    "ms": "Catatan"
-  },
-  "Description": {
-    "zh-Hans": "说明",
-    "ms": "Penerangan"
-  },
-  "Booking ID": {
-    "zh-Hans": "停车单号",
-    "ms": "ID tempahan"
-  },
-  "Hours": {
-    "zh-Hans": "小时",
-    "ms": "Jam"
-  },
-  "ID": {
-    "zh-Hans": "编号",
-    "ms": "ID"
-  },
-  "Premium": {
-    "zh-Hans": "优选",
-    "ms": "Premium"
-  },
-  "Sabah, Malaysia": {
-    "zh-Hans": "马来西亚沙巴",
-    "ms": "Sabah, Malaysia"
-  },
-  "/ hour": {
-    "zh-Hans": "/ 小时",
-    "ms": "/ jam"
-  },
-  "{count} spaces": {
-    "zh-Hans": "{count} 个车位",
-    "ms": "{count} petak"
-  },
-  "Use demo credit to": {
-    "zh-Hans": "使用演示余额",
-    "ms": "Gunakan kredit demo untuk"
-  },
-  "Compound": {
-    "zh-Hans": "停车罚单",
-    "ms": "Kompaun"
-  },
-  "Please check {count} highlighted fields below.": {
-    "zh-Hans": "请检查下方标出的 {count} 个字段。",
-    "ms": "Sila semak {count} ruangan yang ditandakan di bawah."
-  },
-  " — met": {
-    "zh-Hans": "，已满足",
-    "ms": " — dipenuhi"
-  },
-  " — not met": {
-    "zh-Hans": "，尚未满足",
-    "ms": " — belum dipenuhi"
-  },
-  "Prototype chat. Live agent connection can be enabled in the final backend.": {
-    "zh-Hans": "聊天功能为演示。人工客服可在正式后端启用。",
-    "ms": "Ini ialah sembang prototaip. Sokongan ejen langsung boleh diaktifkan dalam sistem akhir."
-  },
-  "All fine records, including voids": {
-    "zh-Hans": "所有罚单，包括已作废记录",
-    "ms": "Semua rekod kompaun termasuk yang dibatalkan"
-  },
-  "Unpaid records only": {
-    "zh-Hans": "仅未付款记录",
-    "ms": "Rekod belum dibayar sahaja"
-  },
-  "Open or in progress": {
-    "zh-Hans": "待处理或处理中",
-    "ms": "Terbuka atau sedang diproses"
-  },
-  "Exact plate match; spaces, hyphens and letter case are ignored.": {
-    "zh-Hans": "精确匹配车牌，忽略空格、连字符和大小写。",
-    "ms": "Padanan nombor plat tepat. Ruang, sempang dan saiz huruf diabaikan."
-  },
-  "Enter a plate number to view related records.": {
-    "zh-Hans": "输入车牌号码以查看相关记录。",
-    "ms": "Masukkan nombor plat untuk melihat rekod berkaitan."
-  },
-  "Enable JavaScript to manage these records. No demo fines or maintenance records have been added.": {
-    "zh-Hans": "请启用 JavaScript 管理记录。系统未预先添加演示罚单或维护记录。",
-    "ms": "Dayakan JavaScript untuk mengurus rekod ini. Tiada kompaun demo atau rekod penyelenggaraan ditambah."
-  },
-  "Private parking prototype. Compounds and digital receipts are saved in this browser across sign-outs.": {
-    "zh-Hans": "私人停车演示。罚单和电子收据在此浏览器登出后仍会保留。",
-    "ms": "Prototaip parkir persendirian. Kompaun dan resit digital kekal dalam pelayar ini selepas log keluar."
-  },
-  "An overview of your parking records and outstanding work.": {
-    "zh-Hans": "查看停车记录和待办事项。",
-    "ms": "Ringkasan rekod parkir dan kerja tertunggak."
-  },
-  "Create and manage private parking fine records.": {
-    "zh-Hans": "创建和管理私人停车罚单。",
-    "ms": "Cipta dan urus rekod kompaun parkir persendirian."
-  },
-  "Find fine and parking records for a vehicle plate.": {
-    "zh-Hans": "按车牌查找罚单及停车记录。",
-    "ms": "Cari rekod kompaun dan parkir menggunakan nombor plat."
-  },
-  "Track parking location issues from report to completion.": {
-    "zh-Hans": "从提交问题到处理完成，跟踪停车地点维护。",
-    "ms": "Jejaki isu lokasi parkir daripada laporan hingga selesai."
-  },
-  "SABAH PARKING OPERATIONS": {
-    "zh-Hans": "沙巴停车营运",
-    "ms": "OPERASI PARKIR SABAH"
-  },
-  "No fine records found for this vehicle.": {
-    "zh-Hans": "此车辆没有罚单记录。",
-    "ms": "Tiada rekod kompaun untuk kenderaan ini."
-  },
-  "No parking records found for this vehicle.": {
-    "zh-Hans": "此车辆没有停车记录。",
-    "ms": "Tiada rekod parkir untuk kenderaan ini."
-  },
-  "Notes (optional)": {
-    "zh-Hans": "备注（选填）",
-    "ms": "Catatan (pilihan)"
-  },
-  "Reason for correction": {
-    "zh-Hans": "更正原因",
-    "ms": "Sebab pembetulan"
-  },
-  "Issue title": {
-    "zh-Hans": "问题标题",
-    "ms": "Tajuk isu"
-  },
-  "Parking location": {
-    "zh-Hans": "停车地点",
-    "ms": "Lokasi parkir"
-  },
-  "Date and time (Malaysia)": {
-    "zh-Hans": "日期和时间（马来西亚）",
-    "ms": "Tarikh dan masa (Malaysia)"
-  },
-  "Describe the parking violation": {
-    "zh-Hans": "描述停车违规事项",
-    "ms": "Huraikan pelanggaran parkir"
-  },
-  "Reason for voiding": {
-    "zh-Hans": "作废原因",
-    "ms": "Sebab pembatalan"
-  },
-  "Reason for removal": {
-    "zh-Hans": "删除原因",
-    "ms": "Sebab pembuangan"
-  },
-  "Save changes": {
-    "zh-Hans": "保存更改",
-    "ms": "Simpan perubahan"
-  },
-  "Create fine record": {
-    "zh-Hans": "创建罚单记录",
-    "ms": "Cipta rekod kompaun"
-  },
-  "Create record": {
-    "zh-Hans": "创建记录",
-    "ms": "Cipta rekod"
-  },
-  "Confirm received payment": {
-    "zh-Hans": "确认已收款",
-    "ms": "Sahkan bayaran diterima"
-  },
-  "Void fine": {
-    "zh-Hans": "作废罚单",
-    "ms": "Batalkan kompaun"
-  },
-  "Remove record": {
-    "zh-Hans": "删除记录",
-    "ms": "Buang rekod"
-  },
-  "Paid amount retained": {
-    "zh-Hans": "已保留付款金额",
-    "ms": "Amaun bayaran dikekalkan"
-  },
-  "Payment recorded": {
-    "zh-Hans": "已登记付款",
-    "ms": "Bayaran direkodkan"
-  },
-  "Created by": {
-    "zh-Hans": "创建人",
-    "ms": "Dicipta oleh"
-  },
-  "Void reason": {
-    "zh-Hans": "作废原因",
-    "ms": "Sebab pembatalan"
-  },
-  "Removed": {
-    "zh-Hans": "已删除",
-    "ms": "Dibuang"
-  },
-  "Voided": {
-    "zh-Hans": "已作废",
-    "ms": "Dibatalkan"
-  },
-  "I confirm this payment has already been received.": {
-    "zh-Hans": "我确认已收到此付款。",
-    "ms": "Saya mengesahkan bayaran ini telah diterima."
-  },
-  "Private parking prototype only. This creates an unpaid record; it is not a government-issued fine.": {
-    "zh-Hans": "私人停车演示。此操作创建待付款记录，不属于政府罚单。",
-    "ms": "Prototaip parkir persendirian sahaja. Tindakan ini mencipta rekod belum dibayar dan bukan saman kerajaan."
-  },
-  "ascending": {
-    "zh-Hans": "升序",
-    "ms": "menaik"
-  },
-  "descending": {
-    "zh-Hans": "降序",
-    "ms": "menurun"
-  },
-  "Sort by {label}, {direction}": {
-    "zh-Hans": "按{label}排序，{direction}",
-    "ms": "Isih mengikut {label}, {direction}"
-  },
-  "Page {page}": {
-    "zh-Hans": "第 {page} 页",
-    "ms": "Halaman {page}"
-  },
-  "Edit {code}": {
-    "zh-Hans": "编辑 {code}",
-    "ms": "Sunting {code}"
-  },
-  "{code} · Details": {
-    "zh-Hans": "{code} · 详情",
-    "ms": "{code} · Butiran"
-  },
-  "Record received payment · {code}": {
-    "zh-Hans": "登记已收付款 · {code}",
-    "ms": "Rekod bayaran diterima · {code}"
-  },
-  "Void fine · {code}": {
-    "zh-Hans": "作废罚单 · {code}",
-    "ms": "Batalkan kompaun · {code}"
-  },
-  "Remove maintenance · {code}": {
-    "zh-Hans": "移除维护记录 · {code}",
-    "ms": "Buang penyelenggaraan · {code}"
-  },
-  "Record a received payment of {amount} for {plate}? No payment will be collected by this website.": {
-    "zh-Hans": "登记 {plate} 已收到的 {amount} 付款？网站不会收取付款。",
-    "ms": "Rekod bayaran diterima sebanyak {amount} untuk {plate}? Tiada bayaran dikutip oleh laman ini."
-  },
-  "Void {code} for {plate}? The original amount, payment evidence and audit history will be retained. Voiding does not process a refund.": {
-    "zh-Hans": "作废 {plate} 的罚单 {code}？原始金额、付款凭证和审计历史将被保留。作废不会办理退款。",
-    "ms": "Batalkan {code} untuk {plate}? Amaun asal, bukti bayaran dan sejarah audit akan dikekalkan. Pembatalan tidak memproses bayaran balik."
-  },
-  "Remove {code}: {title}? It will leave the active list; its audit history will be retained.": {
-    "zh-Hans": "删除 {code}：{title}？它将移出当前列表，审计历史仍会保留。",
-    "ms": "Buang {code}: {title}? Rekod dikeluarkan daripada senarai aktif dan sejarah audit dikekalkan."
-  },
-  "Block {name} ({email})? This account will no longer be able to sign in.": {
-    "zh-Hans": "停用 {name}（{email}）？此账户将无法登录。",
-    "ms": "Sekat {name} ({email})? Akaun ini tidak lagi boleh log masuk."
-  },
-  "Dismiss {type} notification": {
-    "zh-Hans": "关闭{type}通知",
-    "ms": "Tutup pemberitahuan {type}"
-  },
-  "{plate} · {fines} fine records · {bookings} parking records": {
-    "zh-Hans": "{plate} · {fines} 条罚单 · {bookings} 条停车记录",
-    "ms": "{plate} · {fines} rekod kompaun · {bookings} rekod parkir"
-  },
-  "Enter a valid vehicle plate.": {
-    "zh-Hans": "请输入有效的车牌。",
-    "ms": "Masukkan nombor plat kenderaan yang sah."
-  },
-  "Choose dates from {start} to {end} (Malaysia time).": {
-    "zh-Hans": "请选择 {start} 至 {end} 之间的日期（马来西亚时间）。",
-    "ms": "Pilih tarikh dari {start} hingga {end} (waktu Malaysia)."
-  },
-  "{count} receipts found": {
-    "zh-Hans": "找到 {count} 张收据",
-    "ms": "{count} resit ditemui"
-  },
-  "Try a different date range or choose All receipts to see every transaction type.": {
-    "zh-Hans": "请更改日期范围，或选择「全部收据」查看所有交易类型。",
-    "ms": "Cuba julat tarikh lain atau pilih Semua resit untuk melihat semua jenis transaksi."
-  },
-  "Only receipts from your account and from the past 30 days are available.": {
-    "zh-Hans": "仅可查看本账户过去 30 天的收据。",
-    "ms": "Hanya resit daripada akaun anda dalam 30 hari lalu tersedia."
-  },
-  "Open an email draft addressed to": {
-    "zh-Hans": "打开收件人为",
-    "ms": "Buka draf e-mel kepada"
-  },
-  "The receipt will be in the message. You can review it and select Send in your email app.": {
-    "zh-Hans": "收据将包含在邮件中。请在邮件应用中核对后发送。",
-    "ms": "Resit akan disertakan dalam mesej. Semak dan pilih Hantar dalam aplikasi e-mel anda."
-  },
-  "Demo booking. No payment was collected.": {
-    "zh-Hans": "这是演示停车，未收取付款。",
-    "ms": "Ini tempahan demo. Tiada bayaran dikutip."
-  },
-  "Demo transaction.": {
-    "zh-Hans": "演示交易。",
-    "ms": "Transaksi demo."
-  },
-  "That barcode does not contain a compound number. Try again or enter the number manually.": {
-    "zh-Hans": "此条形码不包含罚单编号，请重试或手动输入。",
-    "ms": "Kod bar ini tidak mengandungi nombor kompaun. Cuba lagi atau masukkan nombor secara manual."
-  },
-  "Could not read the barcode. Close the camera and enter the number manually.": {
-    "zh-Hans": "无法读取条形码，请关闭相机并手动输入。",
-    "ms": "Kod bar tidak dapat dibaca. Tutup kamera dan masukkan nombor secara manual."
-  },
-  "Camera scanning is unavailable here. Enter the compound number or plate above.": {
-    "zh-Hans": "此处无法使用相机扫描，请输入上方的罚单编号或车牌。",
-    "ms": "Imbasan kamera tidak tersedia di sini. Masukkan nombor kompaun atau plat di atas."
-  },
-  "Hold the barcode inside the camera view.": {
-    "zh-Hans": "请将条形码放在相机画面内。",
-    "ms": "Letakkan kod bar dalam paparan kamera."
-  },
-  "Camera scanning is unavailable. Close the camera and enter the number manually.": {
-    "zh-Hans": "无法使用相机扫描，请关闭相机并手动输入。",
-    "ms": "Imbasan kamera tidak tersedia. Tutup kamera dan masukkan nombor secara manual."
-  },
-  "Unable to connect. Check your connection and try again.": {
-    "zh-Hans": "无法连接，请检查网络后重试。",
-    "ms": "Tidak dapat menyambung. Semak sambungan anda dan cuba lagi."
-  },
-  "Sign in is temporarily unavailable. Please refresh the page and try again.": {
-    "zh-Hans": "暂时无法登录，请刷新后重试。",
-    "ms": "Log masuk tidak tersedia buat sementara waktu. Muat semula halaman dan cuba lagi."
-  },
-  "Unable to finish signing in. Please refresh the page and try again.": {
-    "zh-Hans": "无法完成登录，请刷新页面后重试。",
-    "ms": "Tidak dapat melengkapkan log masuk. Muat semula halaman dan cuba lagi."
-  },
-  "The connection was interrupted. Please refresh the page before trying again.": {
-    "zh-Hans": "连接已中断，请刷新页面后重试。",
-    "ms": "Sambungan terputus. Muat semula halaman sebelum mencuba lagi."
-  },
-  "Export failed.": {
-    "zh-Hans": "导出失败。",
-    "ms": "Eksport gagal."
-  },
-  "Unable to export. Please sign in again.": {
-    "zh-Hans": "无法导出，请重新登录。",
-    "ms": "Tidak dapat mengeksport. Sila log masuk semula."
-  },
-  "The server returned incomplete table data. Existing records have been kept.": {
-    "zh-Hans": "服务器返回的表格数据不完整，现有记录已保留。",
-    "ms": "Pelayan mengembalikan data jadual yang tidak lengkap. Rekod sedia ada dikekalkan."
-  },
-  "The server returned an unexpected response. Please refresh or sign in again.": {
-    "zh-Hans": "服务器返回异常，请刷新或重新登录。",
-    "ms": "Pelayan mengembalikan respons yang tidak dijangka. Muat semula atau log masuk semula."
-  },
-  "The request could not be completed.": {
-    "zh-Hans": "无法完成请求。",
-    "ms": "Permintaan tidak dapat diselesaikan."
-  },
-  "Unexpected server response. Refresh the page or sign in again.": {
-    "zh-Hans": "服务器返回异常，请刷新页面或重新登录。",
-    "ms": "Respons pelayan tidak dijangka. Muat semula halaman atau log masuk semula."
-  },
-  "Incomplete response. Existing records have been kept.": {
-    "zh-Hans": "返回的数据不完整，现有记录已保留。",
-    "ms": "Respons tidak lengkap. Rekod sedia ada dikekalkan."
-  },
-  "Refresh failed. {message}": {
-    "zh-Hans": "刷新失败。{message}",
-    "ms": "Gagal memuat semula. {message}"
-  },
-  "Update failed. {message}": {
-    "zh-Hans": "更新失败。{message}",
-    "ms": "Kemas kini gagal. {message}"
-  },
-  "The update could not be confirmed. Refresh records before retrying. {message}": {
-    "zh-Hans": "无法确认更新结果。重试前请刷新记录。{message}",
-    "ms": "Kemas kini tidak dapat disahkan. Muat semula rekod sebelum mencuba lagi. {message}"
-  },
-  "Parking booking": {
-    "zh-Hans": "停车记录",
-    "ms": "Tempahan parkir"
-  },
-  "Wallet top-up": {
-    "zh-Hans": "钱包充值",
-    "ms": "Tambah nilai dompet"
-  },
-  "Compound payment": {
-    "zh-Hans": "罚单付款",
-    "ms": "Bayaran kompaun"
-  },
-  "Demo account created. Email OTP delivery will be connected with backend services later.": {
-    "zh-Hans": "演示账户已创建，邮件验证码服务有待接入。",
-    "ms": "Akaun demo telah dicipta. Penghantaran OTP melalui e-mel akan disambungkan kemudian."
-  }
+  "Language": {"zh-Hans":"语言","ms":"Bahasa"},
+  "Apply": {"zh-Hans":"应用","ms":"Guna"},
+  "Home": {"zh-Hans":"首页","ms":"Laman utama"},
+  "Main menu": {"zh-Hans":"主菜单","ms":"Menu utama"},
+  "Parking": {"zh-Hans":"停车","ms":"Parkir"},
+  "History": {"zh-Hans":"历史记录","ms":"Sejarah"},
+  "Receipts": {"zh-Hans":"收据","ms":"Resit"},
+  "Wallet": {"zh-Hans":"钱包","ms":"Dompet"},
+  "Compounds": {"zh-Hans":"停车罚单","ms":"Kompaun"},
+  "Profile": {"zh-Hans":"个人资料","ms":"Profil"},
+  "Support": {"zh-Hans":"帮助","ms":"Bantuan"},
+  "Operations": {"zh-Hans":"营运管理","ms":"Operasi"},
+  "Parking notifications": {"zh-Hans":"停车通知","ms":"Pemberitahuan parkir"},
+  "Notifications": {"zh-Hans":"通知","ms":"Pemberitahuan"},
+  "Logout": {"zh-Hans":"登出","ms":"Log keluar"},
+  "Login": {"zh-Hans":"登录","ms":"Log masuk"},
+  "Log in": {"zh-Hans":"登录","ms":"Log masuk"},
+  "Sign in": {"zh-Hans":"登录","ms":"Log masuk"},
+  "Register": {"zh-Hans":"注册","ms":"Daftar"},
+  "Sign up": {"zh-Hans":"注册","ms":"Daftar"},
+  "Toggle theme": {"zh-Hans":"切换主题","ms":"Tukar tema"},
+  "Open navigation menu": {"zh-Hans":"打开导航菜单","ms":"Buka menu navigasi"},
+  "Close navigation menu": {"zh-Hans":"关闭导航菜单","ms":"Tutup menu navigasi"},
+  "Simple parking reservations across Sabah.": {"zh-Hans":"在沙巴轻松办理停车。","ms":"Urus parkir anda di seluruh Sabah dengan mudah."},
+  "Contact": {"zh-Hans":"联系我们","ms":"Hubungi kami"},
+  "Help": {"zh-Hans":"帮助","ms":"Bantuan"},
+  "Customer support": {"zh-Hans":"客户支持","ms":"Sokongan pelanggan"},
+  "My profile": {"zh-Hans":"我的个人资料","ms":"Profil saya"},
+  "Member": {"zh-Hans":"会员","ms":"Ahli"},
+  "Admin": {"zh-Hans":"管理员","ms":"Pentadbir"},
+  "Super Admin": {"zh-Hans":"超级管理员","ms":"Pentadbir Utama"},
+  "Staff": {"zh-Hans":"员工","ms":"Kakitangan"},
+  "Menu": {"zh-Hans":"菜单","ms":"Menu"},
+  "Skip to content": {"zh-Hans":"跳到主要内容","ms":"Langkau ke kandungan"},
+  "Close menu": {"zh-Hans":"关闭菜单","ms":"Tutup menu"},
+  "Staff workspace": {"zh-Hans":"员工工作区","ms":"Ruang kerja kakitangan"},
+  "Workspace": {"zh-Hans":"工作区","ms":"Ruang kerja"},
+  "Staff navigation": {"zh-Hans":"员工导航","ms":"Navigasi kakitangan"},
+  "Staff pages": {"zh-Hans":"员工页面","ms":"Halaman kakitangan"},
+  "Private parking · Staff portal": {"zh-Hans":"私人停车场 · 员工门户","ms":"Parkir persendirian · Portal kakitangan"},
+  "Dashboard": {"zh-Hans":"仪表板","ms":"Papan pemuka"},
+  "Name": {"zh-Hans":"姓名","ms":"Nama"},
+  "Full name": {"zh-Hans":"全名","ms":"Nama penuh"},
+  "Email": {"zh-Hans":"电子邮箱","ms":"E-mel"},
+  "Email address": {"zh-Hans":"电子邮箱地址","ms":"Alamat e-mel"},
+  "Phone": {"zh-Hans":"电话号码","ms":"Nombor telefon"},
+  "Password": {"zh-Hans":"密码","ms":"Kata laluan"},
+  "Confirm password": {"zh-Hans":"确认密码","ms":"Sahkan kata laluan"},
+  "Location": {"zh-Hans":"地点","ms":"Lokasi"},
+  "Date": {"zh-Hans":"日期","ms":"Tarikh"},
+  "Status": {"zh-Hans":"状态","ms":"Status"},
+  "Actions": {"zh-Hans":"操作","ms":"Tindakan"},
+  "Fee": {"zh-Hans":"费用","ms":"Caj"},
+  "Amount": {"zh-Hans":"金额","ms":"Amaun"},
+  "Plate": {"zh-Hans":"车牌","ms":"Nombor plat"},
+  "Vehicle": {"zh-Hans":"车辆","ms":"Kenderaan"},
+  "Vehicle plate": {"zh-Hans":"车牌号码","ms":"Nombor plat kenderaan"},
+  "Duration": {"zh-Hans":"时长","ms":"Tempoh"},
+  "Created": {"zh-Hans":"创建时间","ms":"Dicipta"},
+  "Role": {"zh-Hans":"角色","ms":"Peranan"},
+  "Active": {"zh-Hans":"进行中","ms":"Aktif"},
+  "Completed": {"zh-Hans":"已完成","ms":"Selesai"},
+  "Cancelled": {"zh-Hans":"已取消","ms":"Dibatalkan"},
+  "Blocked": {"zh-Hans":"已停用","ms":"Disekat"},
+  "Paid": {"zh-Hans":"已付款","ms":"Dibayar"},
+  "Unpaid": {"zh-Hans":"待付款","ms":"Belum dibayar"},
+  "Void": {"zh-Hans":"作废","ms":"Batal"},
+  "Open": {"zh-Hans":"待处理","ms":"Terbuka"},
+  "In progress": {"zh-Hans":"处理中","ms":"Sedang diproses"},
+  "Available": {"zh-Hans":"有空位","ms":"Tersedia"},
+  "Full": {"zh-Hans":"已满","ms":"Penuh"},
+  "Default": {"zh-Hans":"默认","ms":"Lalai"},
+  "Save": {"zh-Hans":"保存","ms":"Simpan"},
+  "Edit": {"zh-Hans":"编辑","ms":"Sunting"},
+  "Remove": {"zh-Hans":"删除","ms":"Buang"},
+  "Delete": {"zh-Hans":"删除","ms":"Padam"},
+  "Cancel": {"zh-Hans":"取消","ms":"Batal"},
+  "Close": {"zh-Hans":"关闭","ms":"Tutup"},
+  "Confirm": {"zh-Hans":"确认","ms":"Sahkan"},
+  "Refresh": {"zh-Hans":"刷新","ms":"Muat semula"},
+  "Retry": {"zh-Hans":"重试","ms":"Cuba lagi"},
+  "Search": {"zh-Hans":"搜索","ms":"Cari"},
+  "View": {"zh-Hans":"查看","ms":"Lihat"},
+  "View details": {"zh-Hans":"查看详情","ms":"Lihat butiran"},
+  "Clear": {"zh-Hans":"清除","ms":"Kosongkan"},
+  "Clear filters": {"zh-Hans":"清除筛选","ms":"Kosongkan penapis"},
+  "Previous": {"zh-Hans":"上一页","ms":"Sebelumnya"},
+  "Next": {"zh-Hans":"下一页","ms":"Seterusnya"},
+  "All statuses": {"zh-Hans":"所有状态","ms":"Semua status"},
+  "All locations": {"zh-Hans":"所有地点","ms":"Semua lokasi"},
+  "Rows per page": {"zh-Hans":"每页行数","ms":"Baris setiap halaman"},
+  "Page {page} of {pages}": {"zh-Hans":"第 {page} 页，共 {pages} 页","ms":"Halaman {page} daripada {pages}"},
+  "No matching records": {"zh-Hans":"没有符合条件的记录","ms":"Tiada rekod sepadan"},
+  "0 results": {"zh-Hans":"0 条结果","ms":"0 hasil"},
+  "Showing {first}–{last} of {total} results": {"zh-Hans":"显示第 {first}–{last} 条，共 {total} 条结果","ms":"Memaparkan {first}–{last} daripada {total} hasil"},
+  "Remove {plate} from your saved vehicles?": {"zh-Hans":"要从常用车辆中删除 {plate} 吗？","ms":"Buang {plate} daripada senarai kenderaan anda?"},
+  "{plate}: your parking session ends in {minutes} minutes or less.": {"zh-Hans":"{plate}：停车将在 {minutes} 分钟内结束。","ms":"{plate}: sesi parkir anda tamat dalam {minutes} minit atau kurang."},
+  "{count} records": {"zh-Hans":"{count} 条记录","ms":"{count} rekod"},
+  "Saving…": {"zh-Hans":"保存中…","ms":"Sedang menyimpan…"},
+  "Information": {"zh-Hans":"信息","ms":"Maklumat"},
+  "Success": {"zh-Hans":"成功","ms":"Berjaya"},
+  "Reminder": {"zh-Hans":"提醒","ms":"Peringatan"},
+  "Something went wrong": {"zh-Hans":"出了点问题","ms":"Ralat telah berlaku"},
+  "View parking details": {"zh-Hans":"查看停车详情","ms":"Lihat butiran parkir"},
+  "Welcome back": {"zh-Hans":"欢迎回来","ms":"Selamat kembali"},
+  "Find and reserve parking across Sabah.": {"zh-Hans":"查找并办理沙巴各地的停车。","ms":"Cari dan tempah parkir di seluruh Sabah."},
+  "Enter your email address": {"zh-Hans":"输入您的电子邮箱地址","ms":"Masukkan alamat e-mel anda"},
+  "Enter your password": {"zh-Hans":"输入您的密码","ms":"Masukkan kata laluan anda"},
+  "Enter password": {"zh-Hans":"输入密码","ms":"Masukkan kata laluan"},
+  "Forgot password?": {"zh-Hans":"忘记密码？","ms":"Lupa kata laluan?"},
+  "Don’t have an account?": {"zh-Hans":"还没有账户？","ms":"Tiada akaun?"},
+  "Already have an account?": {"zh-Hans":"已有账户？","ms":"Sudah mempunyai akaun?"},
+  "Demo accounts": {"zh-Hans":"演示账户","ms":"Akaun demo"},
+  "Create member account": {"zh-Hans":"创建会员账户","ms":"Cipta akaun ahli"},
+  "Create account": {"zh-Hans":"创建账户","ms":"Cipta akaun"},
+  "At least 8 characters": {"zh-Hans":"至少 8 个字符","ms":"Sekurang-kurangnya 8 aksara"},
+  "Password recovery": {"zh-Hans":"找回密码","ms":"Pemulihan kata laluan"},
+  "Request reset": {"zh-Hans":"申请重置","ms":"Minta penetapan semula"},
+  "Enter your account email to request a reset link.": {"zh-Hans":"输入账户邮箱以申请密码重置链接。","ms":"Masukkan e-mel akaun anda untuk meminta pautan penetapan semula."},
+  "If the address exists, a reset link will be sent when email service is configured.": {"zh-Hans":"邮件服务配置完成后，若邮箱已注册，系统会发送重置链接。","ms":"Jika alamat wujud, pautan akan dihantar apabila perkhidmatan e-mel dikonfigurasi."},
+  "Show password": {"zh-Hans":"显示密码","ms":"Tunjukkan kata laluan"},
+  "Hide password": {"zh-Hans":"隐藏密码","ms":"Sembunyikan kata laluan"},
+  "Signing in…": {"zh-Hans":"正在登录…","ms":"Sedang log masuk…"},
+  "Please enter your email address.": {"zh-Hans":"请输入电子邮箱地址。","ms":"Sila masukkan alamat e-mel anda."},
+  "Please enter a valid email address.": {"zh-Hans":"请输入有效的电子邮箱地址。","ms":"Sila masukkan alamat e-mel yang sah."},
+  "Please enter your password.": {"zh-Hans":"请输入密码。","ms":"Sila masukkan kata laluan anda."},
+  "Please enter your name.": {"zh-Hans":"请输入姓名。","ms":"Sila masukkan nama anda."},
+  "Name must be at least 2 characters.": {"zh-Hans":"姓名至少需要 2 个字符。","ms":"Nama mesti mengandungi sekurang-kurangnya 2 aksara."},
+  "Enter an email address like name@example.com.": {"zh-Hans":"请输入类似 name@example.com 的电子邮箱地址。","ms":"Masukkan alamat e-mel seperti name@example.com."},
+  "Password must be at least 8 characters.": {"zh-Hans":"密码至少需要 8 个字符。","ms":"Kata laluan mesti mengandungi sekurang-kurangnya 8 aksara."},
+  "Password must be no more than 72 bytes (some characters use more than one byte).": {"zh-Hans":"密码不得超过 72 字节（部分字符占用多个字节）。","ms":"Kata laluan mestilah tidak melebihi 72 bait (sesetengah aksara menggunakan lebih daripada satu bait)."},
+  "Please confirm your password.": {"zh-Hans":"请确认密码。","ms":"Sila sahkan kata laluan."},
+  "Passwords do not match.": {"zh-Hans":"两次输入的密码不一致。","ms":"Kata laluan tidak sepadan."},
+  "Passwords match.": {"zh-Hans":"两次输入的密码一致。","ms":"Kata laluan sepadan."},
+  "Email already registered.": {"zh-Hans":"该邮箱已注册。","ms":"E-mel ini telah didaftarkan."},
+  "Please check the highlighted fields below.": {"zh-Hans":"请检查下方标出的字段。","ms":"Sila semak ruangan yang ditandakan di bawah."},
+  "This account is blocked.": {"zh-Hans":"此账户已停用。","ms":"Akaun ini disekat."},
+  "Incorrect email or password.": {"zh-Hans":"邮箱或密码错误。","ms":"E-mel atau kata laluan salah."},
+  "Too many attempts. Try again later.": {"zh-Hans":"尝试次数过多。请稍后再试。","ms":"Terlalu banyak percubaan. Cuba lagi kemudian."},
+  "Account blocked after 3 failed attempts. Ask an administrator to unblock it.": {"zh-Hans":"登录失败 3 次后账户已停用。请联系管理员。","ms":"Akaun disekat selepas 3 percubaan gagal. Hubungi pentadbir."},
+  "Security verification is temporarily unavailable. Please try again later.": {"zh-Hans":"安全验证暂时无法使用，请稍后再试。","ms":"Pengesahan keselamatan tidak tersedia buat sementara waktu. Sila cuba lagi nanti."},
+  "Security verification did not pass. Please try signing in again.": {"zh-Hans":"安全验证未通过，请重新登录。","ms":"Pengesahan keselamatan gagal. Sila cuba log masuk semula."},
+  "Security verification is unavailable. Please try signing in again.": {"zh-Hans":"无法进行安全验证，请重新登录。","ms":"Pengesahan keselamatan tidak tersedia. Sila cuba log masuk semula."},
+  "SMART PARKING FOR SABAH": {"zh-Hans":"沙巴智能停车","ms":"PARKIR PINTAR UNTUK SABAH"},
+  "Park smarter.": {"zh-Hans":"停车更方便。","ms":"Parkir lebih pintar."},
+  "Drive easier.": {"zh-Hans":"出行更轻松。","ms":"Memandu lebih mudah."},
+  "Book your next parking spot in seconds, pay by the hour, and keep every trip smooth from arrival to departure.": {"zh-Hans":"快速办理停车，按小时计费，从到达至离开都更轻松。","ms":"Urus parkir dalam beberapa saat, bayar mengikut jam dan nikmati perjalanan yang lancar."},
+  "Get started": {"zh-Hans":"开始使用","ms":"Mulakan"},
+  "Daily parkers": {"zh-Hans":"每日停车用户","ms":"Pengguna harian"},
+  "Smart zones": {"zh-Hans":"智能停车区","ms":"Zon pintar"},
+  "Customer rating": {"zh-Hans":"客户评分","ms":"Penilaian pelanggan"},
+  "Live availability": {"zh-Hans":"实时车位情况","ms":"Ketersediaan semasa"},
+  "12 spaces left": {"zh-Hans":"剩余 12 个车位","ms":"12 petak lagi"},
+  "From": {"zh-Hans":"起价","ms":"Bermula daripada"},
+  "Tonight": {"zh-Hans":"今晚","ms":"Malam ini"},
+  "Covered": {"zh-Hans":"有顶棚","ms":"Berbumbung"},
+  "WHY MyPark": {"zh-Hans":"为什么选择 MyPark","ms":"MENGAPA MyPark"},
+  "Everything your trip needs in one place": {"zh-Hans":"一站式满足停车出行需求","ms":"Segala keperluan perjalanan anda di satu tempat"},
+  "Instant booking": {"zh-Hans":"快速办理停车","ms":"Tempahan segera"},
+  "Reserve a parking bay in minutes and keep your itinerary moving without the stress of last-minute parking hunts.": {"zh-Hans":"几分钟内办理停车，省去临时找车位的烦恼。","ms":"Urus parkir dalam beberapa minit tanpa perlu mencari petak pada saat akhir."},
+  "Smart locations": {"zh-Hans":"便捷地点","ms":"Lokasi strategik"},
+  "Find parking close to stations, malls, hotels and major city destinations across Sabah.": {"zh-Hans":"在沙巴各地车站、商场、酒店和主要目的地附近找停车位。","ms":"Cari parkir berhampiran stesen, pusat beli-belah, hotel dan destinasi utama di seluruh Sabah."},
+  "Fast payment": {"zh-Hans":"快捷付款","ms":"Bayaran pantas"},
+  "Top up your wallet, pay by the hour and get receipts instantly with a cashless experience.": {"zh-Hans":"充值钱包、按小时付费并即时获取收据。","ms":"Tambah nilai dompet, bayar mengikut jam dan terima resit serta-merta tanpa wang tunai."},
+  "HOW IT WORKS": {"zh-Hans":"使用方法","ms":"CARA PENGGUNAAN"},
+  "Reserve in three simple steps": {"zh-Hans":"三个步骤，轻松办理停车","ms":"Urus parkir dalam tiga langkah mudah"},
+  "Choose a location": {"zh-Hans":"选择地点","ms":"Pilih lokasi"},
+  "Select a parking zone near your destination and compare rates instantly.": {"zh-Hans":"选择目的地附近的停车区，快速比较费率。","ms":"Pilih zon parkir berhampiran destinasi anda dan bandingkan kadar serta-merta."},
+  "Set your timing": {"zh-Hans":"选择停车时长","ms":"Tetapkan tempoh parkir"},
+  "Pick your vehicle and duration, then confirm the details in one tap.": {"zh-Hans":"选择车辆与时长，再确认停车详情。","ms":"Pilih kenderaan dan tempoh, kemudian sahkan butiran dengan satu ketikan."},
+  "Enjoy the ride": {"zh-Hans":"轻松出行","ms":"Nikmati perjalanan"},
+  "Use your QR e-ticket and get in and out without the usual parking hassle.": {"zh-Hans":"使用二维码电子票，进出停车场更方便。","ms":"Gunakan e-tiket QR untuk masuk dan keluar dengan lebih mudah."},
+  "READY TO START?": {"zh-Hans":"准备好了吗？","ms":"SEDIA UNTUK BERMULA?"},
+  "Parking that feels as easy as the rest of your day.": {"zh-Hans":"让停车也和日常出行一样轻松。","ms":"Parkir yang memudahkan urusan harian anda."},
+  "Sabah Parking": {"zh-Hans":"沙巴停车","ms":"Parkir Sabah"},
+  "WELCOME BACK, {name}": {"zh-Hans":"欢迎回来，{name}","ms":"SELAMAT KEMBALI, {name}"},
+  "Find your space.": {"zh-Hans":"找到停车位。","ms":"Cari tempat parkir anda."},
+  "Enjoy the journey.": {"zh-Hans":"享受旅程。","ms":"Nikmati perjalanan."},
+  "Discover convenient parking in Kota Kinabalu, Sandakan, Tawau and beyond.": {"zh-Hans":"发现亚庇、山打根、斗湖及沙巴各地的便捷停车地点。","ms":"Temui lokasi parkir di Kota Kinabalu, Sandakan, Tawau dan sekitarnya."},
+  "Explore locations": {"zh-Hans":"浏览停车地点","ms":"Terokai lokasi"},
+  "Wallet balance": {"zh-Hans":"钱包余额","ms":"Baki dompet"},
+  "Show wallet balance": {"zh-Hans":"显示钱包余额","ms":"Tunjukkan baki dompet"},
+  "Hide wallet balance": {"zh-Hans":"隐藏钱包余额","ms":"Sembunyikan baki dompet"},
+  "Manage wallet": {"zh-Hans":"管理钱包","ms":"Urus dompet"},
+  "Active parking": {"zh-Hans":"进行中的停车","ms":"Parkir aktif"},
+  "Completed visits": {"zh-Hans":"已完成停车","ms":"Parkir selesai"},
+  "Reward points": {"zh-Hans":"奖励积分","ms":"Mata ganjaran"},
+  "Search city or parking lot": {"zh-Hans":"搜索城市或停车场","ms":"Cari bandar atau lokasi parkir"},
+  "All Sabah locations": {"zh-Hans":"沙巴所有地点","ms":"Semua lokasi di Sabah"},
+  "Any hourly rate": {"zh-Hans":"不限每小时费率","ms":"Semua kadar sejam"},
+  "Under RM 2.50": {"zh-Hans":"低于 RM 2.50","ms":"Kurang daripada RM 2.50"},
+  "RM 2.50 and above": {"zh-Hans":"RM 2.50 及以上","ms":"RM 2.50 dan ke atas"},
+  "Popular parking locations": {"zh-Hans":"热门停车地点","ms":"Lokasi parkir popular"},
+  "View map": {"zh-Hans":"查看地图","ms":"Lihat peta"},
+  "Select location": {"zh-Hans":"选择地点","ms":"Pilih lokasi"},
+  "View parking history": {"zh-Hans":"查看停车记录","ms":"Lihat sejarah parkir"},
+  "Sabah parking map": {"zh-Hans":"沙巴停车地图","ms":"Peta parkir Sabah"},
+  "Start parking": {"zh-Hans":"开始停车","ms":"Mula parkir"},
+  "Review your parking session": {"zh-Hans":"核对停车详情","ms":"Semak sesi parkir anda"},
+  "Parking starts when you select Start parking now. The times below are estimates in Malaysia time.": {"zh-Hans":"点击「立即开始停车」后开始计时。以下是马来西亚时间的估算值。","ms":"Parkir bermula apabila anda memilih Mula parkir sekarang. Masa di bawah ialah anggaran dalam waktu Malaysia."},
+  "Choose a location, vehicle and duration. Your parking time starts when you confirm.": {"zh-Hans":"请选择地点、车辆和时长。确认后开始计时。","ms":"Pilih lokasi, kenderaan dan tempoh. Masa parkir bermula selepas pengesahan."},
+  "Estimated start": {"zh-Hans":"预计开始时间","ms":"Anggaran mula"},
+  "Estimated end": {"zh-Hans":"预计结束时间","ms":"Anggaran tamat"},
+  "Edit details": {"zh-Hans":"编辑详情","ms":"Sunting butiran"},
+  "Start parking now": {"zh-Hans":"立即开始停车","ms":"Mula parkir sekarang"},
+  "Starting parking…": {"zh-Hans":"正在开始停车…","ms":"Sedang memulakan parkir…"},
+  "Choose a vehicle and duration": {"zh-Hans":"选择车辆与停车时长","ms":"Pilih kenderaan dan tempoh"},
+  "Review and start parking": {"zh-Hans":"核对并开始停车","ms":"Semak dan mula parkir"},
+  "Select a location": {"zh-Hans":"选择地点","ms":"Pilih lokasi"},
+  "Select a parking location.": {"zh-Hans":"请选择停车地点。","ms":"Pilih lokasi parkir."},
+  "Select a saved vehicle": {"zh-Hans":"选择已保存的车辆","ms":"Pilih kenderaan yang disimpan"},
+  "Choose a saved vehicle or use another vehicle.": {"zh-Hans":"请选择已保存的车辆，或使用其他车辆。","ms":"Pilih kenderaan yang disimpan atau gunakan kenderaan lain."},
+  "Choose a saved vehicle from your account, or use another vehicle.": {"zh-Hans":"请选择此账户已保存的车辆，或使用其他车辆。","ms":"Pilih kenderaan yang disimpan dalam akaun anda atau gunakan kenderaan lain."},
+  "Use another vehicle": {"zh-Hans":"使用其他车辆","ms":"Gunakan kenderaan lain"},
+  "Save this vehicle to my account": {"zh-Hans":"将此车辆保存到我的账户","ms":"Simpan kenderaan ini ke akaun saya"},
+  "This vehicle will also be saved to your account when you start parking.": {"zh-Hans":"开始停车时，这辆车也会保存到账户。","ms":"Kenderaan ini turut disimpan dalam akaun anda apabila parkir bermula."},
+  "Parking duration": {"zh-Hans":"停车时长","ms":"Tempoh parkir"},
+  "Duration (hours)": {"zh-Hans":"时长（小时）","ms":"Tempoh (jam)"},
+  "1 hour": {"zh-Hans":"1 小时","ms":"1 jam"},
+  "2 hours": {"zh-Hans":"2 小时","ms":"2 jam"},
+  "3 hours": {"zh-Hans":"3 小时","ms":"3 jam"},
+  "4 hours": {"zh-Hans":"4 小时","ms":"4 jam"},
+  "{count} hour": {"zh-Hans":"{count} 小时","ms":"{count} jam"},
+  "{count} hours": {"zh-Hans":"{count} 小时","ms":"{count} jam"},
+  "Custom": {"zh-Hans":"自定义","ms":"Tersuai"},
+  "Choose a whole number from 1 to 24 hours.": {"zh-Hans":"请选择 1 至 24 之间的整小时时长。","ms":"Pilih bilangan jam bulat dari 1 hingga 24."},
+  "Estimated fee": {"zh-Hans":"预估费用","ms":"Anggaran caj"},
+  "Select a location to calculate the fee": {"zh-Hans":"请选择地点以计算费用","ms":"Pilih lokasi untuk mengira caj"},
+  "Enter a valid duration to calculate the fee": {"zh-Hans":"请输入有效时长以计算费用","ms":"Masukkan tempoh yang sah untuk mengira caj"},
+  "Review parking details": {"zh-Hans":"核对停车详情","ms":"Semak butiran parkir"},
+  "Review your parking details before starting.": {"zh-Hans":"开始前请先核对停车详情。","ms":"Semak butiran parkir sebelum memulakan sesi."},
+  "Checking details…": {"zh-Hans":"正在核对详情…","ms":"Sedang menyemak butiran…"},
+  "Check the highlighted booking details.": {"zh-Hans":"请检查标出的停车信息。","ms":"Semak butiran parkir yang ditandakan."},
+  "This parking location is full. Choose another location.": {"zh-Hans":"此停车地点已满，请选择其他地点。","ms":"Lokasi parkir ini penuh. Pilih lokasi lain."},
+  "This review is no longer valid. Check your parking details again.": {"zh-Hans":"此确认已失效，请重新核对停车详情。","ms":"Semakan ini tidak lagi sah. Semak butiran parkir anda sekali lagi."},
+  "This review has expired. Review your parking details again.": {"zh-Hans":"此确认已过期，请重新核对停车详情。","ms":"Semakan ini telah tamat tempoh. Semak butiran parkir anda sekali lagi."},
+  "The fee or vehicle details changed. Review the updated details before starting.": {"zh-Hans":"费用或车辆信息有变。开始前请核对更新后的详情。","ms":"Caj atau butiran kenderaan telah berubah. Semak butiran terkini sebelum memulakan sesi."},
+  "Parking session created. Your e-ticket is ready.": {"zh-Hans":"停车已开始，电子票已生成。","ms":"Sesi parkir telah bermula. E-tiket anda tersedia."},
+  "Manage vehicles": {"zh-Hans":"管理车辆","ms":"Urus kenderaan"},
+  "Manage vehicles in Profile": {"zh-Hans":"在个人资料中管理车辆","ms":"Urus kenderaan dalam Profil"},
+  "My vehicles": {"zh-Hans":"我的车辆","ms":"Kenderaan saya"},
+  "Add vehicle": {"zh-Hans":"添加车辆","ms":"Tambah kenderaan"},
+  "Edit vehicle": {"zh-Hans":"编辑车辆","ms":"Sunting kenderaan"},
+  "Vehicle name (optional)": {"zh-Hans":"车辆名称（选填）","ms":"Nama kenderaan (pilihan)"},
+  "No saved vehicles yet.": {"zh-Hans":"尚未保存车辆。","ms":"Belum ada kenderaan yang disimpan."},
+  "Back to parking": {"zh-Hans":"返回停车页面","ms":"Kembali ke parkir"},
+  "Set as default": {"zh-Hans":"设为默认","ms":"Tetapkan sebagai lalai"},
+  "Vehicle added.": {"zh-Hans":"车辆已添加。","ms":"Kenderaan telah ditambah."},
+  "Vehicle updated.": {"zh-Hans":"车辆已更新。","ms":"Kenderaan telah dikemas kini."},
+  "Vehicle removed.": {"zh-Hans":"车辆已删除。","ms":"Kenderaan telah dibuang."},
+  "Default vehicle updated.": {"zh-Hans":"默认车辆已更新。","ms":"Kenderaan lalai telah dikemas kini."},
+  "Vehicle not found.": {"zh-Hans":"找不到车辆。","ms":"Kenderaan tidak ditemui."},
+  "Enter a valid plate number, for example SAB 1234.": {"zh-Hans":"请输入有效车牌，例如 SAB 1234。","ms":"Masukkan nombor plat yang sah, contohnya SAB 1234."},
+  "Enter a vehicle name of up to 40 characters.": {"zh-Hans":"请输入不超过 40 个字符的车辆名称。","ms":"Masukkan nama kenderaan sehingga 40 aksara."},
+  "This plate is already saved.": {"zh-Hans":"此车牌已保存。","ms":"Nombor plat ini sudah disimpan."},
+  "Saving vehicle…": {"zh-Hans":"正在保存车辆…","ms":"Sedang menyimpan kenderaan…"},
+  "Profile photo": {"zh-Hans":"个人头像","ms":"Gambar profil"},
+  "Rotate photo": {"zh-Hans":"旋转照片","ms":"Putar gambar"},
+  "Save profile": {"zh-Hans":"保存资料","ms":"Simpan profil"},
+  "Rotation changes the preview only; the original image is saved.": {"zh-Hans":"旋转仅用于预览，保存的是原始照片。","ms":"Putaran hanya mengubah pratonton; gambar asal disimpan."},
+  "Profile updated.": {"zh-Hans":"个人资料已更新。","ms":"Profil telah dikemas kini."},
+  "Parking History": {"zh-Hans":"停车记录","ms":"Sejarah parkir"},
+  "RESERVATION RECORDS": {"zh-Hans":"停车记录","ms":"REKOD PARKIR"},
+  "My parking history": {"zh-Hans":"我的停车记录","ms":"Sejarah parkir saya"},
+  "View parking receipts": {"zh-Hans":"查看停车收据","ms":"Lihat resit parkir"},
+  "Search plate, location or status": {"zh-Hans":"搜索车牌、地点或状态","ms":"Cari nombor plat, lokasi atau status"},
+  "No parking history yet.": {"zh-Hans":"暂无停车记录。","ms":"Belum ada sejarah parkir."},
+  "Ticket": {"zh-Hans":"票券","ms":"Tiket"},
+  "Parking e-ticket": {"zh-Hans":"停车电子票","ms":"E-tiket parkir"},
+  "Time remaining": {"zh-Hans":"剩余时间","ms":"Baki masa"},
+  "Parking time expired": {"zh-Hans":"停车时间已结束","ms":"Masa parkir telah tamat"},
+  "Less than 5 minutes remaining": {"zh-Hans":"剩余不到 5 分钟","ms":"Kurang daripada 5 minit lagi"},
+  "Your vehicle": {"zh-Hans":"您的车辆","ms":"Kenderaan anda"},
+  "Booking cancelled.": {"zh-Hans":"停车记录已取消。","ms":"Tempahan parkir telah dibatalkan."},
+  "Only active bookings can be cancelled.": {"zh-Hans":"只能取消进行中的停车记录。","ms":"Hanya tempahan aktif boleh dibatalkan."},
+  "Print / Save PDF": {"zh-Hans":"打印／另存为 PDF","ms":"Cetak / Simpan PDF"},
+  "MyPark WALLET": {"zh-Hans":"MyPark 钱包","ms":"DOMPET MyPark"},
+  "My wallet": {"zh-Hans":"我的钱包","ms":"Dompet saya"},
+  "Available balance": {"zh-Hans":"可用余额","ms":"Baki tersedia"},
+  "pay compounds": {"zh-Hans":"支付停车罚单","ms":"bayar kompaun"},
+  "Top up wallet": {"zh-Hans":"钱包充值","ms":"Tambah nilai dompet"},
+  "This is a demo top up. Payment gateway connection is added later.": {"zh-Hans":"这是演示充值，付款网关有待接入。","ms":"Ini ialah tambah nilai demo. Gerbang pembayaran akan disambungkan kemudian."},
+  "Custom amount (RM)": {"zh-Hans":"自定义金额（RM）","ms":"Amaun tersuai (RM)"},
+  "Top up now": {"zh-Hans":"立即充值","ms":"Tambah nilai sekarang"},
+  "Wallet activity": {"zh-Hans":"钱包交易记录","ms":"Aktiviti dompet"},
+  "View wallet top-up receipts": {"zh-Hans":"查看钱包充值收据","ms":"Lihat resit tambah nilai dompet"},
+  "Transaction": {"zh-Hans":"交易","ms":"Transaksi"},
+  "Top up": {"zh-Hans":"充值","ms":"Tambah nilai"},
+  "Receipt": {"zh-Hans":"收据","ms":"Resit"},
+  "No wallet activity yet.": {"zh-Hans":"暂无钱包交易。","ms":"Belum ada aktiviti dompet."},
+  "Parking support": {"zh-Hans":"停车支持","ms":"Sokongan parkir"},
+  "Message": {"zh-Hans":"留言","ms":"Mesej"},
+  "How can we help?": {"zh-Hans":"我们可以怎样帮您？","ms":"Bagaimanakah kami boleh membantu?"},
+  "Send": {"zh-Hans":"发送","ms":"Hantar"},
+  "Rate your parking experience": {"zh-Hans":"为停车体验评分","ms":"Nilai pengalaman parkir anda"},
+  "Rating": {"zh-Hans":"评分","ms":"Penilaian"},
+  "Excellent": {"zh-Hans":"优秀","ms":"Cemerlang"},
+  "Good": {"zh-Hans":"良好","ms":"Baik"},
+  "Okay": {"zh-Hans":"一般","ms":"Memuaskan"},
+  "Poor": {"zh-Hans":"较差","ms":"Lemah"},
+  "Bad": {"zh-Hans":"很差","ms":"Teruk"},
+  "Review": {"zh-Hans":"评价","ms":"Ulasan"},
+  "Share feedback": {"zh-Hans":"分享反馈","ms":"Kongsi maklum balas"},
+  "Submit review": {"zh-Hans":"提交评价","ms":"Hantar ulasan"},
+  "Your reviews": {"zh-Hans":"您的评价","ms":"Ulasan anda"},
+  "Digital receipts": {"zh-Hans":"电子收据","ms":"Resit digital"},
+  "Email receipt": {"zh-Hans":"通过邮件发送收据","ms":"E-mel resit"},
+  "Filter by date": {"zh-Hans":"按日期筛选","ms":"Tapis mengikut tarikh"},
+  "All receipts": {"zh-Hans":"全部收据","ms":"Semua resit"},
+  "Start date": {"zh-Hans":"开始日期","ms":"Tarikh mula"},
+  "End date": {"zh-Hans":"结束日期","ms":"Tarikh tamat"},
+  "Apply dates": {"zh-Hans":"应用日期","ms":"Guna tarikh"},
+  "Reset dates": {"zh-Hans":"重置日期","ms":"Tetapkan semula tarikh"},
+  "View receipt": {"zh-Hans":"查看收据","ms":"Lihat resit"},
+  "No receipts for these dates": {"zh-Hans":"所选日期没有收据","ms":"Tiada resit untuk tarikh ini"},
+  "Receipt unavailable": {"zh-Hans":"无法查看收据","ms":"Resit tidak tersedia"},
+  "Back to receipts": {"zh-Hans":"返回收据","ms":"Kembali ke resit"},
+  "Email this receipt": {"zh-Hans":"通过邮件发送此收据","ms":"E-mel resit ini"},
+  "Open email draft": {"zh-Hans":"打开邮件草稿","ms":"Buka draf e-mel"},
+  "Print or save as PDF": {"zh-Hans":"打印或保存为 PDF","ms":"Cetak atau simpan sebagai PDF"},
+  "Receipt number": {"zh-Hans":"收据编号","ms":"Nombor resit"},
+  "Date (Malaysia time)": {"zh-Hans":"日期（马来西亚时间）","ms":"Tarikh (waktu Malaysia)"},
+  "View, print or email receipts from the past 30 days.": {"zh-Hans":"查看、打印或电邮过去 30 天的收据。","ms":"Lihat, cetak atau e-mel resit daripada 30 hari yang lalu."},
+  "Scan & Pay Compound": {"zh-Hans":"扫码与支付停车罚单","ms":"Imbas dan bayar kompaun"},
+  "Compound number or vehicle plate": {"zh-Hans":"罚单编号或车牌","ms":"Nombor kompaun atau nombor plat"},
+  "Or scan the barcode on your compound notice": {"zh-Hans":"也可扫描罚单上的条形码","ms":"Atau imbas kod bar pada notis kompaun anda"},
+  "Scan barcode": {"zh-Hans":"扫描条形码","ms":"Imbas kod bar"},
+  "Scan compound barcode": {"zh-Hans":"扫描罚单条形码","ms":"Imbas kod bar kompaun"},
+  "Demo wallet balance": {"zh-Hans":"演示钱包余额","ms":"Baki dompet demo"},
+  "View compound receipts": {"zh-Hans":"查看罚单收据","ms":"Lihat resit kompaun"},
+  "Search results": {"zh-Hans":"搜索结果","ms":"Hasil carian"},
+  "Violation": {"zh-Hans":"违规事项","ms":"Pelanggaran"},
+  "Issued": {"zh-Hans":"开单时间","ms":"Dikeluarkan"},
+  "Close camera": {"zh-Hans":"关闭相机","ms":"Tutup kamera"},
+  "Requesting camera access…": {"zh-Hans":"正在请求相机权限…","ms":"Meminta akses kamera…"},
+  "Operations dashboard": {"zh-Hans":"营运仪表板","ms":"Papan pemuka operasi"},
+  "Manage reservations and member access.": {"zh-Hans":"管理停车记录与会员访问权限。","ms":"Urus rekod tempahan dan akses ahli."},
+  "Check and pay compounds": {"zh-Hans":"查询和支付罚单","ms":"Semak dan bayar kompaun"},
+  "Parking locations": {"zh-Hans":"停车地点","ms":"Lokasi parkir"},
+  "Reservations": {"zh-Hans":"停车记录","ms":"Tempahan"},
+  "Active stays": {"zh-Hans":"进行中的停车","ms":"Sesi aktif"},
+  "Demo revenue": {"zh-Hans":"演示收入","ms":"Hasil demo"},
+  "Reservation Management": {"zh-Hans":"停车管理","ms":"Pengurusan tempahan"},
+  "Account Management": {"zh-Hans":"账户管理","ms":"Pengurusan akaun"},
+  "Preparing reservation table…": {"zh-Hans":"正在准备停车记录…","ms":"Menyediakan jadual tempahan…"},
+  "Preparing account table…": {"zh-Hans":"正在准备账户列表…","ms":"Menyediakan jadual akaun…"},
+  "Only Super Admin can block or unblock accounts.": {"zh-Hans":"只有超级管理员可停用或解封账户。","ms":"Hanya Pentadbir Utama boleh menyekat atau menyahsekat akaun."},
+  "No reservations yet": {"zh-Hans":"暂无停车记录","ms":"Belum ada tempahan"},
+  "No accounts yet": {"zh-Hans":"暂无账户","ms":"Belum ada akaun"},
+  "No matching reservations": {"zh-Hans":"没有符合条件的停车记录","ms":"Tiada tempahan sepadan"},
+  "No matching accounts": {"zh-Hans":"没有符合条件的账户","ms":"Tiada akaun sepadan"},
+  "Add parking location": {"zh-Hans":"添加停车地点","ms":"Tambah lokasi parkir"},
+  "Sabah city": {"zh-Hans":"沙巴城市","ms":"Bandar di Sabah"},
+  "Address": {"zh-Hans":"地址","ms":"Alamat"},
+  "RM / hour": {"zh-Hans":"RM／小时","ms":"RM / jam"},
+  "Spaces": {"zh-Hans":"车位数","ms":"Bilangan petak"},
+  "Add location": {"zh-Hans":"添加地点","ms":"Tambah lokasi"},
+  "Reservation reports": {"zh-Hans":"停车报表","ms":"Laporan tempahan"},
+  "Export all reservations (CSV)": {"zh-Hans":"导出全部停车记录（CSV）","ms":"Eksport semua tempahan (CSV)"},
+  "Search name or email": {"zh-Hans":"搜索姓名或邮箱","ms":"Cari nama atau e-mel"},
+  "Search member, plate or location": {"zh-Hans":"搜索会员、车牌或地点","ms":"Cari ahli, nombor plat atau lokasi"},
+  "Clear search": {"zh-Hans":"清除搜索","ms":"Kosongkan carian"},
+  "Created from": {"zh-Hans":"创建日期起","ms":"Tarikh cipta dari"},
+  "Created to": {"zh-Hans":"创建日期止","ms":"Tarikh cipta hingga"},
+  "Columns": {"zh-Hans":"列","ms":"Lajur"},
+  "Row density": {"zh-Hans":"行间距","ms":"Kepadatan baris"},
+  "Comfortable": {"zh-Hans":"舒适","ms":"Selesa"},
+  "Compact": {"zh-Hans":"紧凑","ms":"Padat"},
+  "Export filtered results (CSV)": {"zh-Hans":"导出筛选结果（CSV）","ms":"Eksport hasil ditapis (CSV)"},
+  "All roles": {"zh-Hans":"所有角色","ms":"Semua peranan"},
+  "Change status…": {"zh-Hans":"更改状态…","ms":"Tukar status…"},
+  "Block": {"zh-Hans":"停用","ms":"Sekat"},
+  "Unblock": {"zh-Hans":"解除停用","ms":"Nyahsekat"},
+  "Block account": {"zh-Hans":"停用账户","ms":"Sekat akaun"},
+  "Block account?": {"zh-Hans":"停用此账户？","ms":"Sekat akaun?"},
+  "Account details": {"zh-Hans":"账户详情","ms":"Butiran akaun"},
+  "Refreshing records…": {"zh-Hans":"正在刷新记录…","ms":"Memuat semula rekod…"},
+  "Exporting…": {"zh-Hans":"正在导出…","ms":"Sedang mengeksport…"},
+  "Staff dashboard": {"zh-Hans":"员工仪表板","ms":"Papan pemuka kakitangan"},
+  "Fine Management": {"zh-Hans":"罚单管理","ms":"Pengurusan kompaun"},
+  "Vehicle Lookup": {"zh-Hans":"车辆查询","ms":"Carian kenderaan"},
+  "Parking Maintenance": {"zh-Hans":"停车设施维护","ms":"Penyelenggaraan parkir"},
+  "Total fines": {"zh-Hans":"罚单总数","ms":"Jumlah kompaun"},
+  "Unpaid fines": {"zh-Hans":"未付款罚单","ms":"Kompaun belum dibayar"},
+  "Awaiting payment": {"zh-Hans":"等待付款","ms":"Menunggu bayaran"},
+  "Outstanding amount": {"zh-Hans":"待付金额","ms":"Amaun tertunggak"},
+  "Open maintenance": {"zh-Hans":"待处理维护","ms":"Penyelenggaraan terbuka"},
+  "Recent fine records": {"zh-Hans":"近期罚单","ms":"Rekod kompaun terkini"},
+  "Manage fines": {"zh-Hans":"管理罚单","ms":"Urus kompaun"},
+  "Fine records": {"zh-Hans":"罚单记录","ms":"Rekod kompaun"},
+  "Maintenance records": {"zh-Hans":"维护记录","ms":"Rekod penyelenggaraan"},
+  "New Fine": {"zh-Hans":"新增罚单","ms":"Kompaun baharu"},
+  "New maintenance record": {"zh-Hans":"新增维护记录","ms":"Rekod penyelenggaraan baharu"},
+  "Find a vehicle": {"zh-Hans":"查询车辆","ms":"Cari kenderaan"},
+  "Enter vehicle plate": {"zh-Hans":"输入车牌","ms":"Masukkan nombor plat"},
+  "Search vehicle": {"zh-Hans":"搜索车辆","ms":"Cari kenderaan"},
+  "Search Fine ID or Vehicle Plate": {"zh-Hans":"搜索罚单编号或车牌","ms":"Cari ID kompaun atau nombor plat"},
+  "Search ID, issue or location": {"zh-Hans":"搜索编号、问题或地点","ms":"Cari ID, isu atau lokasi"},
+  "Filter by status": {"zh-Hans":"按状态筛选","ms":"Tapis mengikut status"},
+  "Fine ID": {"zh-Hans":"罚单编号","ms":"ID kompaun"},
+  "Violation Type": {"zh-Hans":"违规类型","ms":"Jenis pelanggaran"},
+  "Amount (RM)": {"zh-Hans":"金额（RM）","ms":"Amaun (RM)"},
+  "Record ID": {"zh-Hans":"记录编号","ms":"ID rekod"},
+  "Issue": {"zh-Hans":"问题","ms":"Isu"},
+  "Updated": {"zh-Hans":"更新时间","ms":"Dikemas kini"},
+  "Record payment": {"zh-Hans":"登记付款","ms":"Rekod bayaran"},
+  "No fine records yet.": {"zh-Hans":"暂无罚单。","ms":"Belum ada rekod kompaun."},
+  "No maintenance records yet.": {"zh-Hans":"暂无维护记录。","ms":"Belum ada rekod penyelenggaraan."},
+  "No matching fine records.": {"zh-Hans":"没有符合条件的罚单。","ms":"Tiada rekod kompaun sepadan."},
+  "No matching maintenance records.": {"zh-Hans":"没有符合条件的维护记录。","ms":"Tiada rekod penyelenggaraan sepadan."},
+  "Related fines": {"zh-Hans":"相关罚单","ms":"Kompaun berkaitan"},
+  "Parking records": {"zh-Hans":"停车记录","ms":"Rekod parkir"},
+  "Audit history": {"zh-Hans":"审计记录","ms":"Sejarah audit"},
+  "Payment reference": {"zh-Hans":"付款参考编号","ms":"Rujukan bayaran"},
+  "Notes": {"zh-Hans":"备注","ms":"Catatan"},
+  "Description": {"zh-Hans":"说明","ms":"Penerangan"},
+  "Booking ID": {"zh-Hans":"停车单号","ms":"ID tempahan"},
+  "Hours": {"zh-Hans":"小时","ms":"Jam"},
+  "ID": {"zh-Hans":"编号","ms":"ID"},
+  "Premium": {"zh-Hans":"优选","ms":"Premium"},
+  "Sabah, Malaysia": {"zh-Hans":"马来西亚沙巴","ms":"Sabah, Malaysia"},
+  "/ hour": {"zh-Hans":"/ 小时","ms":"/ jam"},
+  "{count} spaces": {"zh-Hans":"{count} 个车位","ms":"{count} petak"},
+  "Use demo credit to": {"zh-Hans":"使用演示余额","ms":"Gunakan kredit demo untuk"},
+  "Compound": {"zh-Hans":"停车罚单","ms":"Kompaun"},
+  "Please check {count} highlighted fields below.": {"zh-Hans":"请检查下方标出的 {count} 个字段。","ms":"Sila semak {count} ruangan yang ditandakan di bawah."},
+  " — met": {"zh-Hans":"，已满足","ms":" — dipenuhi"},
+  " — not met": {"zh-Hans":"，尚未满足","ms":" — belum dipenuhi"},
+  "Prototype chat. Live agent connection can be enabled in the final backend.": {"zh-Hans":"聊天功能为演示。人工客服可在正式后端启用。","ms":"Ini ialah sembang prototaip. Sokongan ejen langsung boleh diaktifkan dalam sistem akhir."},
+  "All fine records, including voids": {"zh-Hans":"所有罚单，包括已作废记录","ms":"Semua rekod kompaun termasuk yang dibatalkan"},
+  "Unpaid records only": {"zh-Hans":"仅未付款记录","ms":"Rekod belum dibayar sahaja"},
+  "Open or in progress": {"zh-Hans":"待处理或处理中","ms":"Terbuka atau sedang diproses"},
+  "Exact plate match; spaces, hyphens and letter case are ignored.": {"zh-Hans":"精确匹配车牌，忽略空格、连字符和大小写。","ms":"Padanan nombor plat tepat. Ruang, sempang dan saiz huruf diabaikan."},
+  "Enter a plate number to view related records.": {"zh-Hans":"输入车牌号码以查看相关记录。","ms":"Masukkan nombor plat untuk melihat rekod berkaitan."},
+  "Enable JavaScript to manage these records. No demo fines or maintenance records have been added.": {"zh-Hans":"请启用 JavaScript 管理记录。系统未预先添加演示罚单或维护记录。","ms":"Dayakan JavaScript untuk mengurus rekod ini. Tiada kompaun demo atau rekod penyelenggaraan ditambah."},
+  "Private parking prototype. Compounds and digital receipts are saved in this browser across sign-outs.": {"zh-Hans":"私人停车演示。罚单和电子收据在此浏览器登出后仍会保留。","ms":"Prototaip parkir persendirian. Kompaun dan resit digital kekal dalam pelayar ini selepas log keluar."},
+  "An overview of your parking records and outstanding work.": {"zh-Hans":"查看停车记录和待办事项。","ms":"Ringkasan rekod parkir dan kerja tertunggak."},
+  "Create and manage private parking fine records.": {"zh-Hans":"创建和管理私人停车罚单。","ms":"Cipta dan urus rekod kompaun parkir persendirian."},
+  "Find fine and parking records for a vehicle plate.": {"zh-Hans":"按车牌查找罚单及停车记录。","ms":"Cari rekod kompaun dan parkir menggunakan nombor plat."},
+  "Track parking location issues from report to completion.": {"zh-Hans":"从提交问题到处理完成，跟踪停车地点维护。","ms":"Jejaki isu lokasi parkir daripada laporan hingga selesai."},
+  "SABAH PARKING OPERATIONS": {"zh-Hans":"沙巴停车营运","ms":"OPERASI PARKIR SABAH"},
+  "No fine records found for this vehicle.": {"zh-Hans":"此车辆没有罚单记录。","ms":"Tiada rekod kompaun untuk kenderaan ini."},
+  "No parking records found for this vehicle.": {"zh-Hans":"此车辆没有停车记录。","ms":"Tiada rekod parkir untuk kenderaan ini."},
+  "Notes (optional)": {"zh-Hans":"备注（选填）","ms":"Catatan (pilihan)"},
+  "Reason for correction": {"zh-Hans":"更正原因","ms":"Sebab pembetulan"},
+  "Issue title": {"zh-Hans":"问题标题","ms":"Tajuk isu"},
+  "Parking location": {"zh-Hans":"停车地点","ms":"Lokasi parkir"},
+  "Date and time (Malaysia)": {"zh-Hans":"日期和时间（马来西亚）","ms":"Tarikh dan masa (Malaysia)"},
+  "Describe the parking violation": {"zh-Hans":"描述停车违规事项","ms":"Huraikan pelanggaran parkir"},
+  "Reason for voiding": {"zh-Hans":"作废原因","ms":"Sebab pembatalan"},
+  "Reason for removal": {"zh-Hans":"删除原因","ms":"Sebab pembuangan"},
+  "Save changes": {"zh-Hans":"保存更改","ms":"Simpan perubahan"},
+  "Create fine record": {"zh-Hans":"创建罚单记录","ms":"Cipta rekod kompaun"},
+  "Create record": {"zh-Hans":"创建记录","ms":"Cipta rekod"},
+  "Confirm received payment": {"zh-Hans":"确认已收款","ms":"Sahkan bayaran diterima"},
+  "Void fine": {"zh-Hans":"作废罚单","ms":"Batalkan kompaun"},
+  "Remove record": {"zh-Hans":"删除记录","ms":"Buang rekod"},
+  "Paid amount retained": {"zh-Hans":"已保留付款金额","ms":"Amaun bayaran dikekalkan"},
+  "Payment recorded": {"zh-Hans":"已登记付款","ms":"Bayaran direkodkan"},
+  "Created by": {"zh-Hans":"创建人","ms":"Dicipta oleh"},
+  "Void reason": {"zh-Hans":"作废原因","ms":"Sebab pembatalan"},
+  "Removed": {"zh-Hans":"已删除","ms":"Dibuang"},
+  "Voided": {"zh-Hans":"已作废","ms":"Dibatalkan"},
+  "I confirm this payment has already been received.": {"zh-Hans":"我确认已收到此付款。","ms":"Saya mengesahkan bayaran ini telah diterima."},
+  "Private parking prototype only. This creates an unpaid record; it is not a government-issued fine.": {"zh-Hans":"私人停车演示。此操作创建待付款记录，不属于政府罚单。","ms":"Prototaip parkir persendirian sahaja. Tindakan ini mencipta rekod belum dibayar dan bukan saman kerajaan."},
+  "ascending": {"zh-Hans":"升序","ms":"menaik"},
+  "descending": {"zh-Hans":"降序","ms":"menurun"},
+  "Sort by {label}, {direction}": {"zh-Hans":"按{label}排序，{direction}","ms":"Isih mengikut {label}, {direction}"},
+  "Page {page}": {"zh-Hans":"第 {page} 页","ms":"Halaman {page}"},
+  "Edit {code}": {"zh-Hans":"编辑 {code}","ms":"Sunting {code}"},
+  "{code} · Details": {"zh-Hans":"{code} · 详情","ms":"{code} · Butiran"},
+  "Record received payment · {code}": {"zh-Hans":"登记已收付款 · {code}","ms":"Rekod bayaran diterima · {code}"},
+  "Void fine · {code}": {"zh-Hans":"作废罚单 · {code}","ms":"Batalkan kompaun · {code}"},
+  "Remove maintenance · {code}": {"zh-Hans":"移除维护记录 · {code}","ms":"Buang penyelenggaraan · {code}"},
+  "Record a received payment of {amount} for {plate}? No payment will be collected by this website.": {"zh-Hans":"登记 {plate} 已收到的 {amount} 付款？网站不会收取付款。","ms":"Rekod bayaran diterima sebanyak {amount} untuk {plate}? Tiada bayaran dikutip oleh laman ini."},
+  "Void {code} for {plate}? The original amount, payment evidence and audit history will be retained. Voiding does not process a refund.": {"zh-Hans":"作废 {plate} 的罚单 {code}？原始金额、付款凭证和审计历史将被保留。作废不会办理退款。","ms":"Batalkan {code} untuk {plate}? Amaun asal, bukti bayaran dan sejarah audit akan dikekalkan. Pembatalan tidak memproses bayaran balik."},
+  "Remove {code}: {title}? It will leave the active list; its audit history will be retained.": {"zh-Hans":"删除 {code}：{title}？它将移出当前列表，审计历史仍会保留。","ms":"Buang {code}: {title}? Rekod dikeluarkan daripada senarai aktif dan sejarah audit dikekalkan."},
+  "Block {name} ({email})? This account will no longer be able to sign in.": {"zh-Hans":"停用 {name}（{email}）？此账户将无法登录。","ms":"Sekat {name} ({email})? Akaun ini tidak lagi boleh log masuk."},
+  "Dismiss {type} notification": {"zh-Hans":"关闭{type}通知","ms":"Tutup pemberitahuan {type}"},
+  "{plate} · {fines} fine records · {bookings} parking records": {"zh-Hans":"{plate} · {fines} 条罚单 · {bookings} 条停车记录","ms":"{plate} · {fines} rekod kompaun · {bookings} rekod parkir"},
+  "Enter a valid vehicle plate.": {"zh-Hans":"请输入有效的车牌。","ms":"Masukkan nombor plat kenderaan yang sah."},
+  "Choose dates from {start} to {end} (Malaysia time).": {"zh-Hans":"请选择 {start} 至 {end} 之间的日期（马来西亚时间）。","ms":"Pilih tarikh dari {start} hingga {end} (waktu Malaysia)."},
+  "{count} receipts found": {"zh-Hans":"找到 {count} 张收据","ms":"{count} resit ditemui"},
+  "Try a different date range or choose All receipts to see every transaction type.": {"zh-Hans":"请更改日期范围，或选择「全部收据」查看所有交易类型。","ms":"Cuba julat tarikh lain atau pilih Semua resit untuk melihat semua jenis transaksi."},
+  "Only receipts from your account and from the past 30 days are available.": {"zh-Hans":"仅可查看本账户过去 30 天的收据。","ms":"Hanya resit daripada akaun anda dalam 30 hari lalu tersedia."},
+  "Open an email draft addressed to": {"zh-Hans":"打开收件人为","ms":"Buka draf e-mel kepada"},
+  "The receipt will be in the message. You can review it and select Send in your email app.": {"zh-Hans":"收据将包含在邮件中。请在邮件应用中核对后发送。","ms":"Resit akan disertakan dalam mesej. Semak dan pilih Hantar dalam aplikasi e-mel anda."},
+  "Demo booking. No payment was collected.": {"zh-Hans":"这是演示停车，未收取付款。","ms":"Ini tempahan demo. Tiada bayaran dikutip."},
+  "Demo transaction.": {"zh-Hans":"演示交易。","ms":"Transaksi demo."},
+  "That barcode does not contain a compound number. Try again or enter the number manually.": {"zh-Hans":"此条形码不包含罚单编号，请重试或手动输入。","ms":"Kod bar ini tidak mengandungi nombor kompaun. Cuba lagi atau masukkan nombor secara manual."},
+  "Could not read the barcode. Close the camera and enter the number manually.": {"zh-Hans":"无法读取条形码，请关闭相机并手动输入。","ms":"Kod bar tidak dapat dibaca. Tutup kamera dan masukkan nombor secara manual."},
+  "Camera scanning is unavailable here. Enter the compound number or plate above.": {"zh-Hans":"此处无法使用相机扫描，请输入上方的罚单编号或车牌。","ms":"Imbasan kamera tidak tersedia di sini. Masukkan nombor kompaun atau plat di atas."},
+  "Hold the barcode inside the camera view.": {"zh-Hans":"请将条形码放在相机画面内。","ms":"Letakkan kod bar dalam paparan kamera."},
+  "Camera scanning is unavailable. Close the camera and enter the number manually.": {"zh-Hans":"无法使用相机扫描，请关闭相机并手动输入。","ms":"Imbasan kamera tidak tersedia. Tutup kamera dan masukkan nombor secara manual."},
+  "Unable to connect. Check your connection and try again.": {"zh-Hans":"无法连接，请检查网络后重试。","ms":"Tidak dapat menyambung. Semak sambungan anda dan cuba lagi."},
+  "Sign in is temporarily unavailable. Please refresh the page and try again.": {"zh-Hans":"暂时无法登录，请刷新后重试。","ms":"Log masuk tidak tersedia buat sementara waktu. Muat semula halaman dan cuba lagi."},
+  "Unable to finish signing in. Please refresh the page and try again.": {"zh-Hans":"无法完成登录，请刷新页面后重试。","ms":"Tidak dapat melengkapkan log masuk. Muat semula halaman dan cuba lagi."},
+  "The connection was interrupted. Please refresh the page before trying again.": {"zh-Hans":"连接已中断，请刷新页面后重试。","ms":"Sambungan terputus. Muat semula halaman sebelum mencuba lagi."},
+  "Export failed.": {"zh-Hans":"导出失败。","ms":"Eksport gagal."},
+  "Unable to export. Please sign in again.": {"zh-Hans":"无法导出，请重新登录。","ms":"Tidak dapat mengeksport. Sila log masuk semula."},
+  "The server returned incomplete table data. Existing records have been kept.": {"zh-Hans":"服务器返回的表格数据不完整，现有记录已保留。","ms":"Pelayan mengembalikan data jadual yang tidak lengkap. Rekod sedia ada dikekalkan."},
+  "The server returned an unexpected response. Please refresh or sign in again.": {"zh-Hans":"服务器返回异常，请刷新或重新登录。","ms":"Pelayan mengembalikan respons yang tidak dijangka. Muat semula atau log masuk semula."},
+  "The request could not be completed.": {"zh-Hans":"无法完成请求。","ms":"Permintaan tidak dapat diselesaikan."},
+  "Unexpected server response. Refresh the page or sign in again.": {"zh-Hans":"服务器返回异常，请刷新页面或重新登录。","ms":"Respons pelayan tidak dijangka. Muat semula halaman atau log masuk semula."},
+  "Incomplete response. Existing records have been kept.": {"zh-Hans":"返回的数据不完整，现有记录已保留。","ms":"Respons tidak lengkap. Rekod sedia ada dikekalkan."},
+  "Refresh failed. {message}": {"zh-Hans":"刷新失败。{message}","ms":"Gagal memuat semula. {message}"},
+  "Update failed. {message}": {"zh-Hans":"更新失败。{message}","ms":"Kemas kini gagal. {message}"},
+  "The update could not be confirmed. Refresh records before retrying. {message}": {"zh-Hans":"无法确认更新结果。重试前请刷新记录。{message}","ms":"Kemas kini tidak dapat disahkan. Muat semula rekod sebelum mencuba lagi. {message}"},
+  "Parking booking": {"zh-Hans":"停车记录","ms":"Tempahan parkir"},
+  "Wallet top-up": {"zh-Hans":"钱包充值","ms":"Tambah nilai dompet"},
+  "Compound payment": {"zh-Hans":"罚单付款","ms":"Bayaran kompaun"},
+  "Demo account created. Email OTP delivery will be connected with backend services later.": {"zh-Hans":"演示账户已创建，邮件验证码服务有待接入。","ms":"Akaun demo telah dicipta. Penghantaran OTP melalui e-mel akan disambungkan kemudian."},
+  "Parking Availability Map": {"zh-Hans":"停车位可用情况地图","ms":"Peta Ketersediaan Petak Parkir"},
+  "OKU Parking Verification": {"zh-Hans":"残障人士（OKU）停车资格验证","ms":"Pengesahan Parkir OKU"},
+  "OKU Verification": {"zh-Hans":"残障人士（OKU）资格验证","ms":"Pengesahan OKU"},
+  "OKU parking proof": {"zh-Hans":"OKU 停车证明","ms":"Bukti parkir OKU"},
+  "Not Submitted": {"zh-Hans":"未提交","ms":"Belum Dihantar"},
+  "Pending Review": {"zh-Hans":"等待审核","ms":"Menunggu Semakan"},
+  "Approved": {"zh-Hans":"已批准","ms":"Diluluskan"},
+  "Rejected": {"zh-Hans":"已拒绝","ms":"Ditolak"},
+  "Rejection reason": {"zh-Hans":"拒绝原因","ms":"Sebab penolakan"},
+  "Your proof was submitted for review.": {"zh-Hans":"你的证明已提交，等待审核。","ms":"Bukti anda telah dihantar untuk semakan."},
+  "You can now choose an available OKU bay in MyPark Sabah.": {"zh-Hans":"你现在可以在 MyPark Sabah 选择可用的 OKU 车位。","ms":"Anda kini boleh memilih petak OKU yang tersedia dalam MyPark Sabah."},
+  "Demo only. Upload a fictional JPG, PNG or WebP image up to 2 MB.": {"zh-Hans":"仅供演示。上传不超过 2 MB 的虚构 JPG、PNG 或 WebP 图片。","ms":"Untuk demo sahaja. Muat naik imej rekaan JPG, PNG atau WebP sehingga 2 MB."},
+  "Submit proof for review": {"zh-Hans":"提交证明以供审核","ms":"Hantar bukti untuk semakan"},
+  "Resubmit proof for review": {"zh-Hans":"重新提交证明以供审核","ms":"Hantar semula bukti untuk semakan"},
+  "OKU proof submitted for review.": {"zh-Hans":"OKU 证明已提交审核。","ms":"Bukti OKU dihantar untuk semakan."},
+  "Unknown OKU operation.": {"zh-Hans":"未知的 OKU 操作。","ms":"Operasi OKU tidak dikenal pasti."},
+  "You do not have permission to review OKU submissions.": {"zh-Hans":"你没有审核 OKU 申请的权限。","ms":"Anda tidak mempunyai kebenaran untuk menyemak permohonan OKU."},
+  "Private proof storage is unavailable. Please try again later.": {"zh-Hans":"私密证明存储不可用。请稍后重试。","ms":"Storan bukti peribadi tidak tersedia. Sila cuba lagi kemudian."},
+  "Only members can submit OKU parking proof.": {"zh-Hans":"只有会员可以提交 OKU 停车证明。","ms":"Hanya ahli boleh menghantar bukti parkir OKU."},
+  "You can submit new proof after a rejection.": {"zh-Hans":"申请被拒绝后，你可以提交新证明。","ms":"Anda boleh menghantar bukti baharu selepas permohonan ditolak."},
+  "Choose a file for your OKU parking proof.": {"zh-Hans":"请选择 OKU 停车证明文件。","ms":"Pilih fail untuk bukti parkir OKU anda."},
+  "OKU parking proof must be 2 MB or smaller.": {"zh-Hans":"OKU 停车证明不得超过 2 MB。","ms":"Bukti parkir OKU mestilah 2 MB atau lebih kecil."},
+  "Proof upload failed. Choose the file again.": {"zh-Hans":"证明上传失败。请重新选择文件。","ms":"Muat naik bukti gagal. Pilih semula fail."},
+  "Upload a valid JPG, PNG or WebP image for your proof.": {"zh-Hans":"请上传有效的 JPG、PNG 或 WebP 证明图片。","ms":"Muat naik imej JPG, PNG atau WebP yang sah sebagai bukti."},
+  "OKU submission not found.": {"zh-Hans":"找不到 OKU 申请。","ms":"Permohonan OKU tidak dijumpai."},
+  "This submission has already been reviewed. Refresh the queue.": {"zh-Hans":"此申请已审核。请刷新队列。","ms":"Permohonan ini sudah disemak. Muat semula senarai."},
+  "Choose Approve or Reject.": {"zh-Hans":"请选择批准或拒绝。","ms":"Pilih Luluskan atau Tolak."},
+  "Enter a rejection reason of 1 to 500 characters.": {"zh-Hans":"请输入 1 至 500 字的拒绝原因。","ms":"Masukkan sebab penolakan antara 1 hingga 500 aksara."},
+  "OKU submission approved.": {"zh-Hans":"OKU 申请已批准。","ms":"Permohonan OKU diluluskan."},
+  "OKU submission rejected.": {"zh-Hans":"OKU 申请已拒绝。","ms":"Permohonan OKU ditolak."},
+  "Only Super Admin can change OKU review access.": {"zh-Hans":"只有超级管理员可以更改 OKU 审核权限。","ms":"Hanya Pentadbir Utama boleh mengubah akses semakan OKU."},
+  "OKU review access granted.": {"zh-Hans":"已授予 OKU 审核权限。","ms":"Akses semakan OKU diberikan."},
+  "OKU review access revoked.": {"zh-Hans":"已撤销 OKU 审核权限。","ms":"Akses semakan OKU ditarik balik."},
+  "Admin account not found.": {"zh-Hans":"找不到管理员账户。","ms":"Akaun Pentadbir tidak dijumpai."},
+  "Open proof from the OKU review queue.": {"zh-Hans":"请从 OKU 审核队列打开证明。","ms":"Buka bukti daripada senarai semakan OKU."},
+  "OKU proof is unavailable.": {"zh-Hans":"OKU 证明不可用。","ms":"Bukti OKU tidak tersedia."},
+  "Manage Admin review access": {"zh-Hans":"管理管理员的审核权限","ms":"Urus akses semakan Pentadbir"},
+  "Review access granted": {"zh-Hans":"已授予审核权限","ms":"Akses semakan diberikan"},
+  "Review access disabled": {"zh-Hans":"审核权限已禁用","ms":"Akses semakan dinyahdayakan"},
+  "Revoke review access": {"zh-Hans":"撤销审核权限","ms":"Tarik balik akses semakan"},
+  "Grant review access": {"zh-Hans":"授予审核权限","ms":"Berikan akses semakan"},
+  "Invalid OKU review access request.": {"zh-Hans":"OKU 审核权限请求无效。","ms":"Permintaan akses semakan OKU tidak sah."},
+  "Review proof for MyPark Sabah parking eligibility. Keep document numbers out of rejection reasons.": {"zh-Hans":"审核证明以确定 MyPark Sabah 停车资格。拒绝原因中请勿填写证件号码。","ms":"Semak bukti untuk kelayakan parkir MyPark Sabah. Jangan masukkan nombor dokumen dalam sebab penolakan."},
+  "No OKU submissions match this filter.": {"zh-Hans":"没有符合此筛选条件的 OKU 申请。","ms":"Tiada permohonan OKU sepadan dengan penapis ini."},
+  "Submitted": {"zh-Hans":"提交时间","ms":"Dihantar"},
+  "Open proof in a new tab": {"zh-Hans":"在新标签页打开证明","ms":"Buka bukti dalam tab baharu"},
+  "Rejection reason (required to reject)": {"zh-Hans":"拒绝原因（拒绝时必填）","ms":"Sebab penolakan (wajib untuk menolak)"},
+  "Approve this member for OKU parking in MyPark Sabah?": {"zh-Hans":"批准此会员在 MyPark Sabah 使用 OKU 车位吗？","ms":"Luluskan ahli ini untuk parkir OKU dalam MyPark Sabah?"},
+  "Approve": {"zh-Hans":"批准","ms":"Luluskan"},
+  "Reject": {"zh-Hans":"拒绝","ms":"Tolak"},
+  "Reviewed by {name}": {"zh-Hans":"审核人：{name}","ms":"Disemak oleh {name}"},
+  "Regular parking": {"zh-Hans":"普通停车","ms":"Parkir biasa"},
+  "OKU parking": {"zh-Hans":"OKU 停车","ms":"Parkir OKU"},
+  "Parking bay type": {"zh-Hans":"车位类型","ms":"Jenis petak parkir"},
+  "Approved OKU parking verification is required. Check your status or submit proof in Profile.": {"zh-Hans":"使用 OKU 车位需要已批准的验证。请在个人资料中查看状态或提交证明。","ms":"Pengesahan parkir OKU yang diluluskan diperlukan. Semak status atau hantar bukti dalam Profil."},
+  "Approval is required to book OKU parking.": {"zh-Hans":"预订 OKU 车位需要审核批准。","ms":"Kelulusan diperlukan untuk menempah parkir OKU."},
+  "Choose a valid parking bay type.": {"zh-Hans":"请选择有效的车位类型。","ms":"Pilih jenis petak parkir yang sah."},
+  "No OKU bays are available at this location. Choose another location.": {"zh-Hans":"此地点没有可用的 OKU 车位。请选择其他地点。","ms":"Tiada petak OKU tersedia di lokasi ini. Pilih lokasi lain."},
+  "No regular bays are available at this location. Choose another location.": {"zh-Hans":"此地点没有可用的普通车位。请选择其他地点。","ms":"Tiada petak biasa tersedia di lokasi ini. Pilih lokasi lain."},
+  "Review your changes before starting parking.": {"zh-Hans":"开始停车前请审核所做的更改。","ms":"Semak perubahan anda sebelum memulakan parkir."},
+  "Regular bays available: {count}": {"zh-Hans":"可用普通车位：{count}","ms":"Petak biasa tersedia: {count}"},
+  "OKU bays available: {count}": {"zh-Hans":"可用 OKU 车位：{count}","ms":"Petak OKU tersedia: {count}"},
+  "Only members can change their parking bay type.": {"zh-Hans":"只有会员可以更改车位类型。","ms":"Hanya ahli boleh menukar jenis petak parkir mereka."},
+  "Only active stays can change bay type.": {"zh-Hans":"只有进行中的停车可以更改车位类型。","ms":"Hanya sesi aktif boleh menukar jenis petak."},
+  "This stay already uses that bay type.": {"zh-Hans":"这次停车已使用该车位类型。","ms":"Sesi ini sudah menggunakan jenis petak itu."},
+  "Parking location unavailable.": {"zh-Hans":"停车地点不可用。","ms":"Lokasi parkir tidak tersedia."},
+  "Parking bay type updated.": {"zh-Hans":"车位类型已更新。","ms":"Jenis petak parkir dikemas kini."},
+  "Switch to OKU parking": {"zh-Hans":"切换至 OKU 停车","ms":"Tukar ke parkir OKU"},
+  "Switch to regular parking": {"zh-Hans":"切换至普通停车","ms":"Tukar ke parkir biasa"},
+  "Only an administrator can set OKU bay capacity.": {"zh-Hans":"只有管理员可以设置 OKU 车位数量。","ms":"Hanya pentadbir boleh menetapkan kapasiti petak OKU."},
+  "Enter an OKU bay count between zero and total capacity.": {"zh-Hans":"请输入零到总容量之间的 OKU 车位数。","ms":"Masukkan bilangan petak OKU antara sifar dan jumlah kapasiti."},
+  "This allocation is too small for current stays. Wait until bays are free.": {"zh-Hans":"此分配无法容纳当前停车。请等待车位空出。","ms":"Peruntukan ini terlalu kecil untuk sesi semasa. Tunggu hingga petak kosong."},
+  "OKU bay allocation updated.": {"zh-Hans":"OKU 车位分配已更新。","ms":"Peruntukan petak OKU dikemas kini."},
+  "Set OKU bay allocation": {"zh-Hans":"设置 OKU 车位分配","ms":"Tetapkan peruntukan petak OKU"},
+  "OKU bays are reserved within the location’s existing total capacity.": {"zh-Hans":"OKU 车位从地点现有总车位中预留。","ms":"Petak OKU diperuntukkan dalam kapasiti sedia ada di lokasi."},
+  "OKU bays: {count}": {"zh-Hans":"OKU 车位：{count}","ms":"Petak OKU: {count}"},
+  "OKU bays": {"zh-Hans":"OKU 车位","ms":"Petak OKU"},
+  "Save bay allocation": {"zh-Hans":"保存车位分配","ms":"Simpan peruntukan petak"},
+  "Map of parking locations": {"zh-Hans":"停车地点地图","ms":"Peta lokasi parkir"},
+  "Last refresh": {"zh-Hans":"最后刷新时间","ms":"Muat semula terakhir"},
+  "Refresh availability": {"zh-Hans":"刷新车位情况","ms":"Muat semula ketersediaan"},
+  "Select a marker or location to filter the reservations below.": {"zh-Hans":"选择地图标记或地点，以筛选下方的停车记录。","ms":"Pilih penanda atau lokasi untuk menapis tempahan di bawah."},
+  "Enable JavaScript to use the parking availability map.": {"zh-Hans":"请启用 JavaScript 以使用停车位地图。","ms":"Dayakan JavaScript untuk menggunakan peta ketersediaan parkir."},
+  "Loading Google Maps…": {"zh-Hans":"正在加载 Google 地图…","ms":"Memuatkan Google Maps…"},
+  "Google Maps needs an API key. Use the location list below.": {"zh-Hans":"Google 地图需要 API 密钥。请使用下方的地点列表。","ms":"Google Maps memerlukan kunci API. Gunakan senarai lokasi di bawah."},
+  "Google Maps could not load. Use the location list below.": {"zh-Hans":"无法加载 Google 地图。请使用下方的地点列表。","ms":"Google Maps tidak dapat dimuatkan. Gunakan senarai lokasi di bawah."},
+  "No parking locations have map coordinates.": {"zh-Hans":"没有停车地点设有地图坐标。","ms":"Tiada lokasi parkir mempunyai koordinat peta."},
+  "No parking locations yet.": {"zh-Hans":"暂无停车地点。","ms":"Belum ada lokasi parkir."},
+  "Map position unavailable": {"zh-Hans":"地图位置不可用","ms":"Kedudukan peta tidak tersedia"},
+  "Capacity": {"zh-Hans":"总车位数","ms":"Kapasiti"},
+  "Capacity unavailable": {"zh-Hans":"总车位数不可用","ms":"Kapasiti tidak tersedia"},
+  "Occupied bays": {"zh-Hans":"已占用车位","ms":"Petak diduduki"},
+  "Available bays": {"zh-Hans":"可用车位","ms":"Petak tersedia"},
+  "Refresh failed. Showing the last known parking availability.": {"zh-Hans":"刷新失败。显示上次更新的车位情况。","ms":"Gagal memuat semula. Ketersediaan parkir terakhir dipaparkan."}
 }

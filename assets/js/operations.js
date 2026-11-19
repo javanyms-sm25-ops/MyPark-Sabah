@@ -8,6 +8,7 @@
   let data = JSON.parse(bootstrap.textContent);
   const pipeline = window.MyParkTableData, tables = [], pending = new Set();
   let refreshController, refreshSequence = 0;
+  let parkingMap;
   const money = v => 'RM ' + Number(v).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const title = v => translate(v.charAt(0).toUpperCase() + v.slice(1));
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
@@ -116,7 +117,15 @@
       this.host.append(toolbar, tools, this.tags, this.notice, this.loading, this.scroll, footer);
     }
     updateOptions() {
-      const values = this.kind === 'accounts' ? { role: Object.entries(data.roles), status: data.account_statuses.map(v => [v, title(v)]) } : { status: data.reservation_statuses.map(v => [v, title(v)]), location: [...new Map(data.reservations.map(r => [String(r.lot_id), r.lot])).entries()] };
+      const values = this.kind === 'accounts'
+        ? { role: Object.entries(data.roles), status: data.account_statuses.map(v => [v, title(v)]) }
+        : {
+            status: data.reservation_statuses.map(v => [v, title(v)]),
+            location: [...new Map([
+              ...data.reservations.map(r => [String(r.lot_id), r.lot]),
+              ...(data.parking_availability?.locations ?? []).map(lot => [String(lot.id), lot.name])
+            ])]
+          };
       Object.entries(values).forEach(([key, options]) => {
         const control = this.filters[key], current = this.state[key];
         const emptyOption = { status: translate('All statuses'), role: translate('All roles'), location: translate('All locations') }[key];
@@ -146,6 +155,7 @@
       this.tags.hidden = !this.tags.childElementCount; this.clearSearch.hidden = !this.search.value;
     }
     render() {
+      if (this.kind === 'reservations') parkingMap?.setSelection(this.state.location);
       this.panel.dataset.density = this.density;
       const count = data[this.kind].length;
       this.panel.querySelector('[data-total]').textContent = translate('{count} records', { count });
@@ -239,6 +249,7 @@
     if (!next || !Array.isArray(next.accounts) || !Array.isArray(next.reservations) || !next.summary || !Number.isInteger(next.revision)) throw new Error(translate('The server returned incomplete table data. Existing records have been kept.'));
     if (next.revision < data.revision) return;
     data = next; tables.forEach(t => { t.updateOptions(); t.render(); });
+    parkingMap?.update(data.parking_availability);
     document.querySelectorAll('[data-ops-stat]').forEach(n => { const key = n.dataset.opsStat; n.textContent = key === 'revenue' ? money(data.summary[key]) : data.summary[key]; });
   }
   async function readResponse(response) {
@@ -250,16 +261,24 @@
   }
   async function refresh(table) {
     refreshController?.abort(); const sequence = ++refreshSequence; refreshController = new AbortController();
-    tables.forEach(t => t.loadingState(false)); table.loadingState(true); table.notice.hidden = true;
+    setRefreshing(table); table.notice.hidden = true;
     try {
       const response = await fetch('api/operations.php', { credentials: 'same-origin', cache: 'no-store', signal: refreshController.signal });
       const result = await readResponse(response); if (sequence === refreshSequence) applySnapshot(result.data);
-    } catch (error) { if (sequence === refreshSequence && error.name !== 'AbortError') table.error('Refresh failed. Existing records have been kept. ' + error.message, () => refresh(table)); }
-    finally { if (sequence === refreshSequence) table.loadingState(false); }
+    } catch (error) {
+      if (sequence === refreshSequence && error.name !== 'AbortError') {
+        table.error('Refresh failed. Existing records have been kept. ' + error.message, () => refresh(table));
+        parkingMap?.showRefreshError();
+      }
+    } finally { if (sequence === refreshSequence) setRefreshing(); }
+  }
+  function setRefreshing(table = null) {
+    tables.forEach(item => item.loadingState(item === table));
+    parkingMap?.setRefreshing(table !== null);
   }
   async function mutate(table, record, action, status) {
     const key = table.kind + ':' + record.id; if (pending.has(key)) return;
-    refreshController?.abort(); ++refreshSequence; tables.forEach(t => t.loadingState(false)); pending.add(key); table.notice.hidden = true; table.render();
+    refreshController?.abort(); ++refreshSequence; setRefreshing(); pending.add(key); table.notice.hidden = true; table.render();
     const payload = new FormData(); Object.entries({ action, id: record.id, status, expected_status: record.status, csrf: data.csrf }).forEach(([k, v]) => payload.set(k, String(v)));
     try {
       const result = await readResponse(await fetch('api/operations.php', { method: 'POST', body: payload, credentials: 'same-origin' })); applySnapshot(result.data); toast(result.message, 'success');
@@ -270,4 +289,17 @@
     }
   }
   document.querySelectorAll('[data-table-host]').forEach(host => tables.push(new ManagementTable(host, host.dataset.tableHost)));
+  const mapPanel = document.getElementById('parking-availability');
+  const reservations = tables.find(table => table.kind === 'reservations');
+  if (mapPanel && reservations && window.MyParkParkingMap) {
+    const locationFilter = reservations.filters.location;
+    parkingMap = window.MyParkParkingMap.mount(mapPanel, {
+      selectLocation(id) {
+        locationFilter.value = id;
+        locationFilter.dispatchEvent(new Event('change'));
+      },
+      refresh: () => refresh(reservations)
+    });
+    parkingMap.update(data.parking_availability);
+  }
 }());

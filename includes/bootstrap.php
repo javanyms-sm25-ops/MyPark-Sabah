@@ -12,7 +12,7 @@ $_SESSION['demo_users'] ??= [
  ['id'=>4,'name'=>'Demo Member','email'=>'user@park.com','password'=>password_hash('user123',PASSWORD_DEFAULT),'role'=>'user','blocked'=>false]
 ];
 $_SESSION['demo_lots'] ??= [
- ['id'=>1,'name'=>'Kota Kinabalu Waterfront','city'=>'Kota Kinabalu','address'=>'Jalan Tun Fuad Stephens','rate'=>3.00,'capacity'=>36,'lat'=>5.9804,'lng'=>116.0735],
+ ['id'=>1,'name'=>'Kota Kinabalu Waterfront','city'=>'Kota Kinabalu','address'=>'Jalan Tun Fuad Stephens','rate'=>3.00,'capacity'=>36,'oku_capacity'=>1,'lat'=>5.9804,'lng'=>116.0735],
  ['id'=>2,'name'=>'Sandakan Central Parking','city'=>'Sandakan','address'=>'Bandar Sandakan','rate'=>2.00,'capacity'=>24,'lat'=>5.8402,'lng'=>118.1179],
  ['id'=>3,'name'=>'Tawau Town Centre','city'=>'Tawau','address'=>'Jalan Dunlop','rate'=>2.50,'capacity'=>30,'lat'=>4.2498,'lng'=>117.8871]
 ];

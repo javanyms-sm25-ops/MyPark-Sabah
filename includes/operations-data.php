@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/oku-verification.php';
+require_once __DIR__ . '/parking-capacity.php';
+
 // Operations uses the existing session store. No database or SQL is introduced.
 const OPS_ROLES = ['superadmin' => 'Super Admin', 'admin' => 'Admin', 'staff' => 'Staff', 'user' => 'Member'];
 const OPS_TRANSITIONS = ['active' => ['completed', 'cancelled'], 'completed' => [], 'cancelled' => []];
@@ -26,6 +29,32 @@ function ops_valid_csrf(array $input): void {
     }
 }
 
+function ops_parking_availability(array $lots, array $bookings): array {
+    $occupiedByLot = parking_occupancy_by_lot($bookings);
+    $locations = [];
+    foreach ($lots as $lot) {
+        $id = (int)$lot['id'];
+        $capacity = parking_lot_capacity($lot);
+        $bays = parking_bay_counts($lot, $occupiedByLot[$id] ?? []);
+        $occupied = array_sum(array_column($bays, 'occupied'));
+        $lat = filter_var($lot['lat'] ?? null, FILTER_VALIDATE_FLOAT);
+        $lng = filter_var($lot['lng'] ?? null, FILTER_VALIDATE_FLOAT);
+        $position = $lat !== false && $lng !== false && abs($lat) <= 90 && abs($lng) <= 180
+            ? ['lat' => $lat, 'lng' => $lng] : null;
+        $locations[] = [
+            'id' => $id,
+            'name' => (string)$lot['name'],
+            'city' => (string)($lot['city'] ?? ''),
+            'position' => $position,
+            'capacity' => $capacity,
+            'occupied' => $occupied,
+            'available' => $capacity === null ? null : array_sum(array_column($bays, 'available')),
+            'bays' => $bays,
+        ];
+    }
+    return ['locations' => $locations, 'refreshed_at' => date(DATE_ATOM)];
+}
+
 function ops_snapshot(array $actor): array {
     $accounts = array_map(static fn($user) => [
         'id' => (int)$user['id'], 'name' => (string)$user['name'], 'email' => (string)$user['email'],
@@ -44,7 +73,8 @@ function ops_snapshot(array $actor): array {
             'allowed_statuses' => OPS_TRANSITIONS[$booking['status']] ?? []
         ];
     }, $_SESSION['demo_bookings']);
-    return [
+    $active = array_filter($reservations, static fn($b) => $b['status'] === 'active');
+    $snapshot = [
         'accounts' => array_values($accounts), 'reservations' => array_values($reservations),
         'roles' => OPS_ROLES, 'reservation_statuses' => array_keys(OPS_TRANSITIONS),
         'account_statuses' => ['active', 'blocked'], 'csrf' => csrf(), 'actor_id' => $actor['id'],
@@ -53,18 +83,57 @@ function ops_snapshot(array $actor): array {
         'revision' => $_SESSION['ops_revision'] ?? 0,
         'summary' => [
             'lots' => count($_SESSION['demo_lots']), 'reservations' => count($reservations),
-            'active' => count(array_filter($reservations, static fn($b) => $b['status'] === 'active')),
+            'active' => count($active),
             'completed' => count(array_filter($reservations, static fn($b) => $b['status'] === 'completed')),
             'cancelled' => count(array_filter($reservations, static fn($b) => $b['status'] === 'cancelled')),
             'revenue' => array_sum(array_map(static fn($b) => in_array($b['status'], ['active', 'completed'], true) ? $b['fee'] : 0, $reservations))
         ]
     ];
+    if ($actor['role'] === 'superadmin') {
+        $snapshot['parking_availability'] = ops_parking_availability($_SESSION['demo_lots'], $_SESSION['demo_bookings']);
+    }
+    return $snapshot;
 }
 
 function ops_mutate(array $actor, array $input): string {
     ops_valid_csrf($input);
     $action = $input['action'] ?? '';
     $id = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT);
+    if ($action === 'oku_decide') {
+        return oku_decide($actor, $input['submission_id'] ?? '', $input['decision'] ?? '', $input['reason'] ?? '');
+    }
+    if ($action === 'oku_reviewer_access') {
+        $adminId = filter_var($input['admin_id'] ?? null, FILTER_VALIDATE_INT);
+        $access = $input['access'] ?? '';
+        if ($adminId === false || !in_array($access, ['grant', 'revoke'], true)) {
+            throw new RuntimeException('Invalid OKU review access request.', 422);
+        }
+        return oku_set_reviewer_access($actor, $adminId, $access === 'grant');
+    }
+    if ($action === 'set_oku_capacity') {
+        if (!in_array($actor['role'], ['admin', 'superadmin'], true)) {
+            throw new RuntimeException('Only an administrator can set OKU bay capacity.', 403);
+        }
+        $reserved = filter_var($input['oku_capacity'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+        complete_expired_bookings();
+        $occupied = parking_occupancy_by_lot($_SESSION['demo_bookings']);
+        foreach ($_SESSION['demo_lots'] as &$lot) {
+            if ($lot['id'] !== $id) continue;
+            $total = parking_lot_capacity($lot);
+            if ($total === null || $reserved === false || $reserved > $total) {
+                throw new RuntimeException('Enter an OKU bay count between zero and total capacity.', 422);
+            }
+            $used = $occupied[$id] ?? [];
+            if (($used['oku'] ?? 0) > $reserved || ($used['regular'] ?? 0) > $total - $reserved) {
+                throw new RuntimeException('This allocation is too small for current stays. Wait until bays are free.', 409);
+            }
+            $lot['oku_capacity'] = $reserved;
+            $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
+            return 'OKU bay allocation updated.';
+        }
+        unset($lot);
+        throw new RuntimeException('Parking location unavailable.', 404);
+    }
     if ($action === 'status') {
         complete_expired_bookings();
         foreach ($_SESSION['demo_bookings'] as &$booking) {
