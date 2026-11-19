@@ -22,16 +22,19 @@
 }
 
 [data-theme="dark"] {
-  --background: #101b2d;
-  --card: #18283d;
-  --text: #e7eff8;
-  --navy: #7dc3e6;
+  color-scheme: dark;
+  --background: #101a28;
+  --card: #1a293c;
+  --text: #e8eff6;
+  --muted-text: #afbecf;
+  --navy: #83d3f5;
   --navy-hover: #aeddf1;
-  --light-blue: #213a56;
+  --light-blue: #23394f;
   --blue: #4badd8;
   --green: #55ac91;
   --red: #e0717d;
   --border: #304660;
+  --button-text: #102234;
   --shadow: 0 3px 14px rgba(0, 0, 0, 0.18);
 }
 
@@ -311,6 +314,16 @@ header nav span {
   text-decoration: none;
 }
 
+[data-theme="dark"] header:has(> .logo) nav > a:not(.notification-link) {
+  color: var(--text);
+}
+
+[data-theme="dark"] header:has(> .logo) nav > a.nav-active {
+  background: #173655;
+  color: var(--navy);
+  box-shadow: inset 0 -2px 0 var(--navy);
+}
+
 header nav a:hover {
   text-decoration: none;
   background: var(--light-blue);
@@ -396,7 +409,7 @@ button,
   min-height: 40px;
   padding: 9px 16px;
   background: var(--navy);
-  color: #ffffff;
+  color: var(--button-text, #ffffff);
   border: 0;
   border-radius: 9px;
   font-size: 0.9rem;
@@ -753,6 +766,103 @@ button.ghost {
 .staff-sidebar .language-switcher select {
   background: #f1f6fc;
   color: #123457;
+}
+
+.nav-preferences {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-preferences .language-switcher select {
+  height: 44px;
+}
+
+.theme-picker {
+  position: relative;
+}
+
+.theme-picker summary {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--navy);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  list-style: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.theme-picker summary::-webkit-details-marker {
+  display: none;
+}
+
+.theme-picker summary:hover,
+.theme-picker[open] summary {
+  background: var(--light-blue);
+}
+
+.theme-picker summary:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.theme-picker summary svg {
+  width: 20px;
+  height: 20px;
+}
+
+.theme-picker__sun,
+[data-theme="dark"] .theme-picker__moon {
+  display: none;
+}
+
+[data-theme="dark"] .theme-picker__sun {
+  display: block;
+}
+
+.theme-picker__options {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-end: 0;
+  min-width: 9rem;
+  margin: 0;
+  padding: 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  box-shadow: var(--shadow);
+}
+
+.theme-picker__options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  margin: 0;
+  padding: 6px 8px;
+  color: var(--text);
+  white-space: nowrap;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.theme-picker__options label:hover {
+  background: var(--light-blue);
+}
+
+.theme-picker__options input[type="radio"] {
+  width: 16px;
+  min-height: 0;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--navy);
 }
 
 /* ---------- 5. General layout components ---------- */
@@ -1294,6 +1404,43 @@ button.ghost {
 
 .dashboard-wallet__link:hover {
   color: #ffffff;
+}
+
+[data-theme="dark"] .dashboard-hero {
+  background: linear-gradient(120deg, #173655, #165267);
+  color: var(--text);
+}
+
+[data-theme="dark"] .dashboard-hero__content h1,
+[data-theme="dark"] .dashboard-wallet__amount,
+[data-theme="dark"] .dashboard-wallet__toggle,
+[data-theme="dark"] .dashboard-hero + .stats b {
+  color: var(--text);
+}
+
+[data-theme="dark"] .dashboard-hero__content .btn {
+  background: #83d3f5;
+  color: #102234;
+}
+
+[data-theme="dark"] .dashboard-hero__content .btn:hover {
+  background: #aeddf1;
+}
+
+[data-theme="dark"] .dashboard-wallet {
+  background: #192f48;
+  border-color: #566f88;
+}
+
+[data-theme="dark"] .dashboard-wallet .dashboard-wallet__label,
+[data-theme="dark"] .dashboard-hero + .stats small {
+  color: var(--muted-text);
+}
+
+/* The Botpress launcher image stays in place when the site theme changes. */
+[data-theme="dark"] .bpFabContainer {
+  background-color: #1a293c !important;
+  box-shadow: inset 0 0 0 1px #566f88, 0 4px 12px rgb(0 0 0 / 24%);
 }
 
 @media (max-width: 800px) {
@@ -2061,6 +2208,11 @@ tr[hidden] {
 
   header nav span {
     max-width: 100%;
+  }
+
+  .nav-preferences {
+    flex-basis: 100%;
+    justify-content: flex-end;
   }
 }
 

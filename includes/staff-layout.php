@@ -18,6 +18,7 @@ function staff_head(string $title): void {
     <title><?= te($title) ?> · MyPark Sabah</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="assets/js/theme.js"></script>
     <link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/css/staff.css"></head>
     <body class="staff-portal<?= $profile ? ' staff-profile-page' : '' ?>">
     <a class="staff-skip" href="#staff-main"><?= te('Skip to content') ?></a>

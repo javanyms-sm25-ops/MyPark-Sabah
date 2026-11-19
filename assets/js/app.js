@@ -88,22 +88,8 @@
   const translate = window.MyParkLocale?.text ?? (message => message);
 
 
-  const root = document.documentElement;
-
-  // Theme
   function readStorage(key) { try { return localStorage.getItem(key); } catch (_) { return null; } }
   function writeStorage(key, value) { try { localStorage.setItem(key, value); } catch (_) { /* Page controls remain usable without storage. */ } }
-  const savedTheme = readStorage('theme');
-  if (savedTheme === 'light' || savedTheme === 'dark') root.dataset.theme = savedTheme;
-
-  const themeButton = document.getElementById('themeBtn');
-  if (themeButton) {
-    themeButton.addEventListener('click', function () {
-      const nextTheme = root.dataset.theme === 'dark' ? 'light' : 'dark';
-      root.dataset.theme = nextTheme;
-      writeStorage('theme', nextTheme);
-    });
-  }
 
   // Responsive navigation and current-page indicator
   const navigation = document.querySelector('header nav');
