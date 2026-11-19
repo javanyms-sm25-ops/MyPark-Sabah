@@ -13,7 +13,7 @@ require_once __DIR__ . '/includes/parking-booking.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     if (in_array($action, ['add_booking_vehicle', 'review_parking', 'start_parking', 'edit_parking'], true)) {
-        require __DIR__ . '/parking.php';
+        require __DIR__ . '/parking-details.php';
         return;
     }
     check_csrf();
@@ -31,7 +31,7 @@ if (is_string($_GET['vehicle_id'] ?? null)) {
     $resume['vehicle_id'] = $_GET['vehicle_id'];
 }
 if ($resume) {
-    header('Location: parking.php?' . http_build_query($resume), true, 303);
+    header('Location: parking-details.php?' . http_build_query($resume), true, 303);
     exit;
 }
 
@@ -109,7 +109,7 @@ head('Sabah Parking');
         </p>
       <?php endif; ?>
       <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $lot['lat'] ?>,<?= $lot['lng'] ?>" target="_blank" rel="noopener"><?= te('View map') ?></a>
-      <a class="btn" href="parking.php?lot_id=<?= e($lot['id']) ?>"><?= te('Select location') ?></a>
+      <a class="btn" href="parking-details.php?lot_id=<?= e($lot['id']) ?>"><?= te('Select location') ?></a>
     </article>
   <?php endforeach; ?>
 </section>

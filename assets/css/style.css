@@ -784,15 +784,14 @@ button.ghost {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-width: 126px;
-  height: 44px;
-  min-height: 44px;
+  gap: 5px;
+  min-width: 96px;
+  min-height: 32px;
   margin: 0;
-  padding: 0 16px;
+  padding: 0 8px;
   color: #102234;
-  background: #83d3f5;
-  border: 1px solid var(--border);
+  background: #fff;
+  border: 1px solid #000;
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 600;
@@ -802,7 +801,7 @@ button.ghost {
 
 .theme-toggle:hover {
   color: #102234;
-  background: #aeddf1;
+  background: #f5f5f5;
   transform: none;
 }
 
@@ -825,8 +824,8 @@ button.ghost {
 
 .theme-toggle svg {
   flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 .theme-toggle__moon,

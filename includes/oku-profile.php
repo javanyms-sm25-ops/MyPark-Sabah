@@ -27,6 +27,6 @@ $okuUrl = $vehiclesPage . '#oku-parking-verification';
     </form>
   <?php endif; ?>
   <?php if ($bookingContext || $okuStatus === 'approved'): ?>
-    <p><a href="<?= e($bookingContext ? 'parking.php?' . http_build_query(parking_resume_fields($bookingContext)) : 'dashboard.php#locations') ?>"><?= te('Back to parking') ?></a></p>
+    <p><a href="<?= e($bookingContext ? 'parking-details.php?' . http_build_query(parking_resume_fields($bookingContext)) : 'dashboard.php#locations') ?>"><?= te('Back to parking') ?></a></p>
   <?php endif; ?>
 </section>

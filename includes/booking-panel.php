@@ -19,7 +19,7 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
   <p id="bookingError" class="booking-error" role="alert" tabindex="-1" <?= !$bookingError && !$errors ? 'hidden' : '' ?>>
     <?= te($bookingError ?: ($errors ? 'Check the highlighted booking details.' : '')) ?>
   </p>
-  <form method="post" action="parking.php" id="bookForm" novalidate<?= $review ? ' inert' : '' ?>>
+  <form method="post" action="parking-details.php" id="bookForm" novalidate<?= $review ? ' inert' : '' ?>>
     <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
     <input type="hidden" name="action" value="review_parking">
     <label for="lot_id"><?= te('Location') ?></label>
@@ -106,7 +106,7 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
   <?php if ($customer): ?>
     <dialog class="parking-vehicle-dialog" id="bookingVehicleDialog" aria-labelledby="bookingVehicleDialogTitle" <?= $addVehicleError ? 'data-reopen' : '' ?>>
       <h2 id="bookingVehicleDialogTitle"><?= te('Add vehicle') ?></h2>
-      <form method="post" action="parking.php" id="addBookingVehicleForm">
+      <form method="post" action="parking-details.php" id="addBookingVehicleForm">
         <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
         <input type="hidden" name="action" value="add_booking_vehicle">
         <input type="hidden" name="lot_id" value="<?= e($bookingContext['lot_id'] ?? '') ?>">
@@ -142,13 +142,13 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
     </dl>
     <?php if ($review['save_vehicle']): ?><p class="hint"><?= te('This vehicle will also be saved to your account when you start parking.') ?></p><?php endif; ?>
     <div class="parking-actions">
-      <form method="post" action="parking.php" id="editParkingForm">
+      <form method="post" action="parking-details.php" id="editParkingForm">
         <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
         <input type="hidden" name="action" value="edit_parking">
         <input type="hidden" name="review_token" value="<?= e($review['token']) ?>">
         <button class="ghost"><?= te('Edit details') ?></button>
       </form>
-      <form method="post" action="parking.php" id="startParkingForm">
+      <form method="post" action="parking-details.php" id="startParkingForm">
         <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
         <input type="hidden" name="action" value="start_parking">
         <input type="hidden" name="review_token" value="<?= e($review['token']) ?>">

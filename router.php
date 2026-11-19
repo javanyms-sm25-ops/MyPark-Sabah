@@ -21,7 +21,7 @@ if ($path === '/admin') {
 }
 $pages = [
     'index.php', 'pages/login.php', 'logout.php', 'pages/register.php', 'forgot.php',
-    'dashboard.php', 'parking.php', 'history.php', 'profile.php', 'support.php', 'ticket.php',
+    'dashboard.php', 'parking-details.php', 'parking.php', 'history.php', 'profile.php', 'support.php', 'ticket.php',
     'wallet.php', 'compound.php', 'receipts.php', 'staff.php', 'admin/index.php', 'api/availability.php',
     'api/export.php', 'api/operations.php', 'api/staff.php', 'api/oku-proof.php',
 ];
