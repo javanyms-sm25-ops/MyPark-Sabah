@@ -46,12 +46,12 @@ head('Register');
   <input type="hidden" name="csrf" value="<?= csrf() ?>">
   <div class="registration-field">
     <label for="register-name"><?= te('Full name') ?></label>
-    <input id="register-name" name="name" autocomplete="name" value="<?= e($_POST['name'] ?? '') ?>" aria-describedby="register-name-error" aria-invalid="<?= isset($errors['name']) ? 'true' : 'false' ?>" required>
+    <input id="register-name" name="name" placeholder="<?= te('Enter your full name') ?>" autocomplete="name" value="<?= e($_POST['name'] ?? '') ?>" aria-describedby="register-name-error" aria-invalid="<?= isset($errors['name']) ? 'true' : 'false' ?>" required>
     <p class="field-feedback" id="register-name-error" <?= !isset($errors['name']) ? 'hidden' : '' ?>><span data-error-text><?= te($errors['name'] ?? '') ?></span></p>
   </div>
   <div class="registration-field">
     <label for="register-email"><?= te('Email') ?></label>
-    <input id="register-email" name="email" type="email" autocomplete="email" value="<?= e($_POST['email'] ?? '') ?>" aria-describedby="register-email-error" aria-invalid="<?= isset($errors['email']) ? 'true' : 'false' ?>" data-email-taken="<?= ($errors['email'] ?? '') === 'Email already registered.' ? 'true' : 'false' ?>" required>
+    <input id="register-email" name="email" type="email" placeholder="<?= te('Enter your email address') ?>" autocomplete="email" value="<?= e($_POST['email'] ?? '') ?>" aria-describedby="register-email-error" aria-invalid="<?= isset($errors['email']) ? 'true' : 'false' ?>" data-email-taken="<?= ($errors['email'] ?? '') === 'Email already registered.' ? 'true' : 'false' ?>" required>
     <p class="field-feedback" id="register-email-error" <?= !isset($errors['email']) ? 'hidden' : '' ?>><span data-error-text><?= te($errors['email'] ?? '') ?></span></p>
   </div>
   <div class="password-field">
