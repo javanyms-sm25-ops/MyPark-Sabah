@@ -779,90 +779,66 @@ button.ghost {
   height: 44px;
 }
 
-.theme-picker {
-  position: relative;
-}
-
-.theme-picker summary {
-  display: grid;
-  place-items: center;
-  width: 44px;
+.theme-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 126px;
   height: 44px;
-  color: var(--navy);
-  background: var(--card);
+  min-height: 44px;
+  margin: 0;
+  padding: 0 16px;
+  color: #102234;
+  background: #83d3f5;
   border: 1px solid var(--border);
-  border-radius: 9px;
-  list-style: none;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-.theme-picker summary::-webkit-details-marker {
-  display: none;
+.theme-toggle:hover {
+  color: #102234;
+  background: #aeddf1;
+  transform: none;
 }
 
-.theme-picker summary:hover,
-.theme-picker[open] summary {
-  background: var(--light-blue);
-}
-
-.theme-picker summary:focus-visible {
-  outline: 2px solid var(--navy);
+.theme-toggle:focus-visible {
+  outline: 3px solid #8fd1ed;
   outline-offset: 2px;
 }
 
-.theme-picker summary svg {
+[data-theme="dark"] .theme-toggle {
+  color: #e8eff6;
+  background: #173655;
+  border-color: #83d3f5;
+  box-shadow: 0 3px 10px rgb(16 34 52 / 18%);
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  color: #ffffff;
+  background: #214c70;
+}
+
+.theme-toggle svg {
+  flex: 0 0 auto;
   width: 20px;
   height: 20px;
 }
 
-.theme-picker__sun,
-[data-theme="dark"] .theme-picker__moon {
+.theme-toggle__moon,
+.theme-toggle__dark,
+[data-theme="dark"] .theme-toggle__sun,
+[data-theme="dark"] .theme-toggle__light {
   display: none;
 }
 
-[data-theme="dark"] .theme-picker__sun {
-  display: block;
-}
-
-.theme-picker__options {
-  position: absolute;
-  z-index: 1;
-  inset-block-start: calc(100% + 6px);
-  inset-inline-end: 0;
-  min-width: 9rem;
-  margin: 0;
-  padding: 4px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  box-shadow: var(--shadow);
-}
-
-.theme-picker__options label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  margin: 0;
-  padding: 6px 8px;
-  color: var(--text);
-  white-space: nowrap;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.theme-picker__options label:hover {
-  background: var(--light-blue);
-}
-
-.theme-picker__options input[type="radio"] {
-  width: 16px;
-  min-height: 0;
-  height: 16px;
-  margin: 0;
-  padding: 0;
-  accent-color: var(--navy);
+[data-theme="dark"] .theme-toggle__moon,
+[data-theme="dark"] .theme-toggle__dark {
+  display: inline;
 }
 
 /* ---------- 5. General layout components ---------- */
