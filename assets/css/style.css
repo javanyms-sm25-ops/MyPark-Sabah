@@ -336,6 +336,29 @@ header nav span {
   font-size: 0.82rem;
 }
 
+header:has(> .logo) {
+  padding-inline-end: 8px;
+}
+
+@media (min-width: 981px) {
+  header:has(> .logo) {
+    gap: 14px;
+  }
+
+  header:has(> .logo) > nav {
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  header:has(> .logo) > nav > a:not(.notification-link) {
+    padding-inline: 8px;
+  }
+
+  header:has(> .logo) > nav > span {
+    min-width: 0;
+  }
+}
+
 /* ---------- 4. Forms and buttons ---------- */
 
 label {
