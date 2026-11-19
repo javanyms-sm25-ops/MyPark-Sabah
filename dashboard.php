@@ -8,109 +8,34 @@ if (me()['role'] === 'superadmin') {
 }
 
 $userId = me()['id'];
-require __DIR__ . '/includes/parking-booking.php';
-$wallet = demo_wallet();
-$customer = me()['role'] === 'user';
-$vehicles = $customer ? saved_vehicles($userId) : [];
-$defaultVehicle = $customer ? default_vehicle_id($userId) : null;
-$resume = parking_resume_fields($_GET);
-$requestedVehicle = $_GET['vehicle_id'] ?? '';
-$draft = [
-    'lot_id' => (string)($resume['lot_id'] ?? ''),
-    'bay_type' => 'regular',
-    'hours' => (string)($resume['hours'] ?? 1),
-    'vehicle_id' => $vehicles ? ($defaultVehicle ?? '') : 'manual',
-    'plate' => '',
-    'save_vehicle' => false,
-];
-if (is_string($requestedVehicle) && isset($vehicles[$requestedVehicle])) {
-    $draft['vehicle_id'] = $requestedVehicle;
-}
-$errors = [];
-$bookingError = '';
-$review = null;
-$addVehicleError = '';
+require_once __DIR__ . '/includes/parking-booking.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    check_csrf();
     $action = $_POST['action'] ?? '';
-
-    if ($action === 'cancel') {
-        flash(cancel_booking((int) ($_POST['id'] ?? 0), $userId));
-        header('Location: dashboard.php', true, 303);
+    if (in_array($action, ['add_booking_vehicle', 'review_parking', 'start_parking', 'edit_parking'], true)) {
+        require __DIR__ . '/parking.php';
+        return;
+    }
+    check_csrf();
+    if ($action !== 'cancel') {
+        http_response_code(400);
         exit;
     }
-
-    if ($action === 'add_booking_vehicle') {
-        if (!$customer) {
-            http_response_code(403);
-            exit('Vehicle management is available to customers.');
-        }
-        $resume = parking_resume_fields($_POST);
-        foreach ($resume as $key => $value) $draft[$key] = (string)$value;
-        try {
-            $added = change_saved_vehicle($userId, ['vehicle_action' => 'add'] + $_POST);
-            flash($added['message']);
-            header('Location: dashboard.php?' . http_build_query($resume + ['vehicle_id' => $added['id']]) . '#bookingPanel', true, 303);
-            exit;
-        } catch (InvalidArgumentException $error) {
-            $addVehicleError = $error->getMessage();
-            http_response_code(422);
-        }
-    } elseif ($action === 'review_parking') {
-        unset($_SESSION['parking_reviews'][$userId]);
-        $draft = parking_draft_from_post($_POST);
-        $checked = validate_parking_draft(me(), $draft);
-        $errors = $checked['errors'];
-        if ($errors) {
-            http_response_code(422);
-        } else {
-            $review = $checked['details'] + ['token' => bin2hex(random_bytes(32)), 'reviewed_at' => time()];
-            $_SESSION['parking_reviews'][$userId] = [
-                'token' => $review['token'],
-                'draft' => $draft,
-                'fee' => $review['fee'],
-                'plate' => $review['plate'],
-                'reviewed_at' => $review['reviewed_at'],
-            ];
-        }
-    } elseif ($action === 'start_parking' || $action === 'edit_parking') {
-        $pending = $_SESSION['parking_reviews'][$userId] ?? null;
-        if ($pending === null || !hash_equals($pending['token'], $_POST['review_token'] ?? '')) {
-            http_response_code(409);
-            $bookingError = 'This review is no longer valid. Check your parking details again.';
-        } elseif (isset($_POST['bay_type']) && $_POST['bay_type'] !== ($pending['draft']['bay_type'] ?? 'regular')) {
-            http_response_code(422);
-            $draft = $pending['draft'];
-            $bookingError = 'Review your changes before starting parking.';
-            unset($_SESSION['parking_reviews'][$userId]);
-        } else {
-            // PHP holds the session lock here, so a second submission cannot use the same review.
-            unset($_SESSION['parking_reviews'][$userId]);
-            $draft = $pending['draft'];
-            if ($action === 'start_parking') {
-                $checked = validate_parking_draft(me(), $draft);
-                $errors = $checked['errors'];
-                $details = $checked['details'];
-                if (time() - $pending['reviewed_at'] >= 600) {
-                    $bookingError = 'This review has expired. Review your parking details again.';
-                } elseif (!$errors && ($details['fee'] !== $pending['fee'] || $details['plate'] !== $pending['plate'])) {
-                    $bookingError = 'The fee or vehicle details changed. Review the updated details before starting.';
-                } elseif (!$errors) {
-                    start_parking(me(), $details);
-                    flash('Parking session created. Your e-ticket is ready.');
-                    header('Location: dashboard.php', true, 303);
-                    exit;
-                }
-                http_response_code(409);
-            }
-        }
-    } else {
-        http_response_code(400);
-        $bookingError = 'Review your parking details before starting.';
-    }
+    flash(cancel_booking((int) ($_POST['id'] ?? 0), $userId));
+    header('Location: dashboard.php', true, 303);
+    exit;
 }
 
+$resume = parking_resume_fields($_GET);
+if (is_string($_GET['vehicle_id'] ?? null)) {
+    $resume['vehicle_id'] = $_GET['vehicle_id'];
+}
+if ($resume) {
+    header('Location: parking.php?' . http_build_query($resume), true, 303);
+    exit;
+}
+
+$wallet = demo_wallet();
 $lots = $_SESSION['demo_lots'];
 $occupiedByLot = parking_occupancy_by_lot($_SESSION['demo_bookings']);
 $bookings = array_values(array_filter($_SESSION['demo_bookings'], fn($booking) => $booking['user_id'] === $userId));
@@ -184,12 +109,10 @@ head('Sabah Parking');
         </p>
       <?php endif; ?>
       <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $lot['lat'] ?>,<?= $lot['lng'] ?>" target="_blank" rel="noopener"><?= te('View map') ?></a>
-      <a class="btn" data-book-lot="<?= $lot['id'] ?>" href="dashboard.php?lot_id=<?= $lot['id'] ?>#bookingPanel"><?= te('Select location') ?></a>
+      <a class="btn" href="parking.php?lot_id=<?= e($lot['id']) ?>"><?= te('Select location') ?></a>
     </article>
   <?php endforeach; ?>
 </section>
-
-<?php require __DIR__ . '/includes/booking-panel.php'; ?>
 
 <p class="section-link"><a class="btn" href="history.php"><?= te('View parking history') ?></a></p>
 <h2><?= te('Sabah parking map') ?></h2>

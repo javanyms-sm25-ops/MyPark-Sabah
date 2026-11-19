@@ -94,7 +94,7 @@ function validate_parking_draft(array $actor, array $draft): array {
     ];
 }
 
-function start_parking(array $actor, array $details): void {
+function start_parking(array $actor, array $details): int {
     $start = time();
     $bookingId = max(array_column($_SESSION['demo_bookings'], 'id') ?: [0]) + 1;
     if ($details['save_vehicle']) {
@@ -117,6 +117,7 @@ function start_parking(array $actor, array $details): void {
         'expires_at' => $start + $details['hours'] * 3600,
     ];
     $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
+    return $bookingId;
 }
 
 function change_parking_bay(array $member, int $id, string $bayType): void {

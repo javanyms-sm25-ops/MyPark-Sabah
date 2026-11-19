@@ -1643,6 +1643,7 @@ main > table {
 }
 
 #bookingPanel,
+#parkingReview,
 #my-vehicles,
 #vehicle-editor {
   scroll-margin-top: 7rem;
@@ -1650,6 +1651,10 @@ main > table {
 
 #bookingPanel [hidden] {
   display: none;
+}
+
+#bookForm[inert] {
+  opacity: .75;
 }
 
 .vehicle-toolbar {
@@ -1740,10 +1745,8 @@ main > table {
   gap: 8px 12px;
 }
 
-.parking-vehicle-dialog {
-  width: min(440px, calc(100% - 28px));
-  max-height: calc(100dvh - 28px);
-  overflow: auto;
+.parking-vehicle-dialog,
+.parking-review-dialog {
   padding: 22px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -1752,12 +1755,42 @@ main > table {
   box-shadow: var(--shadow);
 }
 
-.parking-vehicle-dialog::backdrop {
+:is(.parking-vehicle-dialog, .parking-review-dialog:modal) {
+  max-height: calc(100dvh - 28px);
+  overflow: auto;
+}
+
+.parking-vehicle-dialog {
+  width: min(440px, calc(100% - 28px));
+}
+
+.parking-review-dialog[open] {
+  display: block;
+  position: static;
+  width: auto;
+  margin: 14px 0;
+}
+
+.parking-review-dialog:modal {
+  position: fixed;
+  width: min(760px, calc(100% - 28px));
+  margin: auto;
+  overscroll-behavior: contain;
+}
+
+.parking-vehicle-dialog::backdrop,
+.parking-review-dialog::backdrop {
   background: rgb(15 34 55 / 45%);
 }
 
-.parking-vehicle-dialog h2 {
+.parking-vehicle-dialog h2,
+.parking-review-dialog h2 {
   margin: 0 0 14px;
+}
+
+#parking-heading:focus,
+#parking-review-heading:focus {
+  outline: none;
 }
 
 .parking-vehicle-dialog .vehicle-secondary-link {

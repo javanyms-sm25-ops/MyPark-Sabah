@@ -118,7 +118,7 @@ head('Profile');
       <a class="btn" href="<?= e('profile.php?' . http_build_query($bookingContext + ['vehicle_edit' => 'new']) . '#vehicle-editor') ?>"><?= te('Add vehicle') ?></a>
     </div>
     <?php if ($bookingContext): ?>
-      <p><a class="vehicle-secondary-link" href="<?= e('dashboard.php?' . http_build_query(parking_resume_fields($bookingContext)) . '#bookingPanel') ?>"><?= te('Back to parking') ?></a></p>
+      <p><a class="vehicle-secondary-link" href="<?= e('parking.php?' . http_build_query(parking_resume_fields($bookingContext))) ?>"><?= te('Back to parking') ?></a></p>
     <?php endif; ?>
     <?php if ($vehicleError): ?><p class="booking-error" role="alert"><?= te($vehicleError) ?></p><?php endif; ?>
     <?php if ($editing): ?>

@@ -27,11 +27,19 @@
     });
   }
 
-  const reviewForm = document.getElementById('startParkingForm');
-  if (reviewForm) {
+  const reviewDialog = document.getElementById('parkingReview');
+  if (reviewDialog) {
+    const reviewForm = document.getElementById('startParkingForm');
+    const editForm = document.getElementById('editParkingForm');
     guardSubmission(reviewForm, translate('Starting parking…'));
-    document.getElementById('parking-heading').focus();
-    return;
+    if (typeof reviewDialog.showModal === 'function') {
+      reviewDialog.addEventListener('cancel', event => {
+        event.preventDefault();
+        if (!reviewForm.hasAttribute('aria-busy')) editForm.requestSubmit();
+      });
+      reviewDialog.close();
+      reviewDialog.showModal();
+    }
   }
 
   const form = document.getElementById('bookForm');
@@ -106,16 +114,6 @@
     updateParkingContext();
   });
   bayType?.addEventListener('change', () => setError('bay', bayType));
-  document.querySelectorAll('[data-book-lot]').forEach(link => {
-    link.addEventListener('click', event => {
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      event.preventDefault();
-      location.value = link.dataset.bookLot;
-      location.dispatchEvent(new Event('change'));
-      location.focus({ preventScroll: true });
-      document.getElementById('bookingPanel').scrollIntoView();
-    });
-  });
 
   let customHours = hours.value;
   let usingCustom = false;
@@ -174,7 +172,7 @@
       firstInvalid?.focus();
     }
   });
-  guardSubmission(form, translate('Checking details…'));
+  if (!reviewDialog) guardSubmission(form, translate('Checking details…'));
 
   if (dialog && typeof dialog.showModal === 'function') {
     manage.addEventListener('click', event => {
@@ -190,5 +188,8 @@
 
   if (!summaryError.hidden) {
     (form.querySelector('[aria-invalid="true"]') || summaryError).focus();
+  } else if (reviewDialog || window.location.hash === '#bookingPanel') {
+    const heading = document.getElementById(reviewDialog ? 'parking-review-heading' : 'parking-heading');
+    window.addEventListener('pageshow', () => heading.focus({ preventScroll: true }), { once: true });
   }
 }());
