@@ -87,7 +87,7 @@ head($confirmEmail ? 'Email receipt' : 'Digital receipts');
       <?php if (!$receipts): ?>
         <div class="card">
           <h3><?= te('No receipts for these dates') ?></h3>
-          <p>Try a different date range or choose All receipts to see every transaction type.</p>
+          <p><?= te('Try a different date range or choose All receipts to see every transaction type.') ?></p>
         </div>
       <?php endif; ?>
 
@@ -110,7 +110,7 @@ head($confirmEmail ? 'Email receipt' : 'Digital receipts');
   <?php elseif (!$receipt): ?>
     <section class="card">
       <h1><?= te('Receipt unavailable') ?></h1>
-      <p>Only receipts from your account and from the past 30 days are available.</p>
+      <p><?= te('Only receipts from your account and from the past 30 days are available.') ?></p>
       <a class="btn" href="<?= e($listUrl) ?>"><?= te('Back to receipts') ?></a>
     </section>
   <?php elseif ($confirmEmail):
@@ -122,8 +122,8 @@ head($confirmEmail ? 'Email receipt' : 'Digital receipts');
   ?>
     <section class="card receipt-email" aria-labelledby="receipt-email-title">
       <h1 id="receipt-email-title"><?= te('Email this receipt') ?></h1>
-      <p>Open an email draft addressed to <strong><?= e($email) ?></strong>?</p>
-      <p>The receipt will be in the message. You can review it and select Send in your email app.</p>
+      <p><?= te('Open an email draft addressed to') ?> <strong><?= e($email) ?></strong>?</p>
+      <p><?= te('The receipt will be in the message. You can review it and select Send in your email app.') ?></p>
       <div class="receipt-actions">
         <a class="btn" href="<?= e($mailUrl) ?>"><?= te('Open email draft') ?></a>
         <a class="receipts-link" href="<?= e($detailUrl) ?>"><?= te('Cancel') ?></a>

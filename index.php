@@ -51,7 +51,7 @@ head('Home');
     <div class="home-hero__panel home-hero__panel--secondary">
       <p><?= te('Tonight') ?></p>
       <div class="home-hero__mini-grid">
-        <span>Premium</span>
+        <span><?= te('Premium') ?></span>
         <strong>RM 18</strong>
       </div>
       <div class="home-hero__mini-grid">

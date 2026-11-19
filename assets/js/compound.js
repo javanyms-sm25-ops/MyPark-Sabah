@@ -37,19 +37,19 @@
         return;
       }
 
-      if (codes.length) cameraStatus.textContent = 'That barcode does not contain a compound number. Try again or enter the number manually.';
+      if (codes.length) cameraStatus.textContent = translate('That barcode does not contain a compound number. Try again or enter the number manually.');
       active.timer = setTimeout(() => detect(active, detector), 200);
     } catch (_) {
       if (scan !== active) return;
       stop();
-      cameraStatus.textContent = 'Could not read the barcode. Close the camera and enter the number manually.';
+      cameraStatus.textContent = translate('Could not read the barcode. Close the camera and enter the number manually.');
     }
   }
 
   button.hidden = false;
   button.addEventListener('click', async function () {
     if (typeof window.BarcodeDetector !== 'function' || !navigator.mediaDevices?.getUserMedia || !dialog.showModal) {
-      status.textContent = 'Camera scanning is unavailable here. Enter the compound number or plate above.';
+      status.textContent = translate('Camera scanning is unavailable here. Enter the compound number or plate above.');
       input.focus();
       return;
     }
@@ -75,12 +75,12 @@
       video.srcObject = stream;
       await video.play();
       if (scan !== active || !dialog.open) return;
-      cameraStatus.textContent = 'Hold the barcode inside the camera view.';
+      cameraStatus.textContent = translate('Hold the barcode inside the camera view.');
       detect(active, detector);
     } catch (_) {
       if (scan !== active) return;
       stop();
-      cameraStatus.textContent = 'Camera scanning is unavailable. Close the camera and enter the number manually.';
+      cameraStatus.textContent = translate('Camera scanning is unavailable. Close the camera and enter the number manually.');
     }
   });
 }());

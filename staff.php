@@ -31,10 +31,10 @@ head($pages[$page]);
   <div class="staff-error-banner" id="staff-page-error" role="alert" hidden><span></span><button type="button" class="staff-button staff-secondary" id="staff-retry"><?= te('Retry') ?></button></div>
   <?php if ($page === 'dashboard'): ?>
     <section class="staff-stats" aria-label="Staff statistics">
-      <article><span><?= te('Total fines') ?></span><strong data-summary="total_fines"><?= $snapshot['summary']['total_fines'] ?></strong><small>All fine records, including voids</small></article>
+      <article><span><?= te('Total fines') ?></span><strong data-summary="total_fines"><?= $snapshot['summary']['total_fines'] ?></strong><small><?= te('All fine records, including voids') ?></small></article>
       <article><span><?= te('Unpaid fines') ?></span><strong data-summary="unpaid_fines"><?= $snapshot['summary']['unpaid_fines'] ?></strong><small><?= te('Awaiting payment') ?></small></article>
-      <article><span><?= te('Outstanding amount') ?></span><strong data-summary="outstanding_cents"><?= staff_money($snapshot['summary']['outstanding_cents']) ?></strong><small>Unpaid records only</small></article>
-      <article><span><?= te('Open maintenance') ?></span><strong data-summary="open_maintenance"><?= $snapshot['summary']['open_maintenance'] ?></strong><small>Open or in progress</small></article>
+      <article><span><?= te('Outstanding amount') ?></span><strong data-summary="outstanding_cents"><?= staff_money($snapshot['summary']['outstanding_cents']) ?></strong><small><?= te('Unpaid records only') ?></small></article>
+      <article><span><?= te('Open maintenance') ?></span><strong data-summary="open_maintenance"><?= $snapshot['summary']['open_maintenance'] ?></strong><small><?= te('Open or in progress') ?></small></article>
     </section>
     <section class="staff-card"><div class="staff-section-heading"><h2><?= te('Recent fine records') ?></h2><a href="staff.php?page=fines" class="staff-text-link"><?= te('Manage fines') ?></a></div><div id="staff-recent"></div></section>
   <?php elseif ($page === 'fines' || $page === 'maintenance'): ?>
@@ -46,10 +46,10 @@ head($pages[$page]);
     <section class="staff-card staff-lookup-card"><h2><?= te('Find a vehicle') ?></h2><form id="staff-lookup" method="get">
       <input type="hidden" name="page" value="vehicles"><label for="lookup-plate"><?= te('Vehicle plate') ?></label>
       <div class="staff-lookup-controls"><input id="lookup-plate" name="plate" maxlength="15" placeholder="<?= te('Enter vehicle plate') ?>" value="<?= e(is_string($_GET['plate'] ?? null) ? $_GET['plate'] : '') ?>" required><button class="staff-button"><?= te('Search vehicle') ?></button></div>
-      <p class="staff-help">Exact plate match; spaces, hyphens and letter case are ignored.</p></form></section>
-    <div id="staff-lookup-results" aria-live="polite"><p class="staff-empty">Enter a plate number to view related records.</p></div>
+      <p class="staff-help"><?= te('Exact plate match; spaces, hyphens and letter case are ignored.') ?></p></form></section>
+    <div id="staff-lookup-results" aria-live="polite"><p class="staff-empty"><?= te('Enter a plate number to view related records.') ?></p></div>
   <?php endif; ?>
-  <noscript><p class="staff-error-banner">Enable JavaScript to manage these records. No demo fines or maintenance records have been added.</p></noscript>
+  <noscript><p class="staff-error-banner"><?= te('Enable JavaScript to manage these records. No demo fines or maintenance records have been added.') ?></p></noscript>
 </div>
 <dialog class="staff-dialog" id="staff-dialog" aria-labelledby="staff-dialog-title">
   <div class="staff-dialog-header"><h2 id="staff-dialog-title"></h2><button type="button" class="staff-button staff-secondary" id="staff-dialog-close"><?= te('Close') ?></button></div>

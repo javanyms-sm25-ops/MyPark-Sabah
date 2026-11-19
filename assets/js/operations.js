@@ -119,7 +119,7 @@
       const values = this.kind === 'accounts' ? { role: Object.entries(data.roles), status: data.account_statuses.map(v => [v, title(v)]) } : { status: data.reservation_statuses.map(v => [v, title(v)]), location: [...new Map(data.reservations.map(r => [String(r.lot_id), r.lot])).entries()] };
       Object.entries(values).forEach(([key, options]) => {
         const control = this.filters[key], current = this.state[key];
-        const emptyOption = { status: 'All statuses', role: 'All roles', location: 'All locations' }[key];
+        const emptyOption = { status: translate('All statuses'), role: translate('All roles'), location: translate('All locations') }[key];
         control.replaceChildren(new Option(translate(emptyOption), ''));
         options.forEach(([v, t]) => control.add(new Option(key === 'role' ? translate(t) : t, v)));
         if (current && !options.some(([v]) => v === current)) control.add(new Option(current + ' (unavailable)', current)); control.value = current;
@@ -148,7 +148,7 @@
     render() {
       this.panel.dataset.density = this.density;
       const count = data[this.kind].length;
-      this.panel.querySelector('[data-total]').textContent = window.MyParkLocale?.text('{count} records', { count }) ?? count + ' records';
+      this.panel.querySelector('[data-total]').textContent = translate('{count} records', { count });
       this.renderTags();
       const visible = this.columns.filter(c => !this.hidden.has(c.key)), header = el('tr');
       visible.forEach(c => {
@@ -156,11 +156,11 @@
         if (c.key === 'actions') th.textContent = c.label;
         else {
           th.setAttribute('aria-sort', this.state.sort === c.key ? (this.state.dir === 'asc' ? 'ascending' : 'descending') : 'none');
-          const nextDirection = this.state.sort === c.key && this.state.dir === 'asc' ? 'descending' : 'ascending';
+          const nextDirection = this.state.sort === c.key && this.state.dir === 'asc' ? translate('descending') : translate('ascending');
           const sort = btn('', () => {
             this.state.dir = this.state.sort === c.key && this.state.dir === 'asc' ? 'desc' : 'asc'; this.state.sort = c.key; this.state.page = 1; this.render();
             this.thead.querySelector('[data-column="' + c.key + '"] button').focus();
-          }, 'ops-sort'); sort.setAttribute('aria-label', 'Sort by ' + c.label + ', ' + nextDirection); sort.append(el('span', 'ops-sort-label', c.label), icon()); th.append(sort);
+          }, 'ops-sort'); sort.setAttribute('aria-label', translate('Sort by {label}, {direction}', { label: c.label, direction: nextDirection })); sort.append(el('span', 'ops-sort-label', c.label), icon()); th.append(sort);
         } header.append(th);
       }); this.thead.replaceChildren(header);
       this.filtered = pipeline.filterSort(data[this.kind], this.kind, this.state);
@@ -171,15 +171,15 @@
           const td = el('td', c.number ? 'ops-number' : ''); td.dataset.column = c.key;
           if (c.key === 'actions') td.append(this.actions(record));
           else if (c.key === 'status') td.append(el('span', 'ops-badge ops-badge--' + record.status, title(record.status)));
-          else { const value = c.key === 'fee' ? money(record.fee) : c.key === 'hours' ? record.hours + ' h' : c.key === 'created_ts' ? record.created_at || '—' : record[c.key]; const text = el('span', 'ops-cell-text', value); text.title = String(value); td.append(text); }
+          else { const value = c.key === 'fee' ? money(record.fee) : c.key === 'hours' ? translate('{count} hours', { count: record.hours }) : c.key === 'created_ts' ? record.created_at || '—' : c.key === 'role_label' ? translate(record[c.key]) : record[c.key]; const text = el('span', 'ops-cell-text', value); text.title = String(value); td.append(text); }
           tr.append(td);
         }); body.append(tr);
       });
       if (!page.total) {
         const tr = el('tr'), td = el('td', 'ops-empty'); td.colSpan = visible.length;
         const emptyText = data[this.kind].length
-          ? (this.kind === 'reservations' ? 'No matching reservations' : 'No matching accounts')
-          : (this.kind === 'reservations' ? 'No reservations yet' : 'No accounts yet');
+          ? (this.kind === 'reservations' ? translate('No matching reservations') : translate('No matching accounts'))
+          : (this.kind === 'reservations' ? translate('No reservations yet') : translate('No accounts yet'));
         td.append(el('strong', '', translate(emptyText)));
         if (data[this.kind].length) td.append(btn(translate('Clear filters'), () => { this.clear(); this.search.focus(); })); tr.append(td); body.append(tr);
       } this.tbody.replaceChildren(body); this.counter.textContent = page.label; this.pager.replaceChildren();
@@ -227,8 +227,8 @@
       const params = new URLSearchParams({ table: this.kind }); ['q', 'role', 'status', 'location', 'from', 'to', 'sort', 'dir'].forEach(k => params.set(k, this.state[k]));
       try {
         const response = await fetch('api/export.php?' + params, { credentials: 'same-origin', cache: 'no-store' });
-        if (!response.ok) throw new Error((await response.text()).slice(0, 240) || 'Export failed.');
-        if (!response.headers.get('Content-Type')?.includes('text/csv')) throw new Error('Unable to export. Please sign in again.');
+        if (!response.ok) throw new Error((await response.text()).slice(0, 240) || translate('Export failed.'));
+        if (!response.headers.get('Content-Type')?.includes('text/csv')) throw new Error(translate('Unable to export. Please sign in again.'));
         const url = URL.createObjectURL(await response.blob()), link = el('a'); link.href = url; link.download = 'mypark-' + this.kind + '.csv'; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
         toast('Filtered ' + this.kind + ' exported.', 'success');
       } catch (error) { this.error(error.message, () => this.exportRows()); }
@@ -236,7 +236,7 @@
     }
   }
   function applySnapshot(next) {
-    if (!next || !Array.isArray(next.accounts) || !Array.isArray(next.reservations) || !next.summary || !Number.isInteger(next.revision)) throw new Error('The server returned incomplete table data. Existing records have been kept.');
+    if (!next || !Array.isArray(next.accounts) || !Array.isArray(next.reservations) || !next.summary || !Number.isInteger(next.revision)) throw new Error(translate('The server returned incomplete table data. Existing records have been kept.'));
     if (next.revision < data.revision) return;
     data = next; tables.forEach(t => { t.updateOptions(); t.render(); });
     document.querySelectorAll('[data-ops-stat]').forEach(n => { const key = n.dataset.opsStat; n.textContent = key === 'revenue' ? money(data.summary[key]) : data.summary[key]; });
@@ -244,9 +244,9 @@
   async function readResponse(response) {
     let result; try { result = await response.json(); } catch (error) {
       if (error.name === 'AbortError') throw error;
-      throw new Error('The server returned an unexpected response. Please refresh or sign in again.');
+      throw new Error(translate('The server returned an unexpected response. Please refresh or sign in again.'));
     }
-    if (!response.ok) throw new Error(result?.error || 'The request could not be completed.'); return result;
+    if (!response.ok) throw new Error(translate(result?.error || 'The request could not be completed.')); return result;
   }
   async function refresh(table) {
     refreshController?.abort(); const sequence = ++refreshSequence; refreshController = new AbortController();

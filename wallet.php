@@ -38,7 +38,7 @@ head('Wallet');
     <small><?= te('Available balance') ?></small>
     <b>RM <?= number_format($wallet['balance'], 2) ?></b>
     <?php if (me()['role'] !== 'staff'): ?>
-      <span>Use demo credit to <a href="compound.php"><?= te('pay compounds') ?></a>.</span>
+      <span><?= te('Use demo credit to') ?> <a href="compound.php"><?= te('pay compounds') ?></a>.</span>
     <?php endif; ?>
   </section>
 

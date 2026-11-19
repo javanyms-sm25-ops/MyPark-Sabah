@@ -46,7 +46,7 @@
   function updateHints() {
     const met = Array.from(fields.password.value).length >= 8;
     rule.classList.toggle('is-met', met);
-    const status = met ? ' — met' : ' — not met';
+    const status = met ? translate(' — met') : translate(' — not met');
     if (ruleStatus.textContent !== status) ruleStatus.textContent = status;
     const text = fields.confirm.value && fields.password.value === fields.confirm.value ? translate('Passwords match.') : '';
     if (match.textContent !== text) match.textContent = text;
@@ -68,7 +68,7 @@
     summary.hidden = count === 0;
     if (count) {
       event.preventDefault();
-      summary.textContent = 'Please check ' + count + (count === 1 ? ' highlighted field below.' : ' highlighted fields below.');
+      summary.textContent = translate('Please check {count} highlighted fields below.', { count });
       summary.focus();
     }
   });

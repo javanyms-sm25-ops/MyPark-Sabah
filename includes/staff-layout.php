@@ -41,7 +41,7 @@ function staff_head(string $title): void {
 function staff_foot(bool $showChatbot = true): void {
     ?>
       </main>
-      <p class="staff-storage-note">Private parking prototype. Compounds and digital receipts are saved in this browser across sign-outs.</p>
+      <p class="staff-storage-note"><?= te('Private parking prototype. Compounds and digital receipts are saved in this browser across sign-outs.') ?></p>
     </div>
     <div id="toast-stack" class="pe-toast-stack" role="region" aria-label="<?= te('Notifications') ?>"></div>
     <div id="toast-status" class="pe-toast-announcer" role="status" aria-live="polite" aria-atomic="true"></div>

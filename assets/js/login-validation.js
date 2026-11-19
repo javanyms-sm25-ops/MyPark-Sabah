@@ -121,11 +121,11 @@
           method: 'POST', body: payload, credentials: 'same-origin'
         });
       } catch (_) {
-        showRequestError('Unable to connect. Check your connection and try again.');
+        showRequestError(translate('Unable to connect. Check your connection and try again.'));
         return;
       }
       if (!response.ok) {
-        showRequestError('Sign in is temporarily unavailable. Please refresh the page and try again.');
+        showRequestError(translate('Sign in is temporarily unavailable. Please refresh the page and try again.'));
         return;
       }
       if (response.redirected) {
@@ -134,19 +134,19 @@
           window.location.assign(target.href);
           return;
         }
-        showRequestError('Unable to finish signing in. Please refresh the page and try again.');
+        showRequestError(translate('Unable to finish signing in. Please refresh the page and try again.'));
         return;
       }
       let html;
       try { html = await response.text(); }
       catch (_) {
-        showRequestError('The connection was interrupted. Please refresh the page before trying again.');
+        showRequestError(translate('The connection was interrupted. Please refresh the page before trying again.'));
         return;
       }
       const page = new DOMParser().parseFromString(html, 'text/html');
       const serverForm = page.getElementById('login-form');
       if (!serverForm) {
-        showRequestError('Unable to finish signing in. Please refresh the page and try again.');
+        showRequestError(translate('Unable to finish signing in. Please refresh the page and try again.'));
         return;
       }
       // Preserve server validation and lockout messages; never infer auth failure
@@ -170,9 +170,9 @@
         ? serverError.querySelector('[data-request-error]').textContent.trim() : '';
       if (message) showRequestError(message);
       else if (firstServerError) firstServerError.focus();
-      else showRequestError('Unable to finish signing in. Please refresh the page and try again.');
+      else showRequestError(translate('Unable to finish signing in. Please refresh the page and try again.'));
     } catch (_) {
-      showRequestError('Unable to finish signing in. Please refresh the page and try again.');
+      showRequestError(translate('Unable to finish signing in. Please refresh the page and try again.'));
     } finally {
       setSubmitting(false);
     }

@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 head('Support');
 ?>
 <h1><?= te('Parking support') ?></h1>
-<p class="muted">Prototype chat. Live agent connection can be enabled in the final backend.</p>
+<p class="muted"><?= te('Prototype chat. Live agent connection can be enabled in the final backend.') ?></p>
 <section class="card chat" id="chat">
   <?php foreach ($_SESSION['demo_chat'] as $message): ?>
     <p><b><?= e($message['by']) ?></b> <small><?= e($message['at']) ?></small><br><?= e($message['text']) ?></p>

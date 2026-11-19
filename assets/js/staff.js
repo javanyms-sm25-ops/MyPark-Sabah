@@ -48,7 +48,7 @@
   let data = JSON.parse(bootstrap.textContent);
   const page = document.getElementById('staff-app').dataset.page;
   const money = cents => 'RM ' + (Number(cents) / 100).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const dateFormat = new Intl.DateTimeFormat('en-MY', { timeZone: 'Asia/Kuala_Lumpur', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+  const dateFormat = new Intl.DateTimeFormat(document.documentElement.lang, { timeZone: 'Asia/Kuala_Lumpur', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
   const dateText = value => { const date = new Date(value); return Number.isNaN(date.getTime()) ? '—' : dateFormat.format(date); };
   const plateKey = value => value.toUpperCase().replace(/[^A-Z0-9]/g, '');
   const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
@@ -68,7 +68,7 @@
   });
   function openDialog(title, trigger) {
     origin = trigger || document.activeElement;
-    document.getElementById('staff-dialog-title').textContent = title;
+    document.getElementById('staff-dialog-title').textContent = translate(title);
     dialogBody.replaceChildren(); dialog.showModal(); closeDialog.focus();
   }
   function badge(status, kind = 'fine') {
@@ -83,7 +83,7 @@
     try { result = await response.json(); }
     catch (error) {
       if (error.name === 'AbortError') throw error;
-      throw new Error('Unexpected server response. Refresh the page or sign in again.');
+      throw new Error(translate('Unexpected server response. Refresh the page or sign in again.'));
     }
     if (!response.ok) {
       const error = new Error(result.error || 'Unable to complete this request.');
@@ -92,7 +92,7 @@
     return result;
   }
   function applyData(next) {
-    if (!next || !Array.isArray(next.fines) || !Array.isArray(next.maintenance) || !next.summary || !Number.isInteger(next.revision)) throw new Error('Incomplete response. Existing records have been kept.');
+    if (!next || !Array.isArray(next.fines) || !Array.isArray(next.maintenance) || !next.summary || !Number.isInteger(next.revision)) throw new Error(translate('Incomplete response. Existing records have been kept.'));
     if (next.revision < data.revision) return;
     data = next;
     if (table) table.render();
@@ -107,7 +107,7 @@
       const response = await fetch('api/staff.php?page=' + page, { credentials: 'same-origin', cache: 'no-store', signal: refreshController.signal });
       const result = await readResponse(response); if (current === sequence) applyData(result.data);
     } catch (error) {
-      if (current === sequence && error.name !== 'AbortError') showPageError('Refresh failed. ' + error.message);
+      if (current === sequence && error.name !== 'AbortError') showPageError(translate('Refresh failed. {message}', { message: translate(error.message) }));
     } finally { if (current === sequence) { refreshButton.disabled = false; requestStatus.hidden = true; } }
   }
   refreshButton.addEventListener('click', refresh); document.getElementById('staff-retry').addEventListener('click', refresh);
@@ -191,25 +191,27 @@
         return compare ? compare * state.direction : a.id - b.id;
       });
       const paged = window.MyParkTableData.paginate(rows, state.page, state.size); state.page = paged.page;
-      const empty = data[this.key].length ? 'No matching ' + (this.kind === 'fine' ? 'fine records.' : 'maintenance records.') : this.kind === 'fine' ? translate('No fine records yet.') : translate('No maintenance records yet.');
+      const empty = data[this.key].length
+        ? translate(this.kind === 'fine' ? 'No matching fine records.' : 'No matching maintenance records.')
+        : translate(this.kind === 'fine' ? 'No fine records yet.' : 'No maintenance records yet.');
       const rendered = createTable(paged.rows, this.columns, this.kind, empty);
       this.columns.forEach(([key, label]) => {
         if (key === 'actions') return;
         const th = rendered.querySelector('th[data-column="' + key + '"]');
         th.setAttribute('aria-sort', state.sort === key ? state.direction === 1 ? 'ascending' : 'descending' : 'none');
-        const nextDirection = state.sort === key && state.direction === 1 ? 'descending' : 'ascending';
+        const nextDirection = state.sort === key && state.direction === 1 ? translate('descending') : translate('ascending');
         const sort = button('', () => {
           state.direction = state.sort === key && state.direction === 1 ? -1 : 1; state.sort = key; state.page = 1; this.render();
           this.output.querySelector('th[data-column="' + key + '"] button').focus();
         }); sort.className = 'staff-sort';
-        sort.setAttribute('aria-label', 'Sort by ' + label + ', ' + nextDirection);
+        sort.setAttribute('aria-label', translate('Sort by {label}, {direction}', { label, direction: nextDirection }));
         const arrow = el('span', 'staff-sort-mark'); arrow.setAttribute('aria-hidden', 'true');
         // Fixed geometry keeps both arrows in place when the direction changes.
         arrow.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path class="staff-sort-up" d="m4 6 4-4 4 4"/><path class="staff-sort-down" d="m4 10 4 4 4-4"/></svg>';
         sort.append(el('span', 'staff-sort-label', label), arrow); th.replaceChildren(sort);
       });
       this.output.replaceChildren(rendered); this.count.textContent = paged.label;
-      document.getElementById('staff-record-count').textContent = data[this.key].length + ' records';
+      document.getElementById('staff-record-count').textContent = translate('{count} records', { count: data[this.key].length });
       this.pages.replaceChildren();
       if (paged.pages > 1) {
         const go = n => { state.page = n; this.render(); this.pages.querySelector('[aria-current="page"]')?.focus(); };
@@ -236,7 +238,7 @@
   function field(container, name, labelText, options = {}) {
     const group = el('div', 'staff-field'); const label = el('label', '', labelText); label.htmlFor = 'staff-field-' + name;
     const input = el(options.tag || 'input'); input.id = label.htmlFor; input.name = name;
-    if (options.tag === 'select') (options.options || []).forEach(([value, text]) => input.add(new Option(text, String(value))));
+    if (options.tag === 'select') (options.options || []).forEach(([value, text]) => input.add(new Option(name === 'lot_id' && value !== '' ? text : translate(text), String(value))));
     else if (!options.tag) input.type = options.type || 'text';
     input.required = options.required !== false;
     ['maxLength', 'min', 'max', 'step', 'placeholder'].forEach(key => { if (options[key] != null) input[key] = options[key]; });
@@ -261,37 +263,39 @@
   }
   function editRecord(kind, record, trigger) {
     if (kind === 'fine' && record && record.status !== 'unpaid') return;
-    openDialog(record ? 'Edit ' + record.code : kind === 'fine' ? 'New fine' : translate('New maintenance record'), trigger);
+    openDialog(record ? translate('Edit {code}', { code: record.code }) : translate(kind === 'fine' ? 'New Fine' : 'New maintenance record'), trigger);
     const { form, fields } = formBase(kind + (record ? '_update' : '_create'), record);
     if (kind === 'fine') {
       field(fields, 'plate', translate('Vehicle plate'), { value: record?.plate, maxLength: 15, placeholder: 'e.g. SAB 1234' });
-      field(fields, 'violation', 'Violation type', { value: record?.violation, maxLength: 100, placeholder: 'Describe the parking violation' });
-      field(fields, 'occurred_at', 'Date and time (Malaysia)', { type: 'datetime-local', value: record?.occurred_at || localNow(), max: localNow() });
+      field(fields, 'violation', 'Violation type', { value: record?.violation, maxLength: 100, placeholder: translate('Describe the parking violation') });
+      field(fields, 'occurred_at', translate('Date and time (Malaysia)'), { type: 'datetime-local', value: record?.occurred_at || localNow(), max: localNow() });
       field(fields, 'amount', translate('Amount (RM)'), { type: 'number', min: '0.01', max: '99999.99', step: '0.01', value: record ? (record.amount_cents / 100).toFixed(2) : '' });
-      field(fields, 'notes', 'Notes (optional)', { tag: 'textarea', maxLength: 2000, required: false, value: record?.notes });
-      if (record) field(fields, 'reason', 'Reason for correction', { tag: 'textarea', maxLength: 500 });
-      form.append(el('p', 'staff-help', 'Private parking prototype only. This creates an unpaid record; it is not a government-issued fine.'));
+      field(fields, 'notes', translate('Notes (optional)'), { tag: 'textarea', maxLength: 2000, required: false, value: record?.notes });
+      if (record) field(fields, 'reason', translate('Reason for correction'), { tag: 'textarea', maxLength: 500 });
+      form.append(el('p', 'staff-help', translate('Private parking prototype only. This creates an unpaid record; it is not a government-issued fine.')));
     } else {
-      field(fields, 'title', 'Issue title', { value: record?.title, maxLength: 120 });
-      field(fields, 'lot_id', 'Parking location', { tag: 'select', options: [['', 'Select a location'], ...data.locations.map(l => [l.id, l.name])], value: record?.lot_id });
+      field(fields, 'title', translate('Issue title'), { value: record?.title, maxLength: 120 });
+      field(fields, 'lot_id', translate('Parking location'), { tag: 'select', options: [['', 'Select a location'], ...data.locations.map(l => [l.id, l.name])], value: record?.lot_id });
       field(fields, 'description', translate('Description'), { tag: 'textarea', maxLength: 2000, value: record?.description });
       field(fields, 'status', translate('Status'), { tag: 'select', options: Object.entries(data.maintenance_statuses), value: record?.status || 'open' });
     }
-    formFooter(form, record ? 'Save changes' : kind === 'fine' ? 'Create fine record' : 'Create record');
+    formFooter(form, record ? translate('Save changes') : kind === 'fine' ? translate('Create fine record') : translate('Create record'));
     fields.querySelector('input:not([type="hidden"]),select,textarea')?.focus();
   }
   function confirmRecord(action, record, trigger) {
     const payment = action === 'fine_paid', voiding = action === 'fine_void';
-    openDialog((payment ? 'Record received payment · ' : voiding ? 'Void fine · ' : 'Remove maintenance · ') + record.code, trigger);
+    openDialog(translate(payment ? 'Record received payment · {code}' : voiding ? 'Void fine · {code}' : 'Remove maintenance · {code}', { code: record.code }), trigger);
     const { form, fields } = formBase(action, record);
-    fields.append(el('p', 'staff-confirm-text', payment ? `Record a received payment of ${money(record.amount_cents)} for ${record.plate}? No payment will be collected by this website.`
-      : voiding ? `Void ${record.code} for ${record.plate}? The original amount, payment evidence and audit history will be retained. Voiding does not process a refund.`
-      : `Remove ${record.code}: ${record.title}? It will leave the active list; its audit history will be retained.`));
+    const confirmation = payment
+      ? 'Record a received payment of {amount} for {plate}? No payment will be collected by this website.'
+      : voiding ? 'Void {code} for {plate}? The original amount, payment evidence and audit history will be retained. Voiding does not process a refund.'
+      : 'Remove {code}: {title}? It will leave the active list; its audit history will be retained.';
+    fields.append(el('p', 'staff-confirm-text', translate(confirmation, { amount: money(record.amount_cents), plate: record.plate, code: record.code, title: record.title })));
     if (payment) {
       field(fields, 'payment_reference', translate('Payment reference'), { maxLength: 120 });
-      const input = field(fields, 'confirmed', 'I confirm this payment has already been received.', { type: 'checkbox', value: '1' }); input.parentElement.classList.add('staff-checkbox');
-    } else field(fields, 'reason', voiding ? 'Reason for voiding' : 'Reason for removal', { tag: 'textarea', maxLength: 500 });
-    formFooter(form, payment ? 'Confirm received payment' : voiding ? 'Void fine' : 'Remove record');
+      const input = field(fields, 'confirmed', translate('I confirm this payment has already been received.'), { type: 'checkbox', value: '1' }); input.parentElement.classList.add('staff-checkbox');
+    } else field(fields, 'reason', voiding ? translate('Reason for voiding') : translate('Reason for removal'), { tag: 'textarea', maxLength: 500 });
+    formFooter(form, payment ? translate('Confirm received payment') : voiding ? translate('Void fine') : translate('Remove record'));
   }
   async function submitForm(event, form) {
     event.preventDefault(); if (submitting) return;
@@ -309,7 +313,7 @@
       const result = await readResponse(response); applyData(result.data); dialog.close(); pageError.hidden = true;
       window.MyParkToast?.show(result.message, 'success');
     } catch (error) {
-      message.textContent = error.fields ? error.message : 'The update could not be confirmed. Refresh records before retrying. ' + error.message; message.hidden = false;
+      message.textContent = error.fields ? translate(error.message) : translate('The update could not be confirmed. Refresh records before retrying. {message}', { message: translate(error.message) }); message.hidden = false;
       let first;
       Object.entries(error.fields || {}).forEach(([name, text]) => { const input = form.elements.namedItem(name); if (input) { setFieldError(input, text); first ||= input; } });
       // Restore controls before moving focus to a server-rejected field.
@@ -321,11 +325,11 @@
     }
   }
   function viewRecord(record, kind, trigger) {
-    openDialog(record.code + ' · Details', trigger);
+    openDialog(translate('{code} · Details', { code: record.code }), trigger);
     const details = el('dl', 'staff-detail-grid');
-    const fields = kind === 'fine' ? [['plate', translate('Vehicle plate')], ['violation', 'Violation type'], ['occurred_ts', translate('Date')], ['amount_cents', translate('Amount')], ['status', translate('Status')], ['notes', translate('Notes')], ['payment_reference', translate('Payment reference')], ['void_reason', 'Void reason']]
+    const fields = kind === 'fine' ? [['plate', translate('Vehicle plate')], ['violation', 'Violation type'], ['occurred_ts', translate('Date')], ['amount_cents', translate('Amount')], ['status', translate('Status')], ['notes', translate('Notes')], ['payment_reference', translate('Payment reference')], ['void_reason', translate('Void reason')]]
       : [['title', translate('Issue')], ['location', translate('Location')], ['description', translate('Description')], ['status', translate('Status')]];
-    fields.push(['created_by_name', 'Created by'], ['created_at', translate('Created')], ['updated_at', translate('Updated')]);
+    fields.push(['created_by_name', translate('Created by')], ['created_at', translate('Created')], ['updated_at', translate('Updated')]);
     fields.forEach(([key, label]) => details.append(el('dt', '', label), el('dd', '', displayValue(record, key, kind) || '—')));
     if (kind === 'fine' && record.paid_at) details.append(el('dt', '', 'Paid amount retained'), el('dd', '', money(record.paid_amount_cents)), el('dt', '', 'Payment recorded'), el('dd', '', dateText(record.paid_at)));
     dialogBody.append(details, el('h3', '', 'Audit history'));
@@ -353,11 +357,11 @@
   function renderLookup() {
     const host = document.getElementById('staff-lookup-results'); host.replaceChildren();
     const fines = data.fines.filter(r => r.plate_key === lookupPlate), bookings = data.bookings.filter(r => r.plate_key === lookupPlate);
-    host.append(el('p', 'staff-lookup-summary', lookupPlate + ' · ' + fines.length + ' fine records · ' + bookings.length + ' parking records'));
+    host.append(el('p', 'staff-lookup-summary', translate('{plate} · {fines} fine records · {bookings} parking records', { plate: lookupPlate, fines: fines.length, bookings: bookings.length })));
     const fineCard = el('section', 'staff-card'); fineCard.append(el('h2', '', 'Related fines'), createTable(fines, fineColumns, 'fine', 'No fine records found for this vehicle.')); host.append(fineCard);
     const parkingCard = el('section', 'staff-card'); parkingCard.append(el('h2', '', 'Parking records'));
     const rows = bookings.map(r => ({ ...r, code: '#' + r.id, date: r.created_at }));
-    const scroll = createTable(rows, [['code', translate('Booking ID')], ['plate', 'Vehicle Plate'], ['location', translate('Location')], ['hours', translate('Hours'), true], ['date', translate('Created')]], 'maintenance', 'No parking records found for this vehicle.'); parkingCard.append(scroll); host.append(parkingCard);
+    const scroll = createTable(rows, [['code', translate('Booking ID')], ['plate', 'Vehicle Plate'], ['location', translate('Location')], ['hours', translate('Hours'), true], ['date', translate('Created')]], 'maintenance', translate('No parking records found for this vehicle.')); parkingCard.append(scroll); host.append(parkingCard);
   }
   if (page === 'dashboard') renderDashboard();
   if (page === 'fines' || page === 'maintenance') {
@@ -369,7 +373,7 @@
     const error = el('p', 'staff-field-error'); error.id = 'lookup-error'; error.hidden = true; form.append(error); input.setAttribute('aria-describedby', 'lookup-error');
     const lookup = () => {
       const value = input.value.trim();
-      if (!/^[A-Za-z0-9][A-Za-z0-9 -]{1,14}$/.test(value)) { error.textContent = 'Enter a valid vehicle plate.'; error.hidden = false; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
+      if (!/^[A-Za-z0-9][A-Za-z0-9 -]{1,14}$/.test(value)) { error.textContent = translate('Enter a valid vehicle plate.'); error.hidden = false; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
       error.hidden = true; input.setAttribute('aria-invalid', 'false'); lookupPlate = plateKey(value); renderLookup();
     };
     form.addEventListener('submit', event => { event.preventDefault(); lookup(); }); if (input.value.trim()) lookup();

@@ -168,10 +168,10 @@ head('Sabah Parking');
 <section class="lot-grid">
   <?php foreach ($lots as $lot): ?>
     <article class="card lot-card" data-city="<?= e($lot['city']) ?>" data-name="<?= e(strtolower($lot['name'] . ' ' . $lot['city'])) ?>" data-rate="<?= $lot['rate'] ?>">
-      <div class="lot-cover">📍 <span>Sabah, Malaysia</span><button type="button" class="heart" data-wish="<?= $lot['id'] ?>">♡</button></div>
+      <div class="lot-cover">📍 <span><?= te('Sabah, Malaysia') ?></span><button type="button" class="heart" data-wish="<?= $lot['id'] ?>">♡</button></div>
       <h3><?= e($lot['name']) ?></h3>
       <p><?= e($lot['address']) ?> · <?= e($lot['city']) ?></p>
-      <p class="rate">RM <?= number_format($lot['rate'], 2) ?><small> / hour</small></p>
+      <p class="rate">RM <?= number_format($lot['rate'], 2) ?><small> <?= te('/ hour') ?></small></p>
       <?php $full = ($occupiedByLot[$lot['id']] ?? 0) >= $lot['capacity']; ?>
       <p><?= $lot['capacity'] ?> spaces · <span class="tag <?= $full ? 'cancelled' : 'available' ?>"><?= te($full ? 'Full' : 'Available') ?></span></p>
       <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $lot['lat'] ?>,<?= $lot['lng'] ?>" target="_blank" rel="noopener"><?= te('View map') ?></a>
