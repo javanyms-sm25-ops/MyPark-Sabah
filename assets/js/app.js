@@ -324,25 +324,39 @@
     });
   });
 
-  // Wallet top-up amount shortcuts
   const topupAmount = document.getElementById('topupAmount');
-  document.querySelectorAll('[data-topup]').forEach(function (button) {
-    button.addEventListener('click', function () {
-      if (!topupAmount) return;
-      topupAmount.value = button.dataset.topup;
-      topupAmount.focus();
-      document.querySelectorAll('[data-topup]').forEach(function (choice) {
-        choice.classList.toggle('is-selected', choice === button);
-      });
-    });
-  });
-
   if (topupAmount) {
-    topupAmount.addEventListener('input', function () {
-      document.querySelectorAll('[data-topup]').forEach(function (choice) {
-        choice.classList.toggle('is-selected', choice.dataset.topup === topupAmount.value);
+    const topupForm = topupAmount.form;
+    const feedback = document.getElementById('topupAmountFeedback');
+    const presets = topupForm.querySelectorAll('[data-topup]');
+
+    function validateTopupAmount() {
+      const amount = topupAmount.value;
+      const valid = topupAmount.validity.valid && /^[1-9][0-9]{0,2}(?:\.[0-9]{1,2})?$/.test(amount);
+      const message = valid ? '' : feedback.dataset.message;
+      if (feedback.textContent !== message) feedback.textContent = message;
+      if (valid) topupAmount.removeAttribute('aria-invalid');
+      else topupAmount.setAttribute('aria-invalid', 'true');
+      presets.forEach(function (preset) {
+        preset.classList.toggle('is-selected', valid && Number(preset.dataset.topup) === Number(amount));
+      });
+      return valid;
+    }
+
+    presets.forEach(function (preset) {
+      preset.addEventListener('click', function () {
+        topupAmount.value = preset.dataset.topup;
+        validateTopupAmount();
+        topupAmount.focus();
       });
     });
+    topupAmount.addEventListener('input', validateTopupAmount);
+    topupForm.addEventListener('submit', function (event) {
+      if (validateTopupAmount()) return;
+      event.preventDefault();
+      topupAmount.focus();
+    });
+    topupForm.noValidate = true;
   }
 
   // Profile image preview and in-browser rotation preview

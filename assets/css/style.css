@@ -1581,6 +1581,19 @@ main > table {
   margin-top: 0;
 }
 
+.wallet-topup-amount {
+  margin: 10px 0;
+}
+
+.wallet-topup-amount label,
+.wallet-topup-amount .field-feedback:empty {
+  margin: 0;
+}
+
+.wallet-topup-amount input[aria-invalid="true"] {
+  border-color: var(--red);
+}
+
 .wallet-layout {
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr);

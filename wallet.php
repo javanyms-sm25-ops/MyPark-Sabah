@@ -4,6 +4,10 @@ require_login();
 
 $wallet =& demo_wallet();
 $transactions = array_reverse($wallet['transactions']);
+$userId = me()['id'];
+$invalidAmount = $_SESSION['wallet_topup_invalid_amount'][$userId] ?? null;
+unset($_SESSION['wallet_topup_invalid_amount'][$userId]);
+$amountError = te('Enter an amount from RM 1.00 to RM 500.00, with up to two decimal places.');
 head('Wallet');
 ?>
 
@@ -29,7 +33,14 @@ head('Wallet');
           <button type="button" class="topup-choice" data-topup="<?= $amount ?>">RM <?= $amount ?></button>
         <?php endforeach; ?>
       </div>
-      <label><?= te('Custom amount (RM)') ?><input id="topupAmount" type="number" name="amount" min="1" max="500" step="0.01" placeholder="1.00" required></label>
+      <div class="wallet-topup-amount">
+        <label for="topupAmount"><?= te('Custom amount (RM)') ?></label>
+        <input id="topupAmount" type="number" name="amount" min="1" max="500" step="0.01" placeholder="1.00"
+          value="<?= e($invalidAmount ?? '') ?>" aria-describedby="topupAmountFeedback"
+          <?= $invalidAmount !== null ? 'aria-invalid="true"' : '' ?> required>
+        <p class="field-feedback" id="topupAmountFeedback" aria-live="polite" aria-atomic="true"
+          data-message="<?= $amountError ?>"><?= $invalidAmount !== null ? $amountError : '' ?></p>
+      </div>
       <button><?= te('Top up now') ?></button>
     </form>
   </section>

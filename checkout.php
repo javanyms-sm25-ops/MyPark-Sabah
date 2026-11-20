@@ -4,22 +4,22 @@ require __DIR__ . '/includes/paypal-checkout.php';
 require_login();
 header('Cache-Control: private, no-store');
 
-$error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
-    $cents = paypal_amount_cents($_POST['amount'] ?? null);
+    $amount = $_POST['amount'] ?? '';
+    $cents = paypal_amount_cents($amount);
     if ($cents === null) {
-        unset($_SESSION['paypal_checkout']);
-        $error = 'Enter an amount from RM 1.00 to RM 500.00, with up to two decimal places.';
-    } else {
-        $_SESSION['paypal_checkout'] = [
-            'user_id' => me()['id'],
-            'cents' => $cents,
-            'nonce' => bin2hex(random_bytes(16)),
-        ];
-        header('Location: checkout.php', true, 303);
+        $_SESSION['wallet_topup_invalid_amount'][me()['id']] = substr($amount, 0, 32);
+        header('Location: wallet.php#topupAmount', true, 303);
         exit;
     }
+    $_SESSION['paypal_checkout'] = [
+        'user_id' => me()['id'],
+        'cents' => $cents,
+        'nonce' => bin2hex(random_bytes(16)),
+    ];
+    header('Location: checkout.php', true, 303);
+    exit;
 }
 
 $checkout = $_SESSION['paypal_checkout'] ?? null;
@@ -34,7 +34,6 @@ head('Checkout');
   <div class="checkout-card">
     <p class="eyebrow">MY PARK SABAH · SANDBOX CHECKOUT</p>
     <h1>Top up wallet</h1>
-    <?php if ($error): ?><p class="checkout-error" role="alert"><?= e($error) ?></p><?php endif; ?>
     <?php if ($checkout): ?>
       <div class="checkout-summary">
         <span>Amount to pay</span>
