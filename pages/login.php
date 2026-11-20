@@ -94,7 +94,7 @@ head('Login');
 </form>
 
 <?php if ($recaptchaSiteKey !== ''): ?>
-<script src="https://www.google.com/recaptcha/api.js?render=<?= rawurlencode($recaptchaSiteKey) ?>" async></script>
+<script id="login-recaptcha-script" src="https://www.google.com/recaptcha/api.js?render=<?= rawurlencode($recaptchaSiteKey) ?>" async></script>
 <?php endif; ?>
 <script src="assets/js/login-validation.js" defer></script>
 <?php foot(showChatbot: false); ?>

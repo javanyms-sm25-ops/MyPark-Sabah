@@ -21,20 +21,35 @@
     const siteKey = form.dataset.recaptchaSiteKey;
     if (!siteKey) throw new Error('Missing verification configuration');
 
+    const script = document.getElementById('login-recaptcha-script');
     let timeout;
+    let onLoad;
+    let onError;
     try {
       return await Promise.race([
         new Promise((resolve, reject) => {
-          const captcha = window.grecaptcha;
-          if (!captcha || typeof captcha.ready !== 'function') {
-            reject(new Error('Verification script not ready'));
-            return;
+          onLoad = () => {
+            const captcha = window.grecaptcha;
+            if (!captcha || typeof captcha.ready !== 'function') {
+              reject(new Error('Verification script not ready'));
+              return;
+            }
+            captcha.ready(() => {
+              Promise.resolve()
+                .then(() => captcha.execute(siteKey, { action: 'login' }))
+                .then(resolve, reject);
+            });
+          };
+          onError = () => reject(new Error('Verification script failed to load'));
+          if (window.grecaptcha && typeof window.grecaptcha.ready === 'function') {
+            onLoad();
+          } else if (script) {
+            // The async Google script can finish after the member selects Sign in.
+            script.addEventListener('load', onLoad, { once: true });
+            script.addEventListener('error', onError, { once: true });
+          } else {
+            reject(new Error('Missing verification script'));
           }
-          captcha.ready(() => {
-            Promise.resolve()
-              .then(() => captcha.execute(siteKey, { action: 'login' }))
-              .then(resolve, reject);
-          });
         }),
         new Promise((_, reject) => {
           timeout = window.setTimeout(() => reject(new Error('Verification timed out')), 10000);
@@ -42,6 +57,8 @@
       ]);
     } finally {
       window.clearTimeout(timeout);
+      script?.removeEventListener('load', onLoad);
+      script?.removeEventListener('error', onError);
     }
   }
 
