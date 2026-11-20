@@ -1821,6 +1821,105 @@ main > table {
   margin-top: 14px;
 }
 
+/* Saved vehicle choice on the member Parking page. */
+.selected-vehicle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 1fr);
+  gap: 0 28px;
+  align-items: center;
+  scroll-margin-top: 7rem;
+}
+
+.selected-vehicle__identity {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.selected-vehicle h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--muted-text);
+}
+
+.selected-vehicle__plate {
+  display: inline-block;
+  padding: 6px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--light-blue);
+  color: var(--navy);
+  font-size: clamp(1.35rem, 3vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  overflow-wrap: anywhere;
+}
+
+.selected-vehicle__controls {
+  min-width: 0;
+}
+
+.selected-vehicle__controls form {
+  margin: 0 0 12px;
+}
+
+.selected-vehicle__picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.selected-vehicle select {
+  flex: 1 1 180px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+}
+
+.selected-vehicle .parking-actions > :is(a, button) {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+}
+
+.selected-vehicle__feedback {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+}
+
+.selected-vehicle__feedback:empty {
+  margin: 0;
+}
+
+.selected-vehicle [hidden] {
+  display: none;
+}
+
+.selected-vehicle :is(a, select, button):focus-visible {
+  outline: 3px solid var(--navy);
+  outline-offset: 3px;
+}
+
+.selected-vehicle[aria-busy="true"] select {
+  cursor: progress;
+}
+
+@media (max-width: 680px) {
+  .selected-vehicle {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .selected-vehicle__feedback {
+    margin: 0;
+  }
+}
+
 /* Native radio controls keep duration selection keyboard accessible. */
 .duration-picker {
   min-width: 0;

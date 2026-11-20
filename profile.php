@@ -4,7 +4,8 @@ require_login();
 require __DIR__ . '/includes/parking-booking.php';
 require_once __DIR__ . '/includes/oku-verification.php';
 
-$bookingContext = ($_GET['from'] ?? '') === 'booking' ? ['from' => 'booking'] + parking_resume_fields($_GET) : [];
+$fromParking = ($_GET['from'] ?? '') === 'parking';
+$bookingContext = ($_GET['from'] ?? '') === 'booking' ? ['from' => 'booking'] + parking_resume_fields($_GET) : ($fromParking ? ['from' => 'parking'] : []);
 $vehiclesPage = 'profile.php' . ($bookingContext ? '?' . http_build_query($bookingContext) : '');
 $editor = is_string($_GET['vehicle_edit'] ?? null) ? $_GET['vehicle_edit'] : '';
 $vehicleError = '';
@@ -32,10 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['oku_action'])) {
     }
     try {
         $updated = change_saved_vehicle(me()['id'], $_POST);
+        if ($fromParking && $_POST['vehicle_action'] === 'add') {
+            change_saved_vehicle(me()['id'], ['vehicle_action' => 'select', 'vehicle_id' => $updated['id']]);
+            flash($updated['message']);
+            header('Location: dashboard.php#selected-vehicle', true, 303);
+            exit;
+        }
         flash($updated['message']);
         header('Location: ' . $vehiclesPage . '#my-vehicles', true, 303);
         exit;
-    } catch (InvalidArgumentException $error) {
+    } catch (InvalidArgumentException | RuntimeException $error) {
         $vehicleError = $error->getMessage();
         $vehicleFormInput = ['plate' => $_POST['plate'] ?? '', 'name' => $_POST['vehicle_name'] ?? ''];
         $editor = match ($_POST['vehicle_action']) {
@@ -43,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['oku_action'])) {
             'edit' => $_POST['vehicle_id'] ?? '',
             default => '',
         };
-        http_response_code(422);
+        http_response_code($error->getCode() ?: 422);
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
@@ -88,7 +95,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['oku_action'])) {
     header('Location: profile.php');
     exit;
 }
-if (me()['role'] === 'user') header('Cache-Control: private, no-store');
+$vehicles = [];
+$defaultVehicle = null;
+if (me()['role'] === 'user') {
+    header('Cache-Control: private, no-store');
+    try {
+        $vehicleState = saved_vehicle_state(me()['id']);
+        $vehicles = $vehicleState['vehicles'];
+        $defaultVehicle = $vehicleState['default_id'];
+    } catch (RuntimeException $error) {
+        $vehicleError = $error->getMessage();
+        http_response_code(503);
+    }
+}
 head('Profile');
 ?>
 <h1><?= te('My profile') ?></h1>
@@ -105,8 +124,6 @@ head('Profile');
 <?php if (me()['role'] === 'user'): ?>
   <?php require __DIR__ . '/includes/oku-profile.php'; ?>
   <?php
-    $vehicles = saved_vehicles(me()['id']);
-    $defaultVehicle = default_vehicle_id(me()['id']);
     $editVehicle = $vehicles[$editor] ?? null;
     $editing = $editor === 'new' || $editVehicle !== null;
     $initialVehicle = $vehicleFormInput ?? $editVehicle ?? ['plate' => '', 'name' => ''];
@@ -118,7 +135,7 @@ head('Profile');
       <a class="btn" href="<?= e('profile.php?' . http_build_query($bookingContext + ['vehicle_edit' => 'new']) . '#vehicle-editor') ?>"><?= te('Add vehicle') ?></a>
     </div>
     <?php if ($bookingContext): ?>
-      <p><a class="vehicle-secondary-link" href="<?= e('parking-details.php?' . http_build_query(parking_resume_fields($bookingContext))) ?>"><?= te('Back to parking') ?></a></p>
+      <p><a class="vehicle-secondary-link" href="<?= e($fromParking ? 'dashboard.php#selected-vehicle' : 'parking-details.php?' . http_build_query(parking_resume_fields($bookingContext))) ?>"><?= te('Back to parking') ?></a></p>
     <?php endif; ?>
     <?php if ($vehicleError): ?><p class="booking-error" role="alert"><?= te($vehicleError) ?></p><?php endif; ?>
     <?php if ($editing): ?>
@@ -128,7 +145,7 @@ head('Profile');
         <input type="hidden" name="vehicle_action" value="<?= $editVehicle === null ? 'add' : 'edit' ?>">
         <?php if ($editVehicle !== null): ?><input type="hidden" name="vehicle_id" value="<?= e($editor) ?>"><?php endif; ?>
         <label for="profile-vehicle-plate"><?= te('Vehicle plate') ?></label>
-        <input id="profile-vehicle-plate" name="plate" value="<?= e($initialVehicle['plate']) ?>" placeholder="SAB 1234" maxlength="10" required>
+        <input id="profile-vehicle-plate" name="plate" value="<?= e($initialVehicle['plate']) ?>" placeholder="SAB 1234" maxlength="20" autocapitalize="characters" required>
         <label for="profile-vehicle-name"><?= te('Vehicle name (optional)') ?></label>
         <input id="profile-vehicle-name" name="vehicle_name" value="<?= e($initialVehicle['name']) ?>" maxlength="40">
         <div class="parking-actions">
@@ -149,14 +166,14 @@ head('Profile');
               <?php if ($vehicle['name'] !== ''): ?><div class="muted"><?= e($vehicle['name']) ?></div><?php endif; ?>
             </div>
             <div class="parking-actions">
-              <a class="vehicle-secondary-link" href="<?= e('profile.php?' . http_build_query($bookingContext + ['vehicle_edit' => $vehicleId]) . '#vehicle-editor') ?>" aria-label="Edit <?= e($vehicle['plate']) ?>"><?= te('Edit') ?></a>
+              <a class="vehicle-secondary-link" href="<?= e('profile.php?' . http_build_query($bookingContext + ['vehicle_edit' => $vehicleId]) . '#vehicle-editor') ?>" aria-label="<?= te('Edit {plate}', ['plate' => $vehicle['plate']]) ?>"><?= te('Edit') ?></a>
               <form method="post" action="<?= e($vehiclesPage . '#my-vehicles') ?>" class="parking-actions">
                 <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
                 <input type="hidden" name="vehicle_id" value="<?= e($vehicleId) ?>">
                 <?php if (!$isDefault): ?>
-                  <button class="ghost" name="vehicle_action" value="default" aria-label="Set <?= e($vehicle['plate']) ?> as default"><?= te('Set as default') ?></button>
+                  <button class="ghost" name="vehicle_action" value="default" aria-label="<?= te('Set {plate} as default', ['plate' => $vehicle['plate']]) ?>"><?= te('Set as default') ?></button>
                 <?php endif; ?>
-                <button class="danger" name="vehicle_action" value="delete" aria-label="Remove <?= e($vehicle['plate']) ?>" data-confirm="Remove <?= e($vehicle['plate']) ?> from your saved vehicles?"><?= te('Remove') ?></button>
+                <button class="danger" name="vehicle_action" value="delete" aria-label="<?= te('Remove {plate}', ['plate' => $vehicle['plate']]) ?>" data-confirm="<?= te('Remove {plate} from your saved vehicles?', ['plate' => $vehicle['plate']]) ?>"><?= te('Remove') ?></button>
               </form>
             </div>
           </li>
@@ -165,4 +182,5 @@ head('Profile');
     <?php endif; ?>
   </section>
 <?php endif; ?>
+<script src="assets/js/vehicles.js" defer></script>
 <?php foot(showChatbot: me()['role'] !== 'user'); ?>

@@ -1,6 +1,7 @@
 MyPark Sabah — PHP Session Prototype
 
-Requires PHP 8.1+ (tested with PHP 8.5). No MySQL or SQLite connection is used.
+Requires PHP 8.1+ with PDO SQLite enabled. Saved vehicles use a private SQLite
+database. The other prototype records continue to use PHP sessions.
 From this folder run: php -S localhost:8000 router.php
 Open http://localhost:8000
 
@@ -39,10 +40,12 @@ return [
 MyPark stores demo data in a private app folder under PHP's session.save_path
 (or the system temporary folder if that setting is empty). PHP must be able to
 write there. Keep this location outside the web root.
-Accounts, saved vehicles, parking locations, OKU verifications, issued compounds
+Accounts, parking locations, OKU verifications, issued compounds
 and digital receipts survive sign-out in the same browser. Sign-out clears
 booking history, wallet activity, maintenance and customer support reviews.
 The browser's demo session expires after roughly a month of inactivity.
+Saved vehicles and their default/selected preferences persist in SQLite and
+survive sign-out using the same browser-specific demo account identity.
 Do not use this prototype for real payments or official enforcement.
 
 To try compound payments, create a fine in Staff → Fine Management, sign out,
@@ -102,7 +105,7 @@ session. Keep PHP's file session storage outside the web root, enable uploads
 and Fileinfo, and set PHP upload/post limits to accommodate the 2 MB proof.
 Keep request-body logging disabled for uploads and verification requests.
 The existing browser-specific session model does not share reviews across
-separate browsers. No database migration is needed for this prototype.
+separate browsers. OKU verification uses its existing session records.
 
 Use Operations > Set OKU bay allocation to reserve bays within a location's
 existing total. New demo sessions start with one OKU bay at Kota Kinabalu
@@ -111,3 +114,60 @@ without a bay type count as regular. Verified members can choose the OKU type
 at booking or switch an active stay from History. A switch is for remaining
 time at the same location and retains the current fee. Booking review,
 confirmation, history changes and the map use the same per-type counts.
+
+Saved vehicle selector
+On the member Parking page, the Selected vehicle card sits between the statistics
+and location search. Add vehicle opens My vehicles in Profile and returns to
+Parking with the new vehicle selected. Manage vehicles opens the existing list.
+Choose another vehicle in the dropdown to save it immediately. The Use vehicle
+button provides the same action when JavaScript is disabled.
+
+The first vehicle becomes the default. The last valid selection is restored on
+future visits, with the default as fallback. Changing the default keeps a valid
+current selection. Removing a selected vehicle falls back to a remaining default.
+Plates use the existing member booking format (one to three letters, one to four
+digits, optional final letter). Case and whitespace are normalized consistently.
+A database unique constraint prevents duplicate plates within one member account.
+
+Setup and migration run automatically on the first vehicle request. The app
+creates member_vehicles and member_vehicle_preferences in vehicles.sqlite3 under
+the private application session directory returned by session_save_path() after
+bootstrap. This directory is outside the web root. PHP needs read/write access
+there and the pdo_sqlite extension in the PHP installation serving the site.
+Existing session vehicles, including old plain plate strings, are imported once
+per member with their IDs and default preserved. Normalized duplicate legacy
+plates merge into the first saved record. Booking-time plate snapshots stay intact.
+
+Ownership combines the current member ID with a random account scope retained
+across sign-out and session-ID rotation. This follows the prototype's existing
+browser-specific accounts. Keep the demo browser cookie when demonstrating saved
+accounts. Account storage and OKU approval retain their existing session lifecycle.
+
+The booking page starts with the selected saved vehicle. Add vehicle is also
+available there. Edit details in the review lets a member change the vehicle and
+review again. Both review and confirmation load the member's vehicle from SQLite,
+check the plate's active stays, capacity and the member's current OKU approval.
+Members must save a valid vehicle before review. Admin manual parking follows its
+existing access rules. The app supports immediate stays of 1-24 hours.
+
+Starting parking copies the saved vehicle ID and current plate into the booking.
+History, e-tickets and receipts read that booking-time plate. Changing the
+dashboard selection affects later bookings. While a vehicle has an active stay,
+its plate cannot be edited and it cannot be removed. Its nickname can be edited.
+End the stay before changing its plate or removing it. Legacy active stays without
+vehicle IDs are matched by their normalized plate. Bookings keep the prototype's
+existing confirmation and payment behavior, including its fee review and e-ticket.
+
+Walkthrough files
+includes/vehicles.php contains SQLite setup, migration, preferences and ownership.
+includes/vehicle-selector.php and assets/js/vehicles.js render and save selection.
+dashboard.php places the card. profile.php manages saved vehicle details.
+includes/parking-booking.php validates bookings and stores the plate snapshot.
+parking-details.php and includes/booking-panel.php handle review and confirmation.
+api/vehicles.php handles authenticated member vehicle requests with CSRF checks.
+
+Verification used isolated fictional accounts and a disposable SQLite/session
+directory. Checks covered multiple vehicles, default/selection fallback, sign-out,
+duplicate normalization, cross-member API requests, forged booking IDs, CSRF,
+review replay, stale/deleted selections, active-stay edit/removal restrictions,
+historical plates, legacy migration and OKU review/confirmation eligibility.

@@ -9,6 +9,7 @@ if (me()['role'] === 'superadmin') {
 
 $userId = me()['id'];
 require_once __DIR__ . '/includes/parking-booking.php';
+$vehicleSelectionError = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -17,13 +18,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         return;
     }
     check_csrf();
-    if ($action !== 'cancel') {
-        http_response_code(400);
+    if ($action === 'select_vehicle' && me()['role'] === 'user') {
+        try {
+            $updated = change_saved_vehicle($userId, ['vehicle_action' => 'select', 'vehicle_id' => $_POST['vehicle_id'] ?? '']);
+            flash($updated['message']);
+            header('Location: dashboard.php#selected-vehicle', true, 303);
+            exit;
+        } catch (InvalidArgumentException | RuntimeException $error) {
+            $vehicleSelectionError = $error->getMessage();
+            http_response_code($error->getCode() ?: 422);
+        }
+    } else {
+        if ($action !== 'cancel') {
+            http_response_code(400);
+            exit;
+        }
+        flash(cancel_booking((int) ($_POST['id'] ?? 0), $userId));
+        header('Location: dashboard.php', true, 303);
         exit;
     }
-    flash(cancel_booking((int) ($_POST['id'] ?? 0), $userId));
-    header('Location: dashboard.php', true, 303);
-    exit;
 }
 
 $resume = parking_resume_fields($_GET);
@@ -41,6 +54,16 @@ $occupiedByLot = parking_occupancy_by_lot($_SESSION['demo_bookings']);
 $bookings = array_values(array_filter($_SESSION['demo_bookings'], fn($booking) => $booking['user_id'] === $userId));
 $activeBookings = array_filter($bookings, fn($booking) => $booking['status'] === 'active');
 $completedBookings = array_filter($bookings, fn($booking) => $booking['status'] === 'completed');
+$vehicleState = ['vehicles' => [], 'selected_id' => null, 'default_id' => null];
+if (me()['role'] === 'user') {
+    header('Cache-Control: private, no-store');
+    try {
+        $vehicleState = saved_vehicle_state($userId);
+    } catch (RuntimeException $error) {
+        $vehicleSelectionError = $error->getMessage();
+        http_response_code(503);
+    }
+}
 
 head('Sabah Parking');
 ?>
@@ -76,6 +99,8 @@ head('Sabah Parking');
   <div class="card"><small><?= te('Completed visits') ?></small><b><?= count($completedBookings) ?></b></div>
   <div class="card"><small><?= te('Reward points') ?></small><b><?= count($bookings) * 25 ?></b></div>
 </section>
+
+<?php if (me()['role'] === 'user') require __DIR__ . '/includes/vehicle-selector.php'; ?>
 
 <section class="row card filters" aria-label="Search parking locations">
   <input id="lotSearch" placeholder="<?= te('Search city or parking lot') ?>">

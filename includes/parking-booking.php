@@ -59,7 +59,7 @@ function validate_parking_draft(array $actor, array $draft): array {
     $hours = filter_var($draft['hours'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 24]]);
     if ($hours === false) $errors['hours'] = 'Choose a whole number from 1 to 24 hours.';
 
-    $manual = $draft['vehicle_id'] === 'manual';
+    $manual = $actor['role'] !== 'user' && $draft['vehicle_id'] === 'manual';
     $vehicles = $actor['role'] === 'user' ? saved_vehicles($actor['id']) : [];
     $plate = null;
     if ($manual) {
@@ -68,14 +68,13 @@ function validate_parking_draft(array $actor, array $draft): array {
     } else {
         $selected = $vehicles[$draft['vehicle_id']] ?? null;
         $plate = $selected === null ? null : normalize_vehicle_plate($selected['plate']);
-        if ($plate === null) $errors['vehicle'] = 'Choose a saved vehicle from your account, or use another vehicle.';
+        if ($plate === null) $errors['vehicle'] = 'Choose a saved vehicle from your account before reviewing parking.';
     }
 
-    $savePlate = $manual && $draft['save_vehicle'] && $actor['role'] === 'user';
-    if ($savePlate && $plate !== null) {
-        foreach ($vehicles as $vehicle) {
-            if (normalize_vehicle_plate($vehicle['plate']) === $plate) {
-                $savePlate = false;
+    if ($plate !== null) {
+        foreach ($_SESSION['demo_bookings'] as $booking) {
+            if ($booking['status'] === 'active' && vehicle_plate_key($booking['plate']) === vehicle_plate_key($plate)) {
+                $errors['vehicle'] = 'This vehicle already has an active parking session. End it before booking again.';
                 break;
             }
         }
@@ -87,19 +86,30 @@ function validate_parking_draft(array $actor, array $draft): array {
             'lot' => $lot,
             'bay_type' => $bayType,
             'plate' => $plate,
+            'vehicle_id' => $manual ? null : $draft['vehicle_id'],
             'hours' => $hours,
             'fee' => round($hours * $lot['rate'], 2),
-            'save_vehicle' => $savePlate,
+            'save_vehicle' => false,
         ],
     ];
 }
 
 function start_parking(array $actor, array $details): int {
+    // Check again at the write boundary, including callers that bypass the review page.
+    $checked = validate_parking_draft($actor, [
+        'lot_id' => (string)$details['lot']['id'],
+        'bay_type' => $details['bay_type'],
+        'vehicle_id' => $details['vehicle_id'] ?? 'manual',
+        'plate' => $details['plate'],
+        'hours' => (string)$details['hours'],
+        'save_vehicle' => false,
+    ]);
+    if ($checked['errors']) throw new RuntimeException(reset($checked['errors']), 409);
+    if ($checked['details']['plate'] !== $details['plate'] || $checked['details']['fee'] !== $details['fee']) {
+        throw new RuntimeException('The fee or vehicle details changed. Review the updated details before starting.', 409);
+    }
     $start = time();
     $bookingId = max(array_column($_SESSION['demo_bookings'], 'id') ?: [0]) + 1;
-    if ($details['save_vehicle']) {
-        change_saved_vehicle($actor['id'], ['vehicle_action' => 'add', 'plate' => $details['plate']]);
-    }
     $_SESSION['demo_bookings'][] = [
         'id' => $bookingId,
         'user_id' => $actor['id'],
@@ -110,6 +120,7 @@ function start_parking(array $actor, array $details): int {
         'city' => $details['lot']['city'],
         'slot' => 'P' . str_pad((string)$bookingId, 2, '0', STR_PAD_LEFT),
         'plate' => $details['plate'],
+        'vehicle_id' => $details['vehicle_id'] ?? null,
         'hours' => $details['hours'],
         'fee' => $details['fee'],
         'status' => 'active',

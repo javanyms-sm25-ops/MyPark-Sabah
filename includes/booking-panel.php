@@ -2,7 +2,7 @@
 $selectedLot = array_column($lots, null, 'id')[$draft['lot_id']] ?? null;
 $draftHours = filter_var($draft['hours'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 24]]);
 $durationChoice = in_array($draft['hours'], ['1', '2', '3', '4'], true) ? $draft['hours'] : 'custom';
-$manualVehicle = !$vehicles || $draft['vehicle_id'] === 'manual';
+$manualVehicle = !$customer;
 $bookingContext = parking_resume_fields($draft);
 $manageVehiclesUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $bookingContext) . '#my-vehicles';
 $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $bookingContext) . '#oku-parking-verification';
@@ -46,12 +46,12 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
     <?php endif; ?>
 
     <div class="vehicle-toolbar">
-      <label for="<?= $vehicles ? 'savedVehicle' : 'plate' ?>"><?= te($vehicles ? 'Vehicle' : 'Vehicle plate') ?></label>
+      <label for="<?= $customer ? 'savedVehicle' : 'plate' ?>"><?= te($customer ? 'Vehicle' : 'Vehicle plate') ?></label>
       <?php if ($customer): ?>
-        <a id="manageBookingVehicles" href="<?= e($manageVehiclesUrl) ?>"><?= te('Manage vehicles') ?></a>
+        <a id="manageBookingVehicles" href="<?= e($manageVehiclesUrl) ?>"><?= te('Add vehicle') ?></a>
       <?php endif; ?>
     </div>
-    <?php if ($vehicles): ?>
+    <?php if ($customer): ?>
       <select id="savedVehicle" name="vehicle_id" aria-describedby="bookingVehicleError" <?= isset($errors['vehicle']) ? 'aria-invalid="true"' : '' ?> required>
         <option value=""><?= te('Select a saved vehicle') ?></option>
         <?php foreach ($vehicles as $vehicleId => $vehicle): ?>
@@ -59,12 +59,14 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
             <?= e($vehicle['plate']) ?><?= $vehicle['name'] !== '' ? ' · ' . e($vehicle['name']) : '' ?><?= (string)$vehicleId === $defaultVehicle ? ' (' . te('Default') . ')' : '' ?>
           </option>
         <?php endforeach; ?>
-        <option value="manual" <?= $manualVehicle ? 'selected' : '' ?>><?= te('Use another vehicle') ?></option>
       </select>
     <?php else: ?>
       <input type="hidden" name="vehicle_id" value="manual">
     <?php endif; ?>
     <p class="booking-error" id="bookingVehicleError" <?= !isset($errors['vehicle']) ? 'hidden' : '' ?>><?= te($errors['vehicle'] ?? '') ?></p>
+    <?php if ($customer && !$vehicles): ?>
+      <p class="hint"><a href="<?= e($manageVehiclesUrl) ?>"><?= te('Add your vehicle to start parking') ?></a></p>
+    <?php endif; ?>
     <fieldset id="manualVehicle" class="manual-vehicle" <?= !$manualVehicle ? 'hidden disabled' : '' ?>>
       <?php if ($vehicles): ?><label for="plate"><?= te('Vehicle plate') ?></label><?php endif; ?>
       <input name="plate" id="plate" value="<?= e($draft['plate']) ?>" placeholder="SAB 1234" maxlength="10" autocapitalize="characters"
@@ -113,9 +115,9 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
         <input type="hidden" name="hours" value="<?= e($bookingContext['hours'] ?? '') ?>">
         <?php if ($addVehicleError): ?><p class="booking-error" role="alert"><?= te($addVehicleError) ?></p><?php endif; ?>
         <label for="booking-new-plate"><?= te('Vehicle plate') ?></label>
-        <input id="booking-new-plate" name="plate" value="<?= te($addVehicleError ? ($_POST['plate'] ?? '') : '') ?>" placeholder="SAB 1234" maxlength="10" required>
+        <input id="booking-new-plate" name="plate" value="<?= e($addVehicleError ? ($_POST['plate'] ?? '') : '') ?>" placeholder="SAB 1234" maxlength="20" required>
         <label for="booking-new-name"><?= te('Vehicle name (optional)') ?></label>
-        <input id="booking-new-name" name="vehicle_name" value="<?= te($addVehicleError ? ($_POST['vehicle_name'] ?? '') : '') ?>" maxlength="40">
+        <input id="booking-new-name" name="vehicle_name" value="<?= e($addVehicleError ? ($_POST['vehicle_name'] ?? '') : '') ?>" maxlength="40">
         <div class="parking-actions">
           <button type="submit"><?= te('Add vehicle') ?></button>
           <button type="button" class="ghost" data-close-vehicle-dialog><?= te('Cancel') ?></button>

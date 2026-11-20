@@ -155,8 +155,8 @@
 
   form.addEventListener('submit', event => {
     const locationMessage = location.value ? '' : translate('Select a parking location.');
-    const vehicleMessage = vehicle && !vehicle.value ? translate('Choose a saved vehicle or use another vehicle.') : '';
-    const plateMessage = !manual.disabled && !/^[A-Z]{1,3} ?\d{1,4} ?[A-Z]?$/.test(plate.value.trim().toUpperCase())
+    const vehicleMessage = vehicle && !vehicle.value ? translate('Choose a saved vehicle from your account before reviewing parking.') : '';
+    const plateMessage = !manual.disabled && !/^[A-Z]{1,3}\d{1,4}[A-Z]?$/.test(plate.value.toUpperCase().replace(/\s+/g, ''))
       ? translate('Enter a valid plate number, for example SAB 1234.') : '';
     const hoursMessage = validHours() ? '' : translate('Choose a whole number from 1 to 24 hours.');
     setError('location', location, locationMessage);

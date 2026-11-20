@@ -13,6 +13,7 @@ $_SESSION = [
     'demo_receipts' => $_SESSION['demo_receipts'],
     'saved_vehicles' => $_SESSION['saved_vehicles'] ?? [],
     'default_vehicle_ids' => $_SESSION['default_vehicle_ids'] ?? [],
+    'vehicle_account_scope' => $_SESSION['vehicle_account_scope'] ?? bin2hex(random_bytes(24)),
     'oku_submissions' => $_SESSION['oku_submissions'] ?? [],
     'oku_latest' => $_SESSION['oku_latest'] ?? [],
     'demo_cookie_refreshed_at' => time(),

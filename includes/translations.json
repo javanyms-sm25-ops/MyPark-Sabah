@@ -615,5 +615,22 @@
   "Capacity unavailable": {"zh-Hans":"总车位数不可用","ms":"Kapasiti tidak tersedia"},
   "Occupied bays": {"zh-Hans":"已占用车位","ms":"Petak diduduki"},
   "Available bays": {"zh-Hans":"可用车位","ms":"Petak tersedia"},
-  "Refresh failed. Showing the last known parking availability.": {"zh-Hans":"刷新失败。显示上次更新的车位情况。","ms":"Gagal memuat semula. Ketersediaan parkir terakhir dipaparkan."}
+  "Refresh failed. Showing the last known parking availability.": {"zh-Hans":"刷新失败。显示上次更新的车位情况。","ms":"Gagal memuat semula. Ketersediaan parkir terakhir dipaparkan."},
+  "Selected vehicle": {"zh-Hans":"已选车辆","ms":"Kenderaan dipilih"},
+  "Switch vehicle": {"zh-Hans":"切换车辆","ms":"Tukar kenderaan"},
+  "Use vehicle": {"zh-Hans":"使用此车辆","ms":"Gunakan kenderaan"},
+  "Add your vehicle to start parking": {"zh-Hans":"添加车辆以开始停车","ms":"Tambah kenderaan anda untuk mula parkir"},
+  "Selected vehicle updated.": {"zh-Hans":"已更新所选车辆。","ms":"Kenderaan dipilih telah dikemas kini."},
+  "Saving vehicle selection…": {"zh-Hans":"正在保存所选车辆…","ms":"Sedang menyimpan pilihan kenderaan…"},
+  "Vehicle selection could not be saved. Please try again.": {"zh-Hans":"无法保存所选车辆，请重试。","ms":"Pilihan kenderaan tidak dapat disimpan. Sila cuba lagi."},
+  "Your saved vehicles changed. Refresh the page and choose again.": {"zh-Hans":"已保存的车辆有变，请刷新页面后重新选择。","ms":"Senarai kenderaan anda telah berubah. Muat semula halaman dan pilih lagi."},
+  "Saved vehicles are unavailable. Please try again later.": {"zh-Hans":"暂时无法读取已保存的车辆，请稍后重试。","ms":"Kenderaan tersimpan tidak tersedia. Sila cuba lagi kemudian."},
+  "You can only manage your own saved vehicles.": {"zh-Hans":"您只能管理自己保存的车辆。","ms":"Anda hanya boleh mengurus kenderaan tersimpan anda sendiri."},
+  "Choose a saved vehicle from your account before reviewing parking.": {"zh-Hans":"请先选择您账户中已保存的车辆，再核对停车详情。","ms":"Pilih kenderaan tersimpan dalam akaun anda sebelum menyemak parkir."},
+  "This vehicle already has an active parking session. End it before booking again.": {"zh-Hans":"此车辆已有进行中的停车，请先结束该停车再预订。","ms":"Kenderaan ini mempunyai sesi parkir aktif. Tamatkan sesi itu sebelum membuat tempahan lagi."},
+  "End this vehicle’s active parking session before removing it.": {"zh-Hans":"请先结束此车辆的停车，再删除车辆。","ms":"Tamatkan sesi parkir aktif kenderaan ini sebelum membuangnya."},
+  "End this vehicle’s active parking session before changing its plate.": {"zh-Hans":"请先结束此车辆的停车，再更改车牌。","ms":"Tamatkan sesi parkir aktif kenderaan ini sebelum menukar nombor platnya."},
+  "Edit {plate}": {"zh-Hans":"编辑 {plate}","ms":"Sunting {plate}"},
+  "Set {plate} as default": {"zh-Hans":"将 {plate} 设为默认车辆","ms":"Tetapkan {plate} sebagai kenderaan lalai"},
+  "Remove {plate}": {"zh-Hans":"删除 {plate}","ms":"Buang {plate}"}
 }
