@@ -89,18 +89,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['oku_action'])) {
     exit;
 }
 if (me()['role'] === 'user') header('Cache-Control: private, no-store');
+$profilePhoto = me()['photo'] ?? '';
 head('Profile');
 ?>
 <h1><?= te('My profile') ?></h1>
 <form method="post" enctype="multipart/form-data" class="card narrow">
   <input type="hidden" name="csrf" value="<?= csrf() ?>">
-  <?php if (!empty(me()['photo'])): ?><img class="avatar" src="<?= e(me()['photo']) ?>" alt="Profile photo"><?php endif; ?>
-  <label><?= te('Profile photo') ?><input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="user"></label>
+  <div class="profile-photo-drop" data-photo-drop>
+    <img class="avatar" alt="<?= te('Profile photo') ?>" <?php if ($profilePhoto): ?>src="<?= e($profilePhoto) ?>"<?php else: ?>hidden<?php endif; ?>>
+    <label for="profilePhoto"><?= te('Profile photo') ?></label>
+    <p class="hint" id="profilePhotoHint"><?= te('Drag and drop a JPG, PNG or WebP image here.') ?></p>
+    <input id="profilePhoto" type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="user"
+      aria-describedby="profilePhotoHint profilePhotoFeedback">
+    <p class="field-feedback" id="profilePhotoFeedback" aria-live="polite" aria-atomic="true"></p>
+  </div>
   <label><?= te('Name') ?><input name="name" value="<?= e(me()['name']) ?>" minlength="2" maxlength="100" required></label>
   <label><?= te('Email') ?><input value="<?= e(me()['email']) ?>" disabled></label>
   <label><?= te('Phone') ?><input name="phone" value="<?= e(me()['phone'] ?? '') ?>" maxlength="50"></label>
   <div class="row"><button type="button" data-rotate><?= te('Rotate photo') ?></button><button><?= te('Save profile') ?></button></div>
-  <p class="hint"><?= te('Rotation changes the preview only; the original image is saved.') ?></p>
 </form>
 <?php if (me()['role'] === 'user'): ?>
   <?php require __DIR__ . '/includes/oku-profile.php'; ?>

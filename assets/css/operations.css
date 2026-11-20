@@ -1,7 +1,9 @@
 /* Operations only: native table layout, with scrolling on the wrapper. */
 .operations-page { min-width: 0; max-width: 100%; color: #172b4d; }
 .operations-page .ops-subtitle { color: #64748b; font-size: 14px; }
-.operations-page .ops-panel { margin: 28px 0; border: 1px solid #dce3ec; border-radius: 12px; background: #fff; box-shadow: 0 3px 14px rgb(18 59 109 / 4%); min-width: 0; }
+[data-theme="dark"] .operations-page { color: var(--text); }
+[data-theme="dark"] .operations-page :is(.ops-subtitle, .ops-oku-capacity-hint) { color: var(--muted-text); opacity: 1; }
+.operations-page .ops-panel { margin: 28px 0; border: 1px solid #dce3ec; border-radius: 12px; background: #fff; color: #172b4d; box-shadow: 0 3px 14px rgb(18 59 109 / 4%); min-width: 0; }
 .ops-panel-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 20px 20px 14px; }
 .operations-page .ops-panel h2 { margin: 0; font-size: 18px; line-height: 26px; font-weight: 600; color: #172b4d; }
 .ops-count { font-size: 12px; color: #58687b; background: #f0f4f8; padding: 3px 8px; border-radius: 6px; }

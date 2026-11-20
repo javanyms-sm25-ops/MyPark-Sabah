@@ -1987,6 +1987,39 @@ main > table {
 
 /* ---------- 8. Profile, support and ticket ---------- */
 
+.profile-photo-drop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 6px;
+  padding: 14px;
+  text-align: center;
+  border: 1px dashed var(--muted-text);
+  border-radius: 12px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.profile-photo-drop.is-dragover {
+  background: var(--light-blue);
+  border-color: var(--navy);
+}
+
+.profile-photo-drop :is(label, .hint, input, .field-feedback) {
+  margin: 0;
+}
+
+.profile-photo-drop input {
+  min-width: 0;
+}
+
+.profile-photo-drop .avatar[hidden] {
+  display: none;
+}
+
+.profile-photo-drop .field-feedback:empty {
+  position: absolute;
+}
+
 .avatar {
   display: block;
   width: 96px;

@@ -359,32 +359,71 @@
     topupForm.noValidate = true;
   }
 
-  // Profile image preview and in-browser rotation preview
-  const photoInput = document.querySelector('input[type="file"][name="photo"]');
-  if (photoInput) {
+  const photoDrop = document.querySelector('[data-photo-drop]');
+  if (photoDrop) {
+    const photoInput = photoDrop.querySelector('input[type="file"]');
+    const preview = photoDrop.querySelector('.avatar');
+    const feedback = photoDrop.querySelector('.field-feedback');
+    const savedPhoto = preview.getAttribute('src');
+    let previewUrl = null;
+    let rotation = 0;
+
+    function validatePhoto(files) {
+      if (files.length > 1) return 'Choose one photo at a time.';
+      const file = files[0];
+      if (!file) return '';
+      if (file.size > 2000000) return 'Photo must be under 2 MB.';
+      const allowedType = file.type
+        ? photoInput.accept.split(',').includes(file.type)
+        : /\.(jpe?g|png|webp)$/i.test(file.name);
+      return allowedType && file.size > 0 ? '' : 'Use a valid JPG, PNG or WebP image.';
+    }
+
     photoInput.addEventListener('change', function () {
+      const error = validatePhoto(photoInput.files);
+      if (error) photoInput.value = '';
+      feedback.textContent = translate(error);
+
       const file = photoInput.files[0];
-      if (!file) return;
-      let preview = document.querySelector('.avatar');
-      if (!preview) {
-        preview = document.createElement('img');
-        preview.className = 'avatar';
-        preview.alt = 'Profile photo preview';
-        photoInput.parentNode.insertBefore(preview, photoInput);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = file ? URL.createObjectURL(file) : null;
+      const source = previewUrl || savedPhoto;
+      if (source) preview.src = source;
+      else preview.removeAttribute('src');
+      preview.hidden = !source;
+      rotation = 0;
+      preview.style.transform = '';
+    });
+
+    photoDrop.addEventListener('dragover', function (event) {
+      if (!event.dataTransfer?.types.includes('Files')) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+      photoDrop.classList.add('is-dragover');
+    });
+    photoDrop.addEventListener('dragleave', function (event) {
+      if (!photoDrop.contains(event.relatedTarget)) photoDrop.classList.remove('is-dragover');
+    });
+    photoDrop.addEventListener('drop', function (event) {
+      event.preventDefault();
+      photoDrop.classList.remove('is-dragover');
+      const files = event.dataTransfer?.files;
+      if (!files?.length) return;
+      const error = validatePhoto(files);
+      if (error) {
+        feedback.textContent = translate(error);
+        return;
       }
-      preview.src = URL.createObjectURL(file);
+      photoInput.files = files;
+      photoInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    photoInput.form.querySelector('[data-rotate]').addEventListener('click', function () {
+      if (preview.hidden) return;
+      rotation += 90;
+      preview.style.transform = 'rotate(' + rotation + 'deg)';
     });
   }
-
-  document.querySelectorAll('[data-rotate]').forEach(function (button) {
-    button.addEventListener('click', function () {
-      const preview = document.querySelector('.avatar');
-      if (!preview) return;
-      const degrees = (Number(preview.dataset.rotation) || 0) + 90;
-      preview.dataset.rotation = String(degrees);
-      preview.style.transform = 'rotate(' + degrees + 'deg)';
-    });
-  });
 
   // QR ticket
   const qrContainer = document.getElementById('qr');
