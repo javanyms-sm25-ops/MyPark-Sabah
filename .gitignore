@@ -9,6 +9,7 @@
 /recaptcha.local.php
 /config/recaptcha.local.php
 /config/maps.local.php
+/config/paypal.local.php
 .env
 .env.*
 !.env.example

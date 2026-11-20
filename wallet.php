@@ -3,29 +3,6 @@ require __DIR__ . '/includes/bootstrap.php';
 require_login();
 
 $wallet =& demo_wallet();
-$error = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    check_csrf();
-    $rawAmount = trim($_POST['amount'] ?? '');
-    $amount = filter_var($rawAmount, FILTER_VALIDATE_FLOAT);
-
-    if ($amount === false || !is_finite($amount) || $amount < 10 || $amount > 500 || fmod($amount, 10.0) !== 0.0) {
-        $error = 'Top up amount must be between RM 10.00 and RM 500.00, in multiples of RM 10.';
-    } else {
-        $wallet['balance'] += $amount;
-        $wallet['transactions'][] = [
-            'type' => 'topup',
-            'amount' => $amount,
-            'created_at' => date('Y-m-d H:i'),
-            'status' => 'paid'
-        ];
-        flash('Demo wallet topped up with RM ' . number_format($amount, 2) . '.');
-        header('Location: wallet.php');
-        exit;
-    }
-}
-
 $transactions = array_reverse($wallet['transactions']);
 head('Wallet');
 ?>
@@ -44,16 +21,15 @@ head('Wallet');
 
   <section class="card wallet-topup">
     <h2><?= te('Top up wallet') ?></h2>
-    <p class="muted"><?= te('This is a demo top up. Payment gateway connection is added later.') ?></p>
-    <?php if ($error): ?><p class="error"><?= te($error) ?></p><?php endif; ?>
-    <form method="post">
+    <p class="muted">Pay securely with PayPal Sandbox at checkout.</p>
+    <form method="post" action="checkout.php">
       <input type="hidden" name="csrf" value="<?= csrf() ?>">
       <div class="topup-options">
         <?php foreach ([10, 30, 50, 100] as $amount): ?>
           <button type="button" class="topup-choice" data-topup="<?= $amount ?>">RM <?= $amount ?></button>
         <?php endforeach; ?>
       </div>
-      <label><?= te('Custom amount (RM)') ?><input id="topupAmount" type="number" name="amount" min="10" max="500" step="10" placeholder="10.00" required></label>
+      <label><?= te('Custom amount (RM)') ?><input id="topupAmount" type="number" name="amount" min="1" max="500" step="0.01" placeholder="1.00" required></label>
       <button><?= te('Top up now') ?></button>
     </form>
   </section>

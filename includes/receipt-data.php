@@ -96,7 +96,10 @@ function receipt_sync(): void {
                 'Compound number' => $transaction['compound'],
                 'Payment reference' => $transaction['reference'],
                 'Payment method' => 'MyPark demo wallet',
-            ] : [];
+            ] : (!empty($transaction['reference']) ? [
+                'Payment reference' => $transaction['reference'],
+                'Payment method' => 'PayPal Sandbox',
+            ] : []);
             if ($type === 'compound' && !empty($transaction['plate'])) {
                 $details['Vehicle plate'] = $transaction['plate'];
             }
@@ -115,6 +118,8 @@ function receipt_text(array $receipt): string {
     ];
     foreach ($receipt['details'] as $label => $value) $lines[] = $label . ': ' . $value;
     $lines[] = receipt_amount_label($receipt) . ': ' . receipt_money($receipt['amount_cents']);
-    $lines[] = $receipt['type'] === 'parking' ? 'Demo booking. No payment was collected.' : 'Demo transaction.';
+    $lines[] = $receipt['type'] === 'parking' ? 'Demo booking. No payment was collected.'
+        : ($receipt['type'] === 'topup' && isset($receipt['details']['Payment method'])
+            ? 'PayPal Sandbox transaction.' : 'Demo transaction.');
     return implode("\r\n", $lines);
 }
