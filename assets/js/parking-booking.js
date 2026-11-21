@@ -35,7 +35,7 @@
     if (typeof reviewDialog.showModal === 'function') {
       reviewDialog.addEventListener('cancel', event => {
         event.preventDefault();
-        if (!reviewForm.hasAttribute('aria-busy')) editForm.requestSubmit();
+        if (!reviewForm?.hasAttribute('aria-busy')) editForm.requestSubmit();
       });
       reviewDialog.close();
       reviewDialog.showModal();

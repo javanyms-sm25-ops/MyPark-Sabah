@@ -27,9 +27,18 @@ function receipt_money(int $cents): string {
 
 function receipt_amount_label(array $receipt): string {
     return match ($receipt['type']) {
-        'parking' => 'Parking fee',
+        'parking' => isset($receipt['details']['Payment method']) ? 'Amount paid' : 'Parking fee',
         'compound' => 'Amount paid',
         'topup' => 'Amount added',
+    };
+}
+
+function receipt_payment_note(array $receipt): string {
+    $paid = isset($receipt['details']['Payment method']);
+    return match ($receipt['type']) {
+        'parking' => $paid ? 'Paid with MyPark demo wallet.' : 'Demo booking. No payment was collected.',
+        'topup' => $paid ? 'PayPal Sandbox transaction.' : 'Demo transaction.',
+        default => 'Demo transaction.',
     };
 }
 
@@ -83,6 +92,7 @@ function receipt_sync(): void {
             'Parking ends' => receipt_time(booking_expiry($booking) ?? $start->getTimestamp() + $booking['hours'] * 3600),
             'Duration' => $booking['hours'] . ($booking['hours'] === 1 ? ' hour' : ' hours'),
         ];
+        if (($booking['paid_amount_cents'] ?? 0) > 0) $details['Payment method'] = 'MyPark demo wallet';
         receipt_add($booking, $booking['user_id'], 'parking', (int) round($booking['fee'] * 100), $details, $oldest);
     }
     unset($booking);
@@ -90,7 +100,7 @@ function receipt_sync(): void {
     $_SESSION['demo_wallets'] ??= [];
     foreach ($_SESSION['demo_wallets'] as $userId => &$wallet) {
         foreach ($wallet['transactions'] as &$transaction) {
-            if (($transaction['status'] ?? '') !== 'paid') continue;
+            if (($transaction['status'] ?? '') !== 'paid' || ($transaction['type'] ?? '') === 'parking') continue;
             $type = ($transaction['type'] ?? 'topup') === 'compound' ? 'compound' : 'topup';
             $details = $type === 'compound' ? [
                 'Compound number' => $transaction['compound'],
@@ -118,8 +128,6 @@ function receipt_text(array $receipt): string {
     ];
     foreach ($receipt['details'] as $label => $value) $lines[] = $label . ': ' . $value;
     $lines[] = receipt_amount_label($receipt) . ': ' . receipt_money($receipt['amount_cents']);
-    $lines[] = $receipt['type'] === 'parking' ? 'Demo booking. No payment was collected.'
-        : ($receipt['type'] === 'topup' && isset($receipt['details']['Payment method'])
-            ? 'PayPal Sandbox transaction.' : 'Demo transaction.');
+    $lines[] = receipt_payment_note($receipt);
     return implode("\r\n", $lines);
 }

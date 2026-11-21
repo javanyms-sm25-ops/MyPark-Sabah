@@ -2,6 +2,7 @@
 require_once __DIR__ . '/demo-session.php';
 start_demo_session();
 require_once __DIR__ . '/localization.php';
+require_once __DIR__ . '/parking-notifications.php';
 remember_selected_language();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 // Front-end prototype store. Demo data lives in the session; no database connection is made.
@@ -106,8 +107,6 @@ function head(string $title): void {
     }
     $user = me();
     $message = flash();
-    $notice = $user ? count(array_filter($_SESSION['demo_bookings'], fn($booking) =>
-        $booking['user_id'] === $user['id'] && $booking['status'] === 'active')) : 0;
     $links = $user ? [
         'dashboard.php' => 'Parking',
         'history.php' => 'History',
@@ -115,7 +114,6 @@ function head(string $title): void {
         'wallet.php' => 'Wallet',
         'compound.php' => 'Compounds',
         'profile.php' => 'Profile',
-        'support.php' => 'Support',
     ] : ['pages/login.php' => 'Login', 'pages/register.php' => 'Register'];
     if (($user['role'] ?? '') === 'superadmin') unset($links['dashboard.php']);
     if (in_array($user['role'] ?? '', ['admin', 'superadmin'], true)) $links['admin/'] = 'Operations';
@@ -141,7 +139,6 @@ function head(string $title): void {
         <nav aria-label="<?= te('Main menu') ?>">
           <?php foreach ($links as $href => $label): ?><a href="<?= e($href) ?>"><?= te($label) ?></a><?php endforeach; ?>
           <?php if ($user): ?>
-            <a class="notification-link" href="history.php" aria-label="<?= te('Parking notifications') ?>">🔔<?php if ($notice): ?><b><?= $notice ?></b><?php endif; ?></a>
             <span><?= e($user['name']) ?> · <?= te(match ($user['role']) {
                 'user' => 'Member', 'superadmin' => 'Super Admin', default => ucfirst($user['role'])
             }) ?></span>
@@ -165,6 +162,9 @@ function head(string $title): void {
             </button>
           </div>
         </nav>
+        <?php if ($user): ?>
+          <?php require __DIR__ . '/notification-menu.php'; ?>
+        <?php endif; ?>
       </header>
       <main>
       <?php localized_flash($message ?? ''); ?>
@@ -190,6 +190,7 @@ function foot(bool $showChatbot = true): void {
       <?php locale_client_scripts(); ?>
       <script src="assets/js/toasts.js"></script>
       <script src="assets/js/app.js"></script>
+      <?php if (me()): ?><script src="assets/js/notifications.js"></script><?php endif; ?>
       <?php if ($showChatbot): ?>
         <script src="https://cdn.botpress.cloud/webchat/v5.0/inject.js"></script>
         <script src="https://files.bpcontent.cloud/2026/11/13/14/20261113143638-NZ5LEIAP.js" defer></script>

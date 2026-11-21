@@ -82,7 +82,7 @@ try {
             'reference' => $orderId,
         ];
         $checkout['credited'] = true;
-        flash('Wallet topped up with RM ' . number_format($checkout['cents'] / 100, 2) . '.');
+        parking_payment_notice(me()['id'], $checkout['cents']);
         paypal_reply(['success' => true]);
     }
     paypal_reply(['error' => 'Unknown checkout action.'], 400);

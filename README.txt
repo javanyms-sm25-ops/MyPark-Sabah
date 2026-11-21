@@ -57,9 +57,10 @@ The date range includes today and the previous 29 days in Malaysia time. Receipt
 details and email drafts require the original account in the same browser. The
 email action opens a draft in your mail app and you can print or save as PDF.
 
-Demo top-ups do not charge money, and bookings do not deduct the wallet balance.
-Parking starts when you confirm the review. Future reservations are not supported.
-Email OTP/reset delivery, SMS, a payment gateway and live support are not connected.
+PayPal Sandbox top-ups add demo credit. Confirming payment deducts the parking
+fee from the demo wallet and starts parking immediately. Future reservations are
+not supported. Successful parking payments and top-ups appear in Notifications.
+Email OTP/reset delivery, SMS and live support are not connected.
 Photo rotation is a preview; saving keeps the original image.
 Third-party fonts, chatbot and ticket QR library require Internet access.
 

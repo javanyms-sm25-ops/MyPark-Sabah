@@ -18,6 +18,7 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
   </ol>
   <p id="bookingError" class="booking-error" role="alert" tabindex="-1" <?= !$bookingError && !$errors ? 'hidden' : '' ?>>
     <?= te($bookingError ?: ($errors ? 'Check the highlighted booking details.' : '')) ?>
+    <?php if ($bookingError === PARKING_WALLET_INSUFFICIENT): ?><a href="wallet.php"><?= te('Top up wallet') ?></a><?php endif; ?>
   </p>
   <form method="post" action="parking-details.php" id="bookForm" novalidate<?= $review ? ' inert' : '' ?>>
     <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
@@ -129,10 +130,13 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
   <?php endif; ?>
 </section>
 
-<?php if ($review): ?>
+<?php if ($review):
+    $walletBalance = demo_wallet()['balance'];
+    $canPay = (int) round($walletBalance * 100) >= (int) round($review['fee'] * 100);
+?>
   <dialog class="parking-review-dialog" id="parkingReview" aria-labelledby="parking-review-heading" open>
     <h2 id="parking-review-heading" tabindex="-1"><?= te('Review your parking session') ?></h2>
-    <p><?= te('Parking starts when you select Start parking now. The times below are estimates in Malaysia time.') ?></p>
+    <p><?= te('The parking fee is deducted from your MyPark wallet when you confirm. The times below are estimates in Malaysia time.') ?></p>
     <dl class="parking-summary">
       <div><dt><?= te('Location') ?></dt><dd><?= e($review['lot']['name']) ?> · <?= e($review['lot']['city']) ?></dd></div>
       <div><dt><?= te('Parking bay type') ?></dt><dd><?= te(PARKING_BAY_TYPES[$review['bay_type']]) ?></dd></div>
@@ -141,7 +145,9 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
       <div><dt><?= te('Estimated start') ?></dt><dd><?= e(date('d M Y, H:i', $review['reviewed_at'])) ?> MYT</dd></div>
       <div><dt><?= te('Estimated end') ?></dt><dd><?= e(date('d M Y, H:i', $review['reviewed_at'] + $review['hours'] * 3600)) ?> MYT</dd></div>
       <div><dt><?= te('Fee') ?></dt><dd><strong>RM <?= e(number_format($review['fee'], 2)) ?></strong></dd></div>
+      <div><dt><?= te('Wallet balance') ?></dt><dd>RM <?= e(number_format($walletBalance, 2)) ?></dd></div>
     </dl>
+    <?php if (!$canPay): ?><p class="booking-error"><?= te(PARKING_WALLET_INSUFFICIENT) ?></p><?php endif; ?>
     <?php if ($review['save_vehicle']): ?><p class="hint"><?= te('This vehicle will also be saved to your account when you start parking.') ?></p><?php endif; ?>
     <div class="parking-actions">
       <form method="post" action="parking-details.php" id="editParkingForm">
@@ -150,12 +156,17 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
         <input type="hidden" name="review_token" value="<?= e($review['token']) ?>">
         <button class="ghost"><?= te('Edit details') ?></button>
       </form>
-      <form method="post" action="parking-details.php" id="startParkingForm">
-        <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-        <input type="hidden" name="action" value="start_parking">
-        <input type="hidden" name="review_token" value="<?= e($review['token']) ?>">
-        <button><?= te('Start parking now') ?></button>
-      </form>
+      <?php if ($canPay): ?>
+        <form method="post" action="parking-details.php" id="startParkingForm">
+          <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
+          <input type="hidden" name="action" value="start_parking">
+          <input type="hidden" name="review_token" value="<?= e($review['token']) ?>">
+          <input type="hidden" name="payment_method" value="wallet">
+          <button><?= te($review['fee'] > 0 ? 'Pay and start parking' : 'Start parking now') ?></button>
+        </form>
+      <?php else: ?>
+        <a class="btn" href="wallet.php"><?= te('Top up wallet') ?></a>
+      <?php endif; ?>
     </div>
   </dialog>
 <?php endif; ?>

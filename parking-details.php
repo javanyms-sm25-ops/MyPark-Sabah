@@ -103,6 +103,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['parking_reviews'][$userId] = ['draft' => $draft];
                     header('Location: parking-details.php?step=edit#bookingPanel', true, 303);
                     exit;
+                } elseif (($_POST['payment_method'] ?? '') !== 'wallet') {
+                    http_response_code(409);
+                    $bookingError = 'Review the parking fee before confirming payment.';
                 } else {
                     if (time() - $confirmation['reviewed_at'] >= 600) {
                         $bookingError = 'This review has expired. Review your parking details again.';
@@ -116,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             } else {
                                 try {
                                     $bookingId = start_parking(me(), $details);
-                                    flash('Parking session created. Your e-ticket is ready.');
+                                    if ($details['fee'] <= 0) flash('Parking session created. Your e-ticket is ready.');
                                     header('Location: ticket.php?id=' . $bookingId, true, 303);
                                     exit;
                                 } catch (RuntimeException $error) {

@@ -134,6 +134,11 @@
   pointer-events: none;
 }
 
+.pe-toast-stack:has(.pe-toast--parking-notice) {
+  top: auto;
+  bottom: max(16px, env(safe-area-inset-bottom));
+}
+
 .pe-toast {
   --toast-accent: #287fa8;
   display: grid;
@@ -314,7 +319,7 @@ header nav span {
   text-decoration: none;
 }
 
-[data-theme="dark"] header:has(> .logo) nav > a:not(.notification-link) {
+[data-theme="dark"] header:has(> .logo) nav > a {
   color: var(--text);
 }
 
@@ -329,7 +334,7 @@ header nav a:hover {
   background: var(--light-blue);
 }
 
-header nav a:not(.notification-link) {
+header nav a {
   padding: 8px 10px;
   border-radius: 8px;
   font-size: 0.88rem;
@@ -363,7 +368,7 @@ header:has(> .logo) {
     gap: 4px;
   }
 
-  header:has(> .logo) > nav > a:not(.notification-link) {
+  header:has(> .logo) > nav > a {
     padding-inline: 8px;
   }
 
@@ -2036,23 +2041,164 @@ main > table {
   border-radius: 50%;
 }
 
-.notification-link {
+.notification-menu {
   position: relative;
-  font-size: 1.1rem;
+  flex: 0 0 auto;
 }
 
-.notification-link b {
-  position: absolute;
-  top: -8px;
-  right: -10px;
-  min-width: 16px;
-  padding: 0 4px;
-  background: var(--red);
-  color: #ffffff;
+header:has(.notification-menu[open]) {
+  z-index: 101;
+}
+
+.notification-trigger {
+  position: relative;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
   border-radius: 10px;
-  font-size: 0.65rem;
-  line-height: 16px;
-  text-align: center;
+  cursor: pointer;
+  list-style: none;
+  font-size: 1.2rem;
+}
+
+.notification-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.notification-trigger:hover,
+.notification-menu[open] .notification-trigger {
+  background: var(--light-blue);
+}
+
+.notification-trigger:focus-visible {
+  outline: 3px solid #8fd1ed;
+  outline-offset: 2px;
+}
+
+.notification-badge {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-end: 6px;
+  width: 10px;
+  height: 10px;
+  background: var(--red);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--card);
+}
+
+.notification-preview {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: calc(100% + 10px);
+  inset-inline-end: 0;
+  width: min(360px, calc(100vw - 24px));
+  max-height: min(72dvh, 440px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-hover);
+}
+
+.notification-preview h2,
+.notification-page h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.notification-preview h2,
+.notification-empty {
+  padding: 14px 16px;
+}
+
+.notification-items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notification-item {
+  padding: 13px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.notification-item[data-unread] {
+  background: color-mix(in srgb, var(--light-blue) 48%, var(--card));
+}
+
+.notification-item__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 10px;
+  font-size: 0.9rem;
+}
+
+.notification-item time,
+.notification-item p,
+.notification-empty {
+  color: var(--muted-text);
+  overflow-wrap: anywhere;
+}
+
+.notification-item time {
+  font-size: 0.71rem;
+}
+
+.notification-item p {
+  margin: 4px 0 0;
+  font-size: 0.84rem;
+}
+
+.notification-more {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.notification-more:hover {
+  background: var(--light-blue);
+}
+
+.notification-more:focus-visible {
+  outline-offset: -3px;
+}
+
+.notification-page {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.notification-settings p {
+  margin: 8px 0 12px;
+  color: var(--muted-text);
+}
+
+.notification-inbox {
+  padding: 0;
+}
+
+.notification-inbox h2 {
+  padding: 16px;
+}
+
+.notification-inbox a {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.82rem;
+}
+
+.notification-empty {
+  margin: 0;
+  font-size: 0.85rem;
 }
 
 .parking-timer {
@@ -2348,15 +2494,19 @@ tr[hidden] {
     display: flex;
   }
 
-  header nav a:not(.notification-link),
+  header nav a,
   header nav span,
   header nav .ghost {
     width: 100%;
     padding: 10px 12px;
   }
 
-  header nav .notification-link {
-    width: auto;
+  .nav-toggle:has(~ .notification-menu) {
+    margin-inline-start: auto;
+  }
+
+  .notification-inbox.card {
+    padding: 0;
   }
 
   header nav span {

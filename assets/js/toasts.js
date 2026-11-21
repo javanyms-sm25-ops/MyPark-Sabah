@@ -18,6 +18,7 @@
     const origin = document.activeElement;
     const toast = document.createElement('section');
     toast.className = 'pe-toast pe-toast--' + type;
+    if (options.parkingNotice) toast.classList.add('pe-toast--parking-notice');
     toast.setAttribute('aria-label', titles[type]);
     const icon = document.createElement('span');
     icon.className = 'pe-toast__icon';
@@ -54,9 +55,9 @@
 
     let timer;
     let hovering = false;
-    let remaining = type === 'success' ? 5000 : 4000;
+    let remaining = options.parkingNotice ? 8000 : (type === 'success' ? 5000 : 4000);
     let started;
-    const autoClose = type === 'success' || type === 'info';
+    const autoClose = options.parkingNotice || type === 'success' || type === 'info';
     function dismiss() {
       window.clearTimeout(timer);
       document.removeEventListener('visibilitychange', onVisibility);

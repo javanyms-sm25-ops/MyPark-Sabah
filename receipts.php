@@ -140,11 +140,9 @@ head($confirmEmail ? 'Email receipt' : 'Digital receipts');
         <?php foreach ($receipt['details'] as $label => $value): ?>
           <div><dt><?= te($label) ?></dt><dd><?= e($value) ?></dd></div>
         <?php endforeach; ?>
-        <div class="receipt-total"><dt><?= e(receipt_amount_label($receipt)) ?></dt><dd><?= e(receipt_money($receipt['amount_cents'])) ?></dd></div>
+        <div class="receipt-total"><dt><?= te(receipt_amount_label($receipt)) ?></dt><dd><?= e(receipt_money($receipt['amount_cents'])) ?></dd></div>
       </dl>
-          <p><?= $receipt['type'] === 'parking' ? 'Demo booking. No payment was collected.'
-              : ($receipt['type'] === 'topup' && isset($receipt['details']['Payment method'])
-                  ? 'PayPal Sandbox transaction.' : 'Demo transaction.') ?></p>
+      <p><?= te(receipt_payment_note($receipt)) ?></p>
       <div class="receipt-actions">
         <button type="button" onclick="window.print()"><?= te('Print or save as PDF') ?></button>
         <a class="btn" href="<?= e($listUrl . '&id=' . $receipt['id'] . '&email=1') ?>"><?= te('Email receipt') ?></a>

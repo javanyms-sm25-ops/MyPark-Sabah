@@ -53,15 +53,17 @@ head('Wallet');
     <thead><tr><th><?= te('Date') ?></th><th><?= te('Transaction') ?></th><th><?= te('Amount') ?></th><th><?= te('Status') ?></th></tr></thead>
     <tbody>
       <?php foreach ($transactions as $transaction): ?>
-        <?php $isCompound = ($transaction['type'] ?? 'topup') === 'compound'; ?>
+        <?php $type = $transaction['type'] ?? 'topup'; ?>
         <tr>
           <td><?= e($transaction['created_at']) ?></td>
           <td>
-            <?php if ($isCompound): ?>
+            <?php if ($type === 'compound'): ?>
               Compound <?= e($transaction['compound']) ?><br><small>Receipt <?= e($transaction['reference']) ?></small>
+            <?php elseif ($type === 'parking'): ?>
+              <a href="ticket.php?id=<?= e($transaction['booking_id']) ?>"><?= te('Parking booking') ?> #<?= e($transaction['booking_id']) ?></a><br><small><?= e($transaction['location']) ?></small>
             <?php else: ?><?= te('Top up') ?><?php endif; ?>
           </td>
-          <td><?= $isCompound ? '−' : '+' ?> RM <?= number_format($transaction['amount'], 2) ?></td>
+          <td><?= in_array($type, ['compound', 'parking'], true) ? '−' : '+' ?> RM <?= number_format($transaction['amount'], 2) ?></td>
           <td><span class="tag paid"><?= te('Paid') ?></span></td>
         </tr>
       <?php endforeach; ?>

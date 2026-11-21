@@ -73,8 +73,8 @@ head('Home');
   <div class="feature-grid">
     <article class="card feature-card">
       <div class="feature-card__icon">🚗</div>
-      <h3><?= te('Instant booking') ?></h3>
-      <p><?= te('Reserve a parking bay in minutes and keep your itinerary moving without the stress of last-minute parking hunts.') ?></p>
+      <h3><?= te('Saved vehicles') ?></h3>
+      <p><?= te('Save your number plates so you can select a vehicle the next time you park.') ?></p>
     </article>
 
     <article class="card feature-card">

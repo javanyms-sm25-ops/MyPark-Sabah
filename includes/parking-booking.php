@@ -4,6 +4,8 @@ require_once __DIR__ . '/vehicles.php';
 require_once __DIR__ . '/parking-capacity.php';
 require_once __DIR__ . '/oku-verification.php';
 
+const PARKING_WALLET_INSUFFICIENT = 'Your wallet balance is too low. Top up your wallet and try again.';
+
 /** Only carry location and duration in links between Profile and the booking form. */
 function parking_resume_fields(array $query): array {
     $fields = [];
@@ -108,6 +110,11 @@ function start_parking(array $actor, array $details): int {
     if ($checked['details']['plate'] !== $details['plate'] || $checked['details']['fee'] !== $details['fee']) {
         throw new RuntimeException('The fee or vehicle details changed. Review the updated details before starting.', 409);
     }
+    $wallet =& demo_wallet();
+    $balanceCents = (int) round($wallet['balance'] * 100);
+    $feeCents = (int) round($checked['details']['fee'] * 100);
+    if ($feeCents > $balanceCents) throw new RuntimeException(PARKING_WALLET_INSUFFICIENT, 409);
+
     $start = time();
     $bookingId = max(array_column($_SESSION['demo_bookings'], 'id') ?: [0]) + 1;
     $_SESSION['demo_bookings'][] = [
@@ -123,10 +130,20 @@ function start_parking(array $actor, array $details): int {
         'vehicle_id' => $details['vehicle_id'] ?? null,
         'hours' => $details['hours'],
         'fee' => $details['fee'],
+        'paid_amount_cents' => $feeCents,
         'status' => 'active',
         'created_at' => date('Y-m-d H:i', $start),
         'expires_at' => $start + $details['hours'] * 3600,
     ];
+    if ($feeCents > 0) {
+        $wallet['balance'] = ($balanceCents - $feeCents) / 100;
+        $wallet['transactions'][] = [
+            'type' => 'parking', 'amount' => $feeCents / 100,
+            'created_at' => date('Y-m-d H:i', $start), 'status' => 'paid',
+            'booking_id' => $bookingId, 'location' => $details['lot']['name'],
+        ];
+        parking_payment_notice($actor['id'], $feeCents, $details['lot']['name']);
+    }
     $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
     return $bookingId;
 }

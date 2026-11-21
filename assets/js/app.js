@@ -114,8 +114,7 @@
     const currentPage = pagePath(window.location.pathname);
     navigation.querySelectorAll('a[href]').forEach(function (link) {
       const destination = new URL(link.href);
-      if (!link.classList.contains('notification-link') &&
-          destination.origin === window.location.origin &&
+      if (destination.origin === window.location.origin &&
           pagePath(destination.pathname) === currentPage) {
         link.classList.add('nav-active');
         link.setAttribute('aria-current', 'page');
