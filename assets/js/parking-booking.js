@@ -47,6 +47,7 @@
   const location = document.getElementById('lot_id');
   const bayType = document.getElementById('bay_type');
   const vehicle = document.getElementById('savedVehicle');
+  let vehicleControl = vehicle;
   const manual = document.getElementById('manualVehicle');
   const plate = document.getElementById('plate');
   const saveVehicle = manual.querySelector('[name="save_vehicle"]');
@@ -143,7 +144,7 @@
   vehicle?.addEventListener('change', () => {
     updateVehicleFields();
     if (manual.disabled && saveVehicle) saveVehicle.checked = false;
-    setError('vehicle', vehicle);
+    setError('vehicle', vehicleControl);
     setError('plate', plate);
   });
   plate.addEventListener('input', () => {
@@ -160,7 +161,7 @@
       ? translate('Enter a valid plate number, for example SAB 1234.') : '';
     const hoursMessage = validHours() ? '' : translate('Choose a whole number from 1 to 24 hours.');
     setError('location', location, locationMessage);
-    setError('vehicle', vehicle, vehicleMessage);
+    setError('vehicle', vehicleControl, vehicleMessage);
     setError('plate', plate, plateMessage);
     setError('hours', hours, hoursMessage);
 
@@ -175,15 +176,73 @@
   if (!reviewDialog) guardSubmission(form, translate('Checking details…'));
 
   if (dialog && typeof dialog.showModal === 'function') {
+    function openAddVehicle() {
+      updateParkingContext();
+      dialog.showModal();
+    }
     manage.addEventListener('click', event => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
-      updateParkingContext();
-      dialog.showModal();
+      openAddVehicle();
     });
     dialog.querySelector('[data-close-vehicle-dialog]').addEventListener('click', () => dialog.close());
     if (dialog.hasAttribute('data-reopen')) dialog.showModal();
     guardSubmission(addForm, translate('Saving vehicle…'));
+
+    const picker = document.getElementById('chooseVehicleDialog');
+    const trigger = document.getElementById('chooseBookingVehicle');
+    const choiceText = trigger.querySelector('#bookingVehicleValue');
+    const prompt = picker.querySelector('[data-prompt-for-vehicle]');
+    const choices = picker.querySelectorAll('[data-select-vehicle]');
+    const placeholder = choiceText.textContent;
+    const preferenceKey = picker.dataset.preferenceKey;
+
+    try {
+      prompt.checked = localStorage.getItem(preferenceKey) !== 'off';
+    } catch (_) { /* The switch still works for this page. */ }
+
+    prompt.addEventListener('change', () => {
+      try {
+        localStorage.setItem(preferenceKey, prompt.checked ? 'on' : 'off');
+      } catch (_) { /* The switch still works for this page. */ }
+    });
+
+    function renderVehicleChoice() {
+      choiceText.textContent = vehicle.value ? vehicle.selectedOptions[0].textContent.trim() : placeholder;
+      choices.forEach(choice => choice.setAttribute('aria-pressed', String(choice.dataset.selectVehicle === vehicle.value)));
+    }
+
+    vehicleControl = trigger;
+    if (vehicle.hasAttribute('aria-invalid')) {
+      trigger.setAttribute('aria-invalid', 'true');
+      vehicle.removeAttribute('aria-invalid');
+    }
+    document.getElementById('bookingVehicleLabel').htmlFor = trigger.id;
+    vehicle.hidden = true;
+    trigger.hidden = false;
+    renderVehicleChoice();
+    vehicle.addEventListener('change', renderVehicleChoice);
+
+    function promptForVehicle() {
+      if (prompt.checked && location.value && !reviewDialog && !dialog.open && !picker.open) picker.showModal();
+    }
+
+    trigger.addEventListener('click', () => picker.showModal());
+    picker.querySelector('[data-close-picker]').addEventListener('click', () => picker.close());
+    picker.querySelector('[data-add-from-picker]').addEventListener('click', () => {
+      picker.close();
+      openAddVehicle();
+    });
+    choices.forEach(choice => {
+      choice.addEventListener('click', () => {
+        vehicle.value = choice.dataset.selectVehicle;
+        vehicle.dispatchEvent(new Event('change', { bubbles: true }));
+        picker.close();
+        trigger.focus();
+      });
+    });
+    location.addEventListener('change', promptForVehicle);
+    if (picker.hasAttribute('data-auto-prompt')) promptForVehicle();
   }
 
   if (!summaryError.hidden) {

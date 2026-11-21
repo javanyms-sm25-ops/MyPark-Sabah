@@ -95,6 +95,7 @@
   const navigation = document.getElementById('site-navigation');
   const logo = document.querySelector('.site-header .logo');
   if (navigation && logo) {
+    const profileMenu = navigation.querySelector('[data-profile-nav-menu]');
     const menuButton = document.createElement('button');
     menuButton.type = 'button';
     menuButton.className = 'nav-toggle';
@@ -106,6 +107,7 @@
 
     menuButton.addEventListener('click', function () {
       const isOpen = navigation.classList.toggle('is-open');
+      if (!isOpen && profileMenu) profileMenu.open = false;
       menuButton.setAttribute('aria-expanded', String(isOpen));
       menuButton.setAttribute('aria-label', isOpen ? translate('Close navigation menu') : translate('Open navigation menu'));
       menuButton.innerHTML = isOpen ? '×' : '☰';
@@ -122,10 +124,49 @@
       }
       link.addEventListener('click', function () {
         navigation.classList.remove('is-open');
+        if (profileMenu) profileMenu.open = false;
         menuButton.setAttribute('aria-expanded', 'false');
         menuButton.innerHTML = '☰';
       });
     });
+
+    if (profileMenu) {
+      const trigger = profileMenu.querySelector('summary');
+      let openedByHover = false;
+
+      function closeProfileMenu() {
+        openedByHover = false;
+        profileMenu.open = false;
+      }
+
+      profileMenu.addEventListener('pointerenter', event => {
+        if (event.pointerType === 'mouse' && !profileMenu.open) {
+          openedByHover = true;
+          profileMenu.open = true;
+        }
+      });
+      profileMenu.addEventListener('pointerleave', event => {
+        if (event.pointerType === 'mouse' && openedByHover && !profileMenu.contains(document.activeElement)) {
+          closeProfileMenu();
+        }
+      });
+      trigger.addEventListener('click', event => {
+        if (openedByHover && profileMenu.open && event.detail > 0) event.preventDefault();
+        openedByHover = false;
+      });
+      profileMenu.addEventListener('focusout', event => {
+        if (event.relatedTarget && !profileMenu.contains(event.relatedTarget)) closeProfileMenu();
+      });
+      profileMenu.addEventListener('keydown', event => {
+        if (event.key !== 'Escape' || !profileMenu.open) return;
+        event.preventDefault();
+        closeProfileMenu();
+        trigger.focus();
+      });
+      document.addEventListener('pointerdown', event => {
+        if (profileMenu.open && !profileMenu.contains(event.target)) closeProfileMenu();
+      });
+    }
   }
 
   // Confirmation prompts

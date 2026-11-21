@@ -99,6 +99,8 @@
   const geolocation = navigator.geolocation;
   const toggle = document.querySelector('[data-location-alert-toggle]');
   const status = document.querySelector('[data-location-alert-status]');
+  const onParkingFinder = document.querySelector('[data-find-parking]') !== null;
+  let finderPermission;
   const locationKey = 'mypark:zone-alerts:' + menu.dataset.user;
   let locationEnabled = false;
   let currentZone = null;
@@ -168,7 +170,7 @@
   }
 
   function syncPositionWatch() {
-    if (!locationEnabled || document.hidden) {
+    if (!locationEnabled || document.hidden || (onParkingFinder && finderPermission?.state !== 'granted')) {
       stopPositionWatch();
       return;
     }
@@ -203,5 +205,11 @@
   document.addEventListener('visibilitychange', syncPositionWatch);
   window.addEventListener('pagehide', stopPositionWatch);
   window.addEventListener('pageshow', syncPositionWatch);
+  if (onParkingFinder && locationEnabled) {
+    navigator.permissions?.query({ name: 'geolocation' }).then(permission => {
+      finderPermission = permission;
+      syncPositionWatch();
+    }).catch(() => {});
+  }
   syncPositionWatch();
 })();

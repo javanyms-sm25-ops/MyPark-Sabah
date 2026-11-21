@@ -72,7 +72,12 @@ head('Sabah Parking');
   <p class="eyebrow"><?= te('WELCOME BACK, {name}', ['name' => me()['name']]) ?></p>
   <h1><?= te('Find your space.') ?><br><span><?= te('Enjoy the journey.') ?></span></h1>
   <p><?= te('Discover convenient parking in Kota Kinabalu, Sandakan, Tawau and beyond.') ?></p>
-  <a class="btn" href="#locations"><?= te('Explore locations') ?></a>
+  <div class="row">
+    <a class="btn" href="#locations"><?= te('Explore locations') ?></a>
+    <?php if (in_array(me()['role'], ['user', 'admin'], true)): ?>
+      <a class="btn" href="find_parking.php"><?= te('Find parking') ?></a>
+    <?php endif; ?>
+  </div>
   </div>
   <aside class="dashboard-wallet" aria-labelledby="dashboard-wallet-title"
     data-wallet-user="<?= e($userId) ?>"

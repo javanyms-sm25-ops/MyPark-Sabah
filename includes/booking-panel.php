@@ -47,7 +47,7 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
     <?php endif; ?>
 
     <div class="vehicle-toolbar">
-      <label for="<?= $customer ? 'savedVehicle' : 'plate' ?>"><?= te($customer ? 'Vehicle' : 'Vehicle plate') ?></label>
+      <label id="bookingVehicleLabel" for="<?= $customer ? 'savedVehicle' : 'plate' ?>"><?= te($customer ? 'Vehicle' : 'Vehicle plate') ?></label>
       <?php if ($customer): ?>
         <a id="manageBookingVehicles" href="<?= e($manageVehiclesUrl) ?>"><?= te('Add vehicle') ?></a>
       <?php endif; ?>
@@ -61,6 +61,11 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
           </option>
         <?php endforeach; ?>
       </select>
+      <button type="button" class="ghost booking-vehicle-trigger" id="chooseBookingVehicle"
+              aria-haspopup="dialog" aria-controls="chooseVehicleDialog"
+              aria-labelledby="bookingVehicleLabel bookingVehicleValue" aria-describedby="bookingVehicleError" hidden>
+        <span id="bookingVehicleValue"><?= te('Select a saved vehicle') ?></span><span aria-hidden="true">›</span>
+      </button>
     <?php else: ?>
       <input type="hidden" name="vehicle_id" value="manual">
     <?php endif; ?>
@@ -107,6 +112,35 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
   </form>
 
   <?php if ($customer): ?>
+    <dialog class="parking-vehicle-dialog booking-vehicle-sheet" id="chooseVehicleDialog"
+            aria-labelledby="chooseVehicleTitle" aria-describedby="chooseVehicleHelp"
+            data-preference-key="mypark:prompt-for-vehicle:<?= e($userId) ?>"
+            <?= $_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['step']) && $requestedVehicle === '' && !$bookingError ? 'data-auto-prompt' : '' ?>>
+      <div class="booking-vehicle-sheet__heading">
+        <h2 id="chooseVehicleTitle"><?= te('Select your vehicle') ?></h2>
+        <button type="button" class="ghost booking-vehicle-sheet__close" data-close-picker aria-label="<?= te('Close') ?>">×</button>
+      </div>
+      <p class="booking-vehicle-sheet__help" id="chooseVehicleHelp"><?= te('Choose the vehicle you parked at this location.') ?></p>
+      <?php if ($vehicles): ?>
+        <ul class="booking-vehicle-choices">
+          <?php foreach ($vehicles as $vehicleId => $saved): ?>
+            <li><button type="button" class="ghost booking-vehicle-choice"
+                        data-select-vehicle="<?= e($vehicleId) ?>"
+                        aria-pressed="<?= (string)$vehicleId === $draft['vehicle_id'] ? 'true' : 'false' ?>">
+              <span><strong><?= e($saved['plate']) ?></strong><?php if ($saved['name'] !== ''): ?><small><?= e($saved['name']) ?></small><?php endif; ?></span>
+              <span aria-hidden="true">›</span>
+            </button></li>
+          <?php endforeach; ?>
+        </ul>
+      <?php else: ?>
+        <p><?= te('Add your vehicle to start parking') ?></p>
+      <?php endif; ?>
+      <label class="booking-vehicle-preference">
+        <?= te('Always prompt me to choose a vehicle') ?>
+        <input type="checkbox" role="switch" data-prompt-for-vehicle checked>
+      </label>
+      <button type="button" class="booking-vehicle-add" data-add-from-picker><span aria-hidden="true">+</span> <?= te('Add vehicle') ?></button>
+    </dialog>
     <dialog class="parking-vehicle-dialog" id="bookingVehicleDialog" aria-labelledby="bookingVehicleDialogTitle" <?= $addVehicleError ? 'data-reopen' : '' ?>>
       <h2 id="bookingVehicleDialogTitle"><?= te('Add vehicle') ?></h2>
       <form method="post" action="parking-details.php" id="addBookingVehicleForm">

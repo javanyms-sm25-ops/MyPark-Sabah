@@ -35,8 +35,8 @@ function translation_catalog(): array {
     $language = current_language();
     $messages = [];
     if ($language !== 'en') {
-        $file = __DIR__ . '/translations.json';
-        $catalog = is_readable($file) ? json_decode(file_get_contents($file), true) : null;
+        $json = @file_get_contents(__DIR__ . '/language/translations.json');
+        $catalog = $json === false ? null : json_decode($json, true);
         if (!is_array($catalog)) return $messages;
         foreach ($catalog as $source => $translations) {
             if (isset($translations[$language])) $messages[strtolower($source)] = $translations[$language];

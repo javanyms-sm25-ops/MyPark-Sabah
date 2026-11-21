@@ -125,6 +125,7 @@ function head(string $title): void {
     $message = flash();
     $links = $user ? [
         'dashboard.php' => 'Parking',
+        ...($user['role'] === 'user' ? ['find_parking.php' => 'Find parking'] : []),
         'receipts.php' => 'Receipts',
         'wallet.php' => 'Wallet',
         'compound.php' => 'Compounds',
@@ -155,17 +156,33 @@ function head(string $title): void {
             <?php foreach ($links as $href => $label): ?><a href="<?= e($href) ?>"><?= te($label) ?></a><?php endforeach; ?>
           </div>
           <?php if ($user): ?>
-            <?php $roleLabel = t(match ($user['role']) {
-                'user' => 'Member', 'superadmin' => 'Super Admin', default => ucfirst($user['role'])
-            });
-            $accountLabel = $user['name'] . ' · ' . $roleLabel;
-            ?>
             <div class="nav-account">
-              <a class="profile-nav-link" href="profile.php" aria-label="<?= te('Open profile for {account}', ['account' => $accountLabel]) ?>" title="<?= e($accountLabel) ?>">
-                <strong><?= e($user['name']) ?></strong>
-                <small><?= e($roleLabel) ?></small>
-              </a>
-              <a class="nav-logout" href="logout.php"><?= te('Logout') ?></a>
+              <?php if ($user['role'] === 'user'): ?>
+                <?php $photo = $user['photo'] ?? ''; ?>
+                <details class="profile-nav-menu" data-profile-nav-menu>
+                  <summary class="profile-nav-trigger<?= $photo ? ' profile-nav-avatar' : '' ?>" aria-label="<?= te('Profile') ?>">
+                    <?php if ($photo): ?>
+                      <img src="<?= e($photo) ?>" alt="" width="32" height="32">
+                    <?php else: ?>
+                      <?= te('Profile') ?>
+                    <?php endif; ?>
+                  </summary>
+                  <div class="profile-nav-options">
+                    <a href="profile.php"><?= te('Profile') ?></a>
+                    <a href="logout.php"><?= te('Logout') ?></a>
+                  </div>
+                </details>
+              <?php else: ?>
+                <?php
+                $roleLabel = t($user['role'] === 'superadmin' ? 'Super Admin' : ucfirst($user['role']));
+                $accountLabel = $user['name'] . ' · ' . $roleLabel;
+                ?>
+                <a class="profile-nav-link" href="profile.php" aria-label="<?= te('Open profile for {account}', ['account' => $accountLabel]) ?>" title="<?= e($accountLabel) ?>">
+                  <strong><?= e($user['name']) ?></strong>
+                  <small><?= e($roleLabel) ?></small>
+                </a>
+                <a class="nav-logout" href="logout.php"><?= te('Logout') ?></a>
+              <?php endif; ?>
             </div>
           <?php endif; ?>
           <div class="nav-preferences">
