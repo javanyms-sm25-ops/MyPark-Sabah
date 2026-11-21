@@ -33,8 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             http_response_code(400);
             exit;
         }
-        flash(cancel_booking((int) ($_POST['id'] ?? 0), $userId));
-        header('Location: dashboard.php', true, 303);
+        header('Location: receipts.php?type=parking#parking-sessions', true, 308);
         exit;
     }
 }
@@ -139,7 +138,7 @@ head('Sabah Parking');
   <?php endforeach; ?>
 </section>
 
-<p class="section-link"><a class="btn" href="history.php"><?= te('View parking history') ?></a></p>
+<p class="section-link"><a class="btn" href="receipts.php?type=parking#parking-sessions"><?= te('View parking sessions') ?></a></p>
 <h2><?= te('Sabah parking map') ?></h2>
 <iframe class="map" loading="lazy" src="https://maps.google.com/maps?q=Sabah%20Malaysia&amp;t=&amp;z=7&amp;ie=UTF8&amp;iwloc=&amp;output=embed" title="Map of Sabah"></iframe>
 

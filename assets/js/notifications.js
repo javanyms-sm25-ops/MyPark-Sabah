@@ -34,7 +34,8 @@
     } catch (_) {
       // In-memory tracking still prevents repeated announcements on this page.
     }
-    window.MyParkToast?.show(notice.message, notice.type === 'payment' ? 'success' : 'warning', {
+    const success = notice.type === 'payment' || notice.type === 'cancelled';
+    window.MyParkToast?.show(notice.message, success ? 'success' : 'warning', {
       key, parkingNotice: true, details: notice.type === 'ending',
     });
   }

@@ -65,6 +65,16 @@ function booking_expiry(array $booking): ?int {
     if (!$start || $start->format('Y-m-d H:i') !== $created || $hours === false || $hours < 1 || $hours > 24) return null;
     return $start->getTimestamp() + $hours * 3600;
 }
+
+const PARKING_CANCELLATION_SECONDS = 300;
+const PARKING_CANCELLATION_POLICY = 'You can cancel while more than 5 minutes remain.';
+const PARKING_CANCELLATION_CLOSED = 'Cancellation is closed. More than 5 minutes must remain.';
+
+function booking_cancellation_deadline(array $booking): ?int {
+    $expiry = booking_expiry($booking);
+    return $expiry === null ? null : $expiry - PARKING_CANCELLATION_SECONDS;
+}
+
 function complete_expired_bookings(): void {
     $now = time();
     $changed = false;
@@ -78,16 +88,22 @@ function complete_expired_bookings(): void {
     unset($booking);
     if ($changed) $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
 }
-function cancel_booking(int $id, int $userId): string {
+function cancel_booking(int $id, int $userId): void {
     complete_expired_bookings();
     foreach ($_SESSION['demo_bookings'] as &$booking) {
         if ($booking['id'] !== $id || $booking['user_id'] !== $userId) continue;
-        if ($booking['status'] !== 'active') return 'Only active bookings can be cancelled.';
+        if ($booking['status'] !== 'active') throw new RuntimeException('Only active bookings can be cancelled.', 409);
+        $deadline = booking_cancellation_deadline($booking);
+        if ($deadline === null || time() >= $deadline) throw new RuntimeException(PARKING_CANCELLATION_CLOSED, 409);
+
+        parking_add_notice($userId, [
+            'type' => 'cancelled', 'location' => $booking['lot'], 'plate' => $booking['plate'],
+        ]);
         $booking['status'] = 'cancelled';
         $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
-        return 'Booking cancelled.';
+        return;
     }
-    return 'Booking not found.';
+    throw new RuntimeException('Booking not found.', 404);
 }
 function require_admin(){require_login();if(!in_array(me()['role'],['admin','superadmin'],true)){http_response_code(403);exit('Forbidden');}}
 function flash(?string $message = null): ?string {
@@ -109,11 +125,9 @@ function head(string $title): void {
     $message = flash();
     $links = $user ? [
         'dashboard.php' => 'Parking',
-        'history.php' => 'History',
         'receipts.php' => 'Receipts',
         'wallet.php' => 'Wallet',
         'compound.php' => 'Compounds',
-        'profile.php' => 'Profile',
     ] : ['pages/login.php' => 'Login', 'pages/register.php' => 'Register'];
     if (($user['role'] ?? '') === 'superadmin') unset($links['dashboard.php']);
     if (in_array($user['role'] ?? '', ['admin', 'superadmin'], true)) $links['admin/'] = 'Operations';
@@ -134,15 +148,25 @@ function head(string $title): void {
       <link rel="stylesheet" href="assets/css/style.css">
     </head>
     <body>
-      <header>
+      <header class="site-header">
         <a class="logo" href="index.php">🅿 MyPark Sabah</a>
-        <nav aria-label="<?= te('Main menu') ?>">
-          <?php foreach ($links as $href => $label): ?><a href="<?= e($href) ?>"><?= te($label) ?></a><?php endforeach; ?>
+        <nav class="site-nav" id="site-navigation" aria-label="<?= te('Main menu') ?>">
+          <div class="nav-pages">
+            <?php foreach ($links as $href => $label): ?><a href="<?= e($href) ?>"><?= te($label) ?></a><?php endforeach; ?>
+          </div>
           <?php if ($user): ?>
-            <span><?= e($user['name']) ?> · <?= te(match ($user['role']) {
+            <?php $roleLabel = t(match ($user['role']) {
                 'user' => 'Member', 'superadmin' => 'Super Admin', default => ucfirst($user['role'])
-            }) ?></span>
-            <a href="logout.php"><?= te('Logout') ?></a>
+            });
+            $accountLabel = $user['name'] . ' · ' . $roleLabel;
+            ?>
+            <div class="nav-account">
+              <a class="profile-nav-link" href="profile.php" aria-label="<?= te('Open profile for {account}', ['account' => $accountLabel]) ?>" title="<?= e($accountLabel) ?>">
+                <strong><?= e($user['name']) ?></strong>
+                <small><?= e($roleLabel) ?></small>
+              </a>
+              <a class="nav-logout" href="logout.php"><?= te('Logout') ?></a>
+            </div>
           <?php endif; ?>
           <div class="nav-preferences">
             <?php language_switcher(); ?>

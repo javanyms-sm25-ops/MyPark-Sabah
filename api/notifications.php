@@ -46,7 +46,7 @@ $statuses = array_column($_SESSION['demo_bookings'], 'status', 'id');
 $now = time();
 $live = array_filter($unread, fn($notice) => match ($notice['type']) {
     'ending' => $notice['expires_at'] > $now && ($statuses[$notice['booking_id']] ?? '') === 'active',
-    'zone' => $now - $notice['created_at'] <= 120,
+    'zone', 'cancelled' => $now - $notice['created_at'] <= 120,
     'payment' => !isset($notice['compound']) && $now - $notice['created_at'] <= 120,
     default => false,
 });

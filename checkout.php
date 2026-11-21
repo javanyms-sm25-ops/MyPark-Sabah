@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $checkout = $_SESSION['paypal_checkout'] ?? null;
 if (!is_array($checkout) || ($checkout['user_id'] ?? null) !== me()['id']) $checkout = null;
 $config = paypal_config();
-$available = !empty($config['client_id']) && !empty($config['client_secret']) && extension_loaded('curl');
+$configured = !empty($config['client_id']) && !empty($config['client_secret']);
 head('Checkout');
 ?>
 <link rel="stylesheet" href="assets/css/checkout.css">
@@ -42,7 +42,9 @@ head('Checkout');
       <?php if (!empty($checkout['credited'])): ?>
         <p role="status">This payment has already been credited to your wallet.</p>
         <a class="btn" href="wallet.php">View wallet</a>
-      <?php elseif ($available): ?>
+      <?php elseif (!$configured): ?>
+        <p class="checkout-error" role="alert"><?= te('PayPal Sandbox has not been set up on this server.') ?></p>
+      <?php elseif (extension_loaded('curl')): ?>
         <div id="paypal-checkout" data-csrf="<?= e(csrf()) ?>" data-client-id="<?= e($config['client_id']) ?>"
           data-amount="<?= e(number_format($checkout['cents'] / 100, 2, '.', '')) ?>"
           data-order-id="<?= e($checkout['order_id'] ?? '') ?>">

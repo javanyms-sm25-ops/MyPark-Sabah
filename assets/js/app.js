@@ -92,14 +92,15 @@
   function writeStorage(key, value) { try { localStorage.setItem(key, value); } catch (_) { /* Page controls remain usable without storage. */ } }
 
   // Responsive navigation and current-page indicator
-  const navigation = document.querySelector('header nav');
-  const logo = document.querySelector('header .logo');
+  const navigation = document.getElementById('site-navigation');
+  const logo = document.querySelector('.site-header .logo');
   if (navigation && logo) {
     const menuButton = document.createElement('button');
     menuButton.type = 'button';
     menuButton.className = 'nav-toggle';
     menuButton.setAttribute('aria-label', translate('Open navigation menu'));
     menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.setAttribute('aria-controls', navigation.id);
     menuButton.innerHTML = '☰';
     logo.insertAdjacentElement('afterend', menuButton);
 
@@ -154,24 +155,34 @@
     if (control) control.addEventListener(control.tagName === 'INPUT' ? 'input' : 'change', filterLocations);
   });
 
-  // Reservation history search and status filter
-  const historySearch = document.getElementById('historySearch');
-  const historyStatus = document.getElementById('statusFilter');
+  const parkingTable = document.getElementById('parkingSessionsTable');
+  const parkingSearch = document.getElementById('parkingSessionSearch');
+  const parkingStatus = document.getElementById('parkingSessionStatus');
+  const parkingRows = Array.from(parkingTable?.querySelectorAll('tbody tr[data-status]') ?? []);
+  const noParkingMatches = parkingTable?.querySelector('[data-no-parking-matches]');
   const tablePaginators = new Map();
 
-  function filterHistory() {
-    document.querySelectorAll('#historyTable tr[data-status]').forEach(function (row) {
-      const matchesStatus = !historyStatus || !historyStatus.value || row.dataset.status === historyStatus.value;
-      const matchesText = !historySearch || row.dataset.search.includes(historySearch.value.trim().toLowerCase());
-      row.dataset.filterHidden = String(!(matchesStatus && matchesText));
-      row.hidden = !(matchesStatus && matchesText);
+  function filterParkingSessions(resetPage = true) {
+    if (!parkingTable) return;
+    const query = parkingSearch.value.trim().toLowerCase();
+    const status = parkingStatus.value;
+    let matchingCount = 0;
+    parkingRows.forEach(function (row) {
+      const rowStatus = row.dataset.status;
+      const searchText = [row.dataset.search, rowStatus, translate(rowStatus)].join(' ').toLowerCase();
+      const matches = (!status || rowStatus === status) && searchText.includes(query);
+      row.dataset.filterHidden = String(!matches);
+      row.hidden = !matches;
+      if (matches) matchingCount++;
     });
-    const renderHistory = tablePaginators.get(document.getElementById('historyTable'));
-    if (renderHistory) renderHistory(true);
+    noParkingMatches.hidden = matchingCount > 0 || tablePaginators.has(parkingTable);
+    tablePaginators.get(parkingTable)?.(resetPage);
   }
 
-  if (historySearch) historySearch.addEventListener('input', filterHistory);
-  if (historyStatus) historyStatus.addEventListener('change', filterHistory);
+  parkingSearch?.addEventListener('input', () => filterParkingSessions());
+  parkingStatus?.addEventListener('change', () => filterParkingSessions());
+
+  const hasNotificationCenter = Boolean(document.querySelector('[data-notification-menu]'));
 
   // Parking countdown timers
   function formatRemainingTime(seconds) {
@@ -188,32 +199,41 @@
     let statusChanged = false;
     document.querySelectorAll('.parking-timer').forEach(function (timer) {
       const secondsLeft = Math.max(0, Number(timer.dataset.expires) - now);
-      const historyRow = timer.closest('#historyTable tr[data-status="active"]');
-      if (secondsLeft === 0 && historyRow) {
-        historyRow.dataset.status = 'completed';
-        historyRow.dataset.search = [historyRow.cells[0].textContent, historyRow.cells[1].textContent,
-          'completed', translate('Completed')].join(' ').toLowerCase();
-        const badge = historyRow.querySelector('.tag');
+      const parkingRow = timer.closest('[data-parking-session][data-status="active"]');
+      if (secondsLeft === 0 && parkingRow) {
+        parkingRow.dataset.status = 'completed';
+        const badge = parkingRow.querySelector('.tag');
         badge.classList.replace('active', 'completed');
         badge.textContent = translate('Completed');
-        const cancelForm = historyRow.querySelector('[data-booking-cancel]');
-        if (cancelForm?.contains(document.activeElement)) historyRow.querySelector('.btn')?.focus();
-        cancelForm?.remove();
+        parkingRow.querySelectorAll('[data-active-parking-action]').forEach(form => {
+          if (form.contains(document.activeElement)) parkingRow.querySelector('.btn')?.focus();
+          form.remove();
+        });
+        parkingRow.querySelector('[data-cancellation-policy]')?.remove();
         timer.nextElementSibling?.remove();
         timer.remove();
         statusChanged = true;
         return;
       }
+
+      const cancel = parkingRow?.querySelector('[data-cancel-deadline]');
+      if (cancel && !cancel.disabled && now >= Number(cancel.dataset.cancelDeadline)) {
+        if (document.activeElement === cancel) parkingRow.querySelector('.btn')?.focus();
+        cancel.disabled = true;
+        cancel.removeAttribute('title');
+        const policy = parkingRow.querySelector('[data-cancellation-policy]');
+        policy.textContent = translate('Cancellation is closed. More than 5 minutes must remain.');
+        policy.classList.remove('validation-sr-only');
+      }
       timer.textContent = formatRemainingTime(secondsLeft);
       timer.classList.toggle('timer-warning', secondsLeft > 0 && secondsLeft <= 300);
       timer.classList.toggle('timer-expired', secondsLeft === 0);
 
-      if (window.MyParkToast && secondsLeft > 0 && secondsLeft <= 600) {
+      if (window.MyParkToast && secondsLeft > 0 && secondsLeft <= 600 && (!hasNotificationCenter || secondsLeft > 300)) {
         const threshold = secondsLeft <= 300 ? '5' : '10';
         if (timer.dataset.toastThreshold !== threshold) {
           timer.dataset.toastThreshold = threshold;
-          const row = timer.closest('tr');
-          const plate = row ? row.cells[1].textContent.trim() : translate('Your vehicle');
+          const plate = parkingRow?.dataset.plate || translate('Your vehicle');
           window.MyParkToast.show(plate + ': your parking session ends in ' + threshold + ' minutes or less.', 'warning', {
             key: 'parking:' + plate + ':' + timer.dataset.expires + ':' + threshold,
             details: true
@@ -227,7 +247,7 @@
           (secondsLeft <= 300 ? translate('Less than 5 minutes remaining') : translate('Time remaining'));
       }
     });
-    if (statusChanged) filterHistory();
+    if (statusChanged) filterParkingSessions(false);
   }
 
   if (document.querySelector('.parking-timer')) {
@@ -277,7 +297,7 @@
     tablePaginators.set(table, showPage);
     showPage();
   });
-  filterHistory();
+  filterParkingSessions();
 
   // Operations table search and status filter
   const operationsSearch = document.getElementById('opsSearch');

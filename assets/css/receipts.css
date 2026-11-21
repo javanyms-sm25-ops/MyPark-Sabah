@@ -4,6 +4,65 @@
   font-size: 1rem;
 }
 
+.receipts-page--parking {
+  max-width: none;
+}
+
+#parking-sessions,
+#receipt-results-title {
+  scroll-margin-top: 7rem;
+}
+
+.parking-session-filters > select {
+  width: auto;
+  max-width: 100%;
+}
+
+.parking-session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.receipts-page .parking-session-actions :is(.btn, button) {
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+}
+
+.receipts-page .parking-session-actions button.danger {
+  background: #b2384d;
+}
+
+.receipts-page .parking-session-actions button.danger:hover {
+  background: #952e40;
+}
+
+.receipts-page .parking-session-actions button[data-cancel-deadline]:disabled {
+  background: var(--light-blue);
+  color: var(--muted-text);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.parking-session-actions .parking-cancellation-rule {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  color: var(--muted-text);
+  font-size: 0.8rem;
+}
+
+.receipts-page .parking-session-actions button.ghost {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--navy);
+}
+
+.receipts-page .parking-session-actions button.ghost:hover {
+  background: var(--light-blue);
+}
+
 .receipts-hero {
   padding: clamp(22px, 5vw, 42px);
   border-radius: 18px;
@@ -51,6 +110,10 @@
   border: 1px solid var(--border);
 }
 
+.receipts-categories a {
+  text-decoration: none;
+}
+
 .receipts-categories a[aria-current="page"],
 .receipts-page :is(button, .btn) {
   background: #143f68;
@@ -60,11 +123,6 @@
 .receipts-page :is(button, .btn):hover {
   background: #205b93;
   color: #fff;
-}
-
-.receipts-categories a[aria-current="page"] {
-  text-decoration: underline;
-  text-underline-offset: .25em;
 }
 
 .receipts-page :focus-visible {
@@ -117,6 +175,43 @@
   overflow-wrap: anywhere;
 }
 
+.receipt-parking-info {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.receipt-parking-details {
+  display: grid;
+  flex: 1 1 340px;
+  grid-template-columns: minmax(0, 1fr) repeat(2, auto);
+  gap: 8px 16px;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.receipt-parking-details dt {
+  color: var(--muted-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.receipt-parking-details dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.receipt-parking-details dd > small {
+  display: block;
+  color: var(--muted-text);
+}
+
 .receipt-row-amount,
 .receipt-total {
   font-weight: 700;
@@ -160,10 +255,6 @@
   margin-top: 20px;
 }
 
-.receipt-email strong {
-  overflow-wrap: anywhere;
-}
-
 .receipt-sr-only {
   position: absolute;
   width: 1px;
@@ -197,16 +288,32 @@
 }
 
 @media print {
+  html:has(.receipt-detail) {
+    color-scheme: light;
+    background: #fff;
+  }
+
   body:has(.receipt-detail) {
+    min-height: 0;
+    overflow: visible;
     background: #fff;
     color: #111;
   }
 
-  body:has(.receipt-detail) > :is(header, footer, .staff-sidebar, .staff-skip),
+  body:has(.receipt-detail) > :is(header, footer, .staff-sidebar, .staff-skip, .staff-backdrop),
   body:has(.receipt-detail) :is(.staff-topbar, .staff-storage-note),
-  .receipt-back,
+  .receipts-page .receipt-back,
   .receipt-actions {
     display: none;
+  }
+
+  body:has(.receipt-detail) .staff-workspace,
+  body:has(.receipt-detail) :is(main, .staff-main) {
+    min-height: 0;
+    max-width: none;
+    width: auto;
+    margin: 0;
+    padding: 0;
   }
 
   .receipt-detail {
@@ -216,9 +323,26 @@
     background: #fff;
     color: #111;
     box-shadow: none;
+    font-size: 10pt;
+    break-inside: avoid;
   }
 
   .receipt-detail :is(h1, .receipt-brand) {
     color: #111;
+  }
+
+  .receipt-detail h1 {
+    font-size: 20pt;
+  }
+
+  .receipt-details {
+    margin: 5mm 0;
+  }
+
+  .receipt-details > div {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.65fr);
+    gap: 4mm;
+    padding: 2mm 0;
+    border-color: #d0d6dd;
   }
 }

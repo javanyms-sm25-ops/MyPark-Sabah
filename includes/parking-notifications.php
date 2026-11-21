@@ -65,6 +65,7 @@ function parking_payment_notice(int $userId, int $amountCents, ?string $location
 function parking_notice_title(array $notice): string {
     return t(match ($notice['type']) {
         'ending' => 'Parking ends soon',
+        'cancelled' => 'Parking cancelled',
         'zone' => 'Paid parking nearby',
         'payment' => 'Payment successful',
     });
@@ -74,6 +75,9 @@ function parking_notice_message(array $notice): string {
     return match ($notice['type']) {
         'ending' => t('Parking for {plate} at {location} ends at {time} MYT.', [
             'plate' => $notice['plate'], 'location' => $notice['location'], 'time' => date('H:i', $notice['expires_at']),
+        ]),
+        'cancelled' => t('Parking for {plate} at {location} was cancelled.', [
+            'plate' => $notice['plate'], 'location' => $notice['location'],
         ]),
         'zone' => t('You are near {location}, where parking costs RM {rate} per hour.', [
             'location' => $notice['location'], 'rate' => number_format($notice['rate'], 2),
@@ -104,7 +108,7 @@ function parking_notice_list(array $items, bool $showLinks = false): string {
             <p><?= e(parking_notice_message($notice)) ?></p>
             <?php if ($showLinks):
                 [$url, $label] = match ($notice['type']) {
-                    'ending' => ['history.php', 'View parking history'],
+                    'ending', 'cancelled' => ['receipts.php?type=parking#parking-sessions', 'View parking sessions'],
                     'zone' => ['parking-details.php?lot_id=' . $notice['lot_id'], 'View parking details'],
                     'payment' => match (true) {
                         isset($notice['location']) => ['receipts.php?type=parking', 'View parking receipts'],

@@ -53,9 +53,14 @@ then sign in as a member, admin or superadmin in the same browser. Open Compound
 and search for the fine number or plate. Payments use demo wallet credit.
 
 Open Receipts to find parking bookings, compound payments and wallet top-ups.
-The date range includes today and the previous 29 days in Malaysia time. Receipt
-details and email drafts require the original account in the same browser. The
-email action opens a draft in your mail app and you can print or save as PDF.
+Parking cards and the Parking tab show session details and let you open tickets,
+check the countdown or switch to an eligible bay type. Drivers can cancel a session
+while more than five minutes remain and receive a notification once it is cancelled.
+The receipt date range
+includes today and the previous 29 days in Malaysia time. View or print receipts
+from the original account in the same browser. Receipt numbers contain the
+transaction date and time in Malaysia, followed by the vehicle plate or receipt
+type. Matching numbers get a short sequence suffix.
 
 PayPal Sandbox top-ups add demo credit. Confirming payment deducts the parking
 fee from the demo wallet and starts parking immediately. Future reservations are
@@ -63,6 +68,21 @@ not supported. Successful parking payments and top-ups appear in Notifications.
 Email OTP/reset delivery, SMS and live support are not connected.
 Photo rotation is a preview; saving keeps the original image.
 Third-party fonts, chatbot and ticket QR library require Internet access.
+
+PayPal Sandbox setup
+In the PayPal Developer Dashboard, open Apps & Credentials, select Sandbox,
+and copy the client ID and secret from the same app. Use Malaysian sandbox
+accounts to test payments in MYR. Enable PHP cURL and create the Git-ignored
+file config/paypal.local.php with the following contents. Replace both
+placeholders with your sandbox app credentials.
+
+<?php
+return [
+    'client_id' => 'YOUR_SANDBOX_CLIENT_ID',
+    'client_secret' => 'YOUR_SANDBOX_CLIENT_SECRET',
+];
+
+Dashboard https://developer.paypal.com/dashboard/applications/sandbox
 
 Super Admin parking availability
 Open admin/ as Super Admin. The panel above Reservation Management uses the same
@@ -152,7 +172,7 @@ Members must save a valid vehicle before review. Admin manual parking follows it
 existing access rules. The app supports immediate stays of 1-24 hours.
 
 Starting parking copies the saved vehicle ID and current plate into the booking.
-History, e-tickets and receipts read that booking-time plate. Changing the
+Parking sessions, e-tickets and receipts read that booking-time plate. Changing the
 dashboard selection affects later bookings. While a vehicle has an active stay,
 its plate cannot be edited and it cannot be removed. Its nickname can be edited.
 End the stay before changing its plate or removing it. Legacy active stays without

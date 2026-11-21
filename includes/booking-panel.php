@@ -137,6 +137,7 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
   <dialog class="parking-review-dialog" id="parkingReview" aria-labelledby="parking-review-heading" open>
     <h2 id="parking-review-heading" tabindex="-1"><?= te('Review your parking session') ?></h2>
     <p><?= te('The parking fee is deducted from your MyPark wallet when you confirm. The times below are estimates in Malaysia time.') ?></p>
+    <p class="hint"><?= te(PARKING_CANCELLATION_POLICY) ?></p>
     <dl class="parking-summary">
       <div><dt><?= te('Location') ?></dt><dd><?= e($review['lot']['name']) ?> · <?= e($review['lot']['city']) ?></dd></div>
       <div><dt><?= te('Parking bay type') ?></dt><dd><?= te(PARKING_BAY_TYPES[$review['bay_type']]) ?></dd></div>

@@ -33,7 +33,7 @@
     body.append(heading, text);
     if (options.details) {
       const link = document.createElement('a');
-      link.href = 'history.php';
+      link.href = 'receipts.php?type=parking#parking-sessions';
       link.textContent = translate('View parking details');
       body.append(link);
     }

@@ -55,7 +55,9 @@ function receipt_add(array &$source, int $userId, string $type, int $amountCents
     $created = receipt_date($source['created_at'], 'Y-m-d H:i');
     if (!$created || $created->getTimestamp() < $oldest || $created->getTimestamp() > time()) return;
 
-    $id = strtoupper(bin2hex(random_bytes(8)));
+    do {
+        $id = strtoupper(bin2hex(random_bytes(8)));
+    } while (isset($_SESSION['demo_receipts'][$userId][$id]));
     $_SESSION['demo_receipts'][$userId][$id] = [
         'id' => $id,
         'type' => $type,
@@ -64,6 +66,30 @@ function receipt_add(array &$source, int $userId, string $type, int $amountCents
         'details' => $details,
     ];
     $source['receipt_id'] = $id;
+}
+
+function receipt_assign_numbers(): void {
+    $used = [];
+    foreach ($_SESSION['demo_receipts'] as $receipts) {
+        foreach (array_column($receipts, 'number') as $number) $used[$number] = true;
+    }
+
+    foreach ($_SESSION['demo_receipts'] as &$receipts) {
+        foreach ($receipts as &$receipt) {
+            if (isset($receipt['number'])) continue;
+
+            $plate = strtoupper(preg_replace('/[^a-z0-9]/i', '', $receipt['details']['Vehicle plate'] ?? ''));
+            $base = date('Ymd-Hi', $receipt['at']) . '-' . ($plate !== '' ? $plate : strtoupper($receipt['type']));
+            $number = $base;
+            for ($sequence = 2; isset($used[$number]); $sequence++) {
+                $number = $base . '-' . sprintf('%02d', $sequence);
+            }
+            $receipt['number'] = $number;
+            $used[$number] = true;
+        }
+        unset($receipt);
+    }
+    unset($receipts);
 }
 
 function receipt_sync(): void {
@@ -118,16 +144,25 @@ function receipt_sync(): void {
         unset($transaction);
     }
     unset($wallet);
+    receipt_assign_numbers();
 }
 
-function receipt_text(array $receipt): string {
-    $lines = [
-        'MyPark Sabah — ' . receipt_title($receipt),
-        'Receipt number: ' . $receipt['id'],
-        'Date: ' . receipt_time($receipt['at']) . ' (Malaysia time)',
-    ];
-    foreach ($receipt['details'] as $label => $value) $lines[] = $label . ': ' . $value;
-    $lines[] = receipt_amount_label($receipt) . ': ' . receipt_money($receipt['amount_cents']);
-    $lines[] = receipt_payment_note($receipt);
-    return implode("\r\n", $lines);
+function receipt_parking_rows(int $userId, array $receipts, ?int $from, int $until): array {
+    $remainingReceipts = array_column($receipts, null, 'id');
+    $rows = [];
+    foreach ($_SESSION['demo_bookings'] as $booking) {
+        if ($booking['user_id'] !== $userId) continue;
+        $at = receipt_date($booking['created_at'], 'Y-m-d H:i')?->getTimestamp() ?? 0;
+        if ($from !== null && ($at < $from || $at >= $until)) continue;
+
+        // Booking numbers can be reused after logout. The receipt ID joins only the original stay.
+        $receiptId = $booking['receipt_id'] ?? '';
+        $rows[] = ['at' => $at, 'booking' => $booking, 'receipt' => $remainingReceipts[$receiptId] ?? null];
+        unset($remainingReceipts[$receiptId]);
+    }
+    foreach ($remainingReceipts as $receipt) {
+        $rows[] = ['at' => $receipt['at'], 'booking' => null, 'receipt' => $receipt];
+    }
+    usort($rows, static fn($a, $b) => $b['at'] <=> $a['at']);
+    return $rows;
 }
