@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/oku-verification.php';
 require_once __DIR__ . '/parking-capacity.php';
+require_once __DIR__ . '/staff-leave.php';
 
 // Operations uses the existing session store. No database or SQL is introduced.
 const OPS_ROLES = ['superadmin' => 'Super Admin', 'admin' => 'Admin', 'staff' => 'Staff', 'user' => 'Member'];
@@ -98,6 +99,7 @@ function ops_snapshot(array $actor): array {
 function ops_mutate(array $actor, array $input): string {
     ops_valid_csrf($input);
     $action = $input['action'] ?? '';
+    if ($action === 'leave_review') return staff_leave_review($actor, $input);
     $id = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT);
     if ($action === 'oku_decide') {
         return oku_decide($actor, $input['submission_id'] ?? '', $input['decision'] ?? '', $input['reason'] ?? '');

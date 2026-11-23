@@ -16,11 +16,9 @@
 .staff-sidebar-bottom { display: grid; gap: 5px; margin-top: auto; padding: 24px 12px 0; overflow-wrap: anywhere; }
 .staff-sidebar-bottom strong { font-size: 13px; font-weight: 500; }
 .staff-sidebar-bottom span { color: #a9bfd5; font-size: 11px; }
-.staff-sidebar-bottom a { display: block; margin-top: 14px; padding: 10px; border: 1px solid #42617f; border-radius: 7px; color: #eaf2fc; text-align: center; font-size: 13px; text-decoration: none; }
-.staff-sidebar-bottom a:hover { background: #1d446c; }
 .staff-workspace { margin-left: 244px; min-width: 0; }
 .staff-portal .staff-topbar { position: sticky; top: 0; z-index: 25; display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 64px; padding: 12px 28px; background: #fff; border-bottom: 1px solid #e0e7ef; box-shadow: none; color: #314b68; font-size: 13px; }
-.staff-context { color: #718298; font-size: 12px; }
+.staff-context { margin-inline-start: auto; color: #718298; font-size: 12px; }
 .staff-portal .staff-main { width: 100%; max-width: 1440px; min-height: calc(100vh - 145px); margin: 0 auto; padding: 28px; }
 .staff-main:focus { outline: none; }
 .staff-page-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
@@ -51,6 +49,12 @@
 .staff-stats small { color: #7d8b9b; font-size: 10px; }
 .staff-card { min-width: 0; max-width: 100%; margin: 0 0 22px; border: 1px solid #dde5ee; border-radius: 12px; background: #fff; box-shadow: 0 3px 14px rgb(18 52 87 / 3%); }
 .staff-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; }
+#leave-requests { scroll-margin-top: 5rem; }
+.staff-leave-form { max-width: 38rem; padding: 0 20px 18px; }
+.staff-leave-form .staff-field-error:empty { margin: 0; }
+.staff-leave-dates { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: 0 12px; }
+.staff-leave-empty { margin: 0; padding: 0 20px 18px; }
+.staff-portal .staff-table.staff-leave-table { min-width: 280px; }
 .staff-text-link { color: #28547f; font-size: 13px; font-weight: 500; }
 .staff-table-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 0 20px 18px; }
 .staff-table-tools input { flex: 1 1 260px; max-width: 350px; }
@@ -151,12 +155,13 @@
   .staff-portal .staff-menu-toggle { display: inline-flex; min-height: 36px; padding: 6px 12px; border: 1px solid #d7e1eb; border-radius: 7px; background: #fff; color: #294968; font-size: 12px; }
   .staff-portal .staff-sidebar-close { display: inline-flex; align-self: flex-end; margin-bottom: 18px; }
   .staff-portal .staff-topbar { padding: 12px 20px; }
-  .staff-context { margin-left: auto; font-size: 11px; }
+  .staff-context { font-size: 11px; }
 }
 @media (max-width: 560px) {
   .staff-portal .staff-main { padding: 20px 14px; }
   .staff-portal .staff-topbar { padding: 10px 14px; min-height: 60px; }
   .staff-context { display: none; }
+  .staff-topbar .profile-nav-menu { margin-inline-start: auto; }
   .staff-page-heading { align-items: flex-start; gap: 10px; }
   .staff-page-heading > div { min-width: 0; }
   .staff-page-heading > button { padding: 6px 10px; min-height: 36px; font-size: 11px; }

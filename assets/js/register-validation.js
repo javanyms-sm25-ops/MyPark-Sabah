@@ -3,6 +3,41 @@
   'use strict';
   const translate = window.MyParkLocale?.text ?? (message => message);
 
+  function guardSubmit(form, button) {
+    const label = button.textContent;
+    form.addEventListener('submit', function (event) {
+      if (button.disabled) event.preventDefault();
+      if (event.defaultPrevented) return;
+      button.disabled = true;
+      button.textContent = translate('Sending verification link…');
+      form.setAttribute('aria-busy', 'true');
+    });
+    window.addEventListener('pageshow', function (event) {
+      if (!event.persisted || !form.hasAttribute('aria-busy')) return;
+      button.disabled = false;
+      button.textContent = label;
+      form.removeAttribute('aria-busy');
+    });
+  }
+
+  const resendForm = document.getElementById('registration-resend');
+  if (resendForm) {
+    const button = resendForm.querySelector('button[type="submit"]');
+    const notice = document.getElementById('registration-resend-status');
+    const deadline = Date.now() + Number(notice.dataset.resendSeconds) * 1000;
+    function updateResend() {
+      const seconds = Math.ceil((deadline - Date.now()) / 1000);
+      notice.hidden = seconds <= 0;
+      button.disabled = seconds > 0;
+      if (seconds > 0) {
+        notice.textContent = translate('You can resend the link in {seconds}s.').replace('{seconds}', seconds);
+        window.setTimeout(updateResend, 1000);
+      }
+    }
+    updateResend();
+    guardSubmit(resendForm, button);
+  }
+
   const form = document.getElementById('registration-form');
   if (!form) return;
   const fields = Object.fromEntries(['name', 'email', 'password', 'confirm'].map(key => [key, form.elements.namedItem(key)]));
@@ -72,5 +107,6 @@
       summary.focus();
     }
   });
+  guardSubmit(form, form.querySelector('button[type="submit"]'));
   updateHints();
 }());

@@ -2,7 +2,7 @@
 require __DIR__ . '/includes/bootstrap.php';
 require_login();
 
-if (me()['role'] === 'superadmin') {
+if (in_array(me()['role'], ['admin', 'superadmin'], true)) {
     header('Location: admin/', true, 303);
     exit;
 }

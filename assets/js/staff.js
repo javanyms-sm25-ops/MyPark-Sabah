@@ -35,7 +35,7 @@
     if (!body.classList.contains('staff-menu-open')) return;
     if (event.key === 'Escape') { event.preventDefault(); setMenu(false); }
     if (event.key === 'Tab') {
-      const focusable = [...sidebar.querySelectorAll('a,button')].filter(n => !n.disabled);
+      const focusable = [...sidebar.querySelectorAll('a[href], button:not([disabled]), select:not([disabled])')];
       const first = focusable[0], last = focusable.at(-1);
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
@@ -363,7 +363,36 @@
     const rows = bookings.map(r => ({ ...r, code: '#' + r.id, date: r.created_at }));
     const scroll = createTable(rows, [['code', translate('Booking ID')], ['plate', 'Vehicle Plate'], ['location', translate('Location')], ['hours', translate('Hours'), true], ['date', translate('Created')]], 'maintenance', translate('No parking records found for this vehicle.')); parkingCard.append(scroll); host.append(parkingCard);
   }
-  if (page === 'dashboard') renderDashboard();
+  if (page === 'dashboard') {
+    renderDashboard();
+    const leaveForm = document.querySelector('.staff-leave-form');
+    if (leaveForm) {
+      const reason = leaveForm.elements.namedItem('reason');
+      const feedback = document.getElementById('leave-reason-error');
+      const submit = leaveForm.querySelector('button[type="submit"]');
+
+      function validateReason(showError) {
+        const value = reason.value.trim();
+        let error = '';
+        if (!value) error = translate('Please enter a reason for your leave request.');
+        else if (Array.from(value).length > reason.maxLength) error = translate('Enter a leave reason of 500 characters or fewer.');
+
+        reason.setCustomValidity(error);
+        submit.disabled = error !== '';
+        const message = showError ? error : '';
+        reason.setAttribute('aria-invalid', String(message !== ''));
+        if (feedback.textContent !== message) feedback.textContent = message;
+      }
+
+      reason.addEventListener('input', () => validateReason(true));
+      reason.addEventListener('blur', () => validateReason(true));
+      reason.addEventListener('invalid', event => {
+        event.preventDefault();
+        validateReason(true);
+      });
+      validateReason(reason.getAttribute('aria-invalid') === 'true');
+    }
+  }
   if (page === 'fines' || page === 'maintenance') {
     const kind = page === 'fines' ? 'fine' : 'maintenance'; table = new RecordTable(document.getElementById('staff-records'), kind);
     const create = document.getElementById('staff-new'); create.addEventListener('click', () => editRecord(kind, null, create));

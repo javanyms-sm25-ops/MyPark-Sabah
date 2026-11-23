@@ -129,45 +129,52 @@
         menuButton.innerHTML = '☰';
       });
     });
-
-    if (profileMenu) {
-      const trigger = profileMenu.querySelector('summary');
-      let openedByHover = false;
-
-      function closeProfileMenu() {
-        openedByHover = false;
-        profileMenu.open = false;
-      }
-
-      profileMenu.addEventListener('pointerenter', event => {
-        if (event.pointerType === 'mouse' && !profileMenu.open) {
-          openedByHover = true;
-          profileMenu.open = true;
-        }
-      });
-      profileMenu.addEventListener('pointerleave', event => {
-        if (event.pointerType === 'mouse' && openedByHover && !profileMenu.contains(document.activeElement)) {
-          closeProfileMenu();
-        }
-      });
-      trigger.addEventListener('click', event => {
-        if (openedByHover && profileMenu.open && event.detail > 0) event.preventDefault();
-        openedByHover = false;
-      });
-      profileMenu.addEventListener('focusout', event => {
-        if (event.relatedTarget && !profileMenu.contains(event.relatedTarget)) closeProfileMenu();
-      });
-      profileMenu.addEventListener('keydown', event => {
-        if (event.key !== 'Escape' || !profileMenu.open) return;
-        event.preventDefault();
-        closeProfileMenu();
-        trigger.focus();
-      });
-      document.addEventListener('pointerdown', event => {
-        if (profileMenu.open && !profileMenu.contains(event.target)) closeProfileMenu();
-      });
-    }
   }
+
+  document.querySelectorAll('[data-profile-nav-menu]').forEach(profileMenu => {
+    const trigger = profileMenu.querySelector('summary');
+    let openedByHover = false;
+    let hoverCloseTimer;
+
+    function closeProfileMenu() {
+      clearTimeout(hoverCloseTimer);
+      openedByHover = false;
+      profileMenu.open = false;
+    }
+
+    profileMenu.addEventListener('pointerenter', event => {
+      if (event.pointerType !== 'mouse') return;
+      clearTimeout(hoverCloseTimer);
+      if (!profileMenu.open) {
+        openedByHover = true;
+        profileMenu.open = true;
+      }
+    });
+    profileMenu.addEventListener('pointerleave', event => {
+      if (event.pointerType === 'mouse' && openedByHover) {
+        hoverCloseTimer = setTimeout(() => {
+          if (!profileMenu.contains(document.activeElement)) closeProfileMenu();
+        }, 180);
+      }
+    });
+    trigger.addEventListener('click', event => {
+      clearTimeout(hoverCloseTimer);
+      if (openedByHover && profileMenu.open && event.detail > 0) event.preventDefault();
+      openedByHover = false;
+    });
+    profileMenu.addEventListener('focusout', event => {
+      if (event.relatedTarget && !profileMenu.contains(event.relatedTarget)) closeProfileMenu();
+    });
+    profileMenu.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || !profileMenu.open) return;
+      event.preventDefault();
+      closeProfileMenu();
+      trigger.focus();
+    });
+    document.addEventListener('pointerdown', event => {
+      if (profileMenu.open && !profileMenu.contains(event.target)) closeProfileMenu();
+    });
+  });
 
   // Confirmation prompts
   document.querySelectorAll('[data-confirm]').forEach(function (button) {
@@ -259,7 +266,7 @@
         cancel.disabled = true;
         cancel.removeAttribute('title');
         const policy = parkingRow.querySelector('[data-cancellation-policy]');
-        policy.textContent = translate('Cancellation is closed. More than 5 minutes must remain.');
+        policy.textContent = translate('The 3-minute cancellation window has closed.');
         policy.classList.remove('validation-sr-only');
       }
       timer.textContent = formatRemainingTime(secondsLeft);

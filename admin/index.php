@@ -5,8 +5,13 @@ require dirname(__DIR__) . '/includes/operations-data.php';
 $isJson = defined('MYPARK_JSON_REQUEST') || ($_GET['format'] ?? '') === 'json';
 $okuReviewAction = in_array($_POST['action'] ?? '', ['oku_decide', 'oku_reviewer_access'], true);
 $okuCapacityAction = ($_POST['action'] ?? '') === 'set_oku_capacity';
-$redirect = $okuReviewAction ? './?oku_status=' . oku_queue_filter($_POST['oku_status'] ?? null) . '#oku-verification'
-    : ($okuCapacityAction ? './#oku-bay-capacity' : './');
+$leaveReviewAction = ($_POST['action'] ?? '') === 'leave_review';
+$redirect = match (true) {
+    $okuReviewAction => './?oku_status=' . oku_queue_filter($_POST['oku_status'] ?? null) . '#oku-verification',
+    $okuCapacityAction => './#oku-bay-capacity',
+    $leaveReviewAction => 'attendance.php',
+    default => './',
+};
 try {
     $actor = ops_actor();
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -23,8 +28,8 @@ try {
     $status = in_array($error->getCode(), [400, 401, 403, 404, 409, 422, 503], true) ? $error->getCode() : 500;
     if ($isJson) ops_json(['error' => $error->getMessage()], $status);
     if ($status === 401) { header('Location: ../pages/login.php'); exit; }
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && (!$okuReviewAction || $status !== 403)) {
-        flash($okuReviewAction || $okuCapacityAction ? $error->getMessage() : 'Operation failed: ' . $error->getMessage());
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($status !== 403 || !($okuReviewAction || $leaveReviewAction))) {
+        flash($okuReviewAction || $okuCapacityAction || $leaveReviewAction ? $error->getMessage() : 'Operation failed: ' . $error->getMessage());
         header('Location: ' . $redirect, true, 303);
         exit;
     }
@@ -36,7 +41,7 @@ try {
 }
 $lots = $_SESSION['demo_lots'];
 $canReviewOku = oku_can_review($actor);
-if ($canReviewOku) header('Cache-Control: private, no-store');
+if ($canReviewOku || $actor['role'] === 'admin') header('Cache-Control: private, no-store');
 $availability = $snapshot['parking_availability'] ?? null;
 if ($availability !== null) {
     $mapsConfigPath = dirname(__DIR__) . '/config/maps.local.php';
@@ -50,11 +55,23 @@ head('Operations');
 <link rel="stylesheet" href="assets/css/operations.css">
 <div class="operations-page">
   <div class="ops-page-heading">
-    <p class="eyebrow">SABAH PARKING OPERATIONS · <?= te(OPS_ROLES[$actor['role']]) ?></p>
-    <h1><?= te('Operations dashboard') ?></h1>
-    <p class="ops-subtitle"><?= te('Manage reservations and member access.') ?></p>
+    <div class="ops-page-intro">
+      <p class="eyebrow">SABAH PARKING OPERATIONS · <?= te(OPS_ROLES[$actor['role']]) ?></p>
+      <h1><?= te('Operations dashboard') ?></h1>
+      <p class="ops-subtitle"><?= te('Manage reservations and member access.') ?></p>
+      <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
+        <a class="btn" href="compound.php"><?= te('Check and pay compounds') ?></a>
+      <?php endif; ?>
+    </div>
     <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
-      <a class="btn" href="compound.php"><?= te('Check and pay compounds') ?></a>
+      <?php $clockTime = new DateTimeImmutable('now', new DateTimeZone('Asia/Kuala_Lumpur')); ?>
+      <div class="ops-clock">
+        <span class="ops-clock__label"><?= te('Malaysia time') ?> · MYT</span>
+        <time data-ops-clock datetime="<?= e($clockTime->format(DATE_ATOM)) ?>">
+          <span class="ops-clock__time"><?= e($clockTime->format('H:i:s')) ?></span>
+          <span class="ops-clock__date"><?= e($clockTime->format('j M Y')) ?></span>
+        </time>
+      </div>
     <?php endif; ?>
   </div>
   <div class="stats">
@@ -138,6 +155,7 @@ head('Operations');
 </div>
 <dialog class="ops-dialog" id="ops-dialog" aria-labelledby="ops-dialog-title"><h2 id="ops-dialog-title"></h2><div data-dialog-body></div><div class="ops-dialog-actions"><button type="button" data-dialog-cancel><?= te('Close') ?></button><button type="button" data-dialog-confirm hidden><?= te('Confirm') ?></button></div></dialog>
 <script type="application/json" id="operations-data"><?= json_encode($snapshot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>
+<?php require dirname(__DIR__) . '/includes/date-range-dialog.php'; ?>
 <script src="assets/js/operations-table.js" defer></script>
 <?php if ($availability !== null): ?><script src="assets/js/parking-availability-map.js" defer></script><?php endif; ?>
 <script src="assets/js/operations.js" defer></script>

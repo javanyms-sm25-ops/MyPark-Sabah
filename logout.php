@@ -18,6 +18,7 @@ $_SESSION = [
     'oku_latest' => $_SESSION['oku_latest'] ?? [],
     'demo_cookie_refreshed_at' => time(),
     'staff_fines' => $_SESSION['staff_fines'] ?? [],
+    'staff_leave_requests' => $_SESSION['staff_leave_requests'] ?? [],
     'staff_counters' => ['fine' => $_SESSION['staff_counters']['fine'] ?? 0, 'maintenance' => 0],
     'staff_audit' => $fineAudit,
 ];
