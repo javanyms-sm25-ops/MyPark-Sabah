@@ -90,7 +90,7 @@ function validate_parking_draft(array $actor, array $draft): array {
             'plate' => $plate,
             'vehicle_id' => $manual ? null : $draft['vehicle_id'],
             'hours' => $hours,
-            'fee' => round($hours * $lot['rate'], 2),
+            'fee' => parking_fee($hours, $bayType),
             'save_vehicle' => false,
         ],
     ];
@@ -148,6 +148,13 @@ function start_parking(array $actor, array $details): int {
     return $bookingId;
 }
 
+const PARKING_REGULAR_NEW_BOOKING = 'To use a regular bay, book a new paid session.';
+
+function parking_requires_new_booking(array $booking, string $bayType): bool {
+    $paidCents = $booking['paid_amount_cents'] ?? round((float)($booking['fee'] ?? 0) * 100);
+    return $bayType === 'regular' && (int)$paidCents === 0;
+}
+
 function change_parking_bay(array $member, int $id, string $bayType): void {
     if ($member['role'] !== 'user') {
         throw new RuntimeException('Only members can change their parking bay type.', 403);
@@ -161,6 +168,9 @@ function change_parking_bay(array $member, int $id, string $bayType): void {
         }
         if (parking_booking_bay_type($booking) === $bayType) {
             throw new RuntimeException('This stay already uses that bay type.', 409);
+        }
+        if (parking_requires_new_booking($booking, $bayType)) {
+            throw new RuntimeException(PARKING_REGULAR_NEW_BOOKING, 409);
         }
         $lot = $lots[$booking['lot_id']] ?? null;
         if ($lot === null) throw new RuntimeException('Parking location unavailable.', 409);

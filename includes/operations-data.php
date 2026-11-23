@@ -171,10 +171,9 @@ function ops_mutate(array $actor, array $input): string {
     if ($action === 'add_lot') {
         if (!in_array($actor['role'], ['admin', 'superadmin'], true)) throw new RuntimeException('Only an administrator can add locations.', 403);
         $name = trim($input['name'] ?? ''); $city = trim($input['city'] ?? ''); $address = trim($input['address'] ?? '');
-        $rate = filter_var($input['rate'] ?? null, FILTER_VALIDATE_FLOAT);
         $capacity = filter_var($input['capacity'] ?? null, FILTER_VALIDATE_INT);
-        if ($name === '' || $city === '' || $address === '' || $rate === false || !is_finite((float)$rate) || $rate < 0.5 || $capacity === false || $capacity < 1) throw new RuntimeException('Enter a location name, city, address, valid rate and capacity.', 422);
-        $_SESSION['demo_lots'][] = ['id' => max(array_column($_SESSION['demo_lots'], 'id') ?: [0]) + 1, 'name' => $name, 'city' => $city, 'address' => $address, 'rate' => $rate, 'capacity' => $capacity, 'lat' => 5.98, 'lng' => 116.07];
+        if ($name === '' || $city === '' || $address === '' || $capacity === false || $capacity < 1) throw new RuntimeException('Enter a location name, city, address and valid capacity.', 422);
+        $_SESSION['demo_lots'][] = ['id' => max(array_column($_SESSION['demo_lots'], 'id') ?: [0]) + 1, 'name' => $name, 'city' => $city, 'address' => $address, 'rate' => PARKING_HOURLY_CENTS / 100, 'capacity' => $capacity, 'lat' => 5.98, 'lng' => 116.07];
         $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
         return 'Parking location added.';
     }

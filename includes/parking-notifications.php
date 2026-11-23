@@ -37,7 +37,7 @@ function parking_alert_zones(): array {
         $radius = PARKING_ALERT_RADII[$id] ?? null;
         $lat = filter_var($lot['lat'] ?? null, FILTER_VALIDATE_FLOAT);
         $lng = filter_var($lot['lng'] ?? null, FILTER_VALIDATE_FLOAT);
-        if ($radius === null || $lat === false || $lng === false || abs($lat) > 90 || abs($lng) > 180 || $lot['rate'] <= 0) continue;
+        if ($radius === null || $lat === false || $lng === false || abs($lat) > 90 || abs($lng) > 180) continue;
         $zones[$id] = ['id' => $id, 'lat' => $lat, 'lng' => $lng, 'radius' => $radius];
     }
     return $zones;
@@ -51,7 +51,7 @@ function parking_zone_notice(int $userId, int $zoneId): void {
     $lots = array_column($_SESSION['demo_lots'], null, 'id');
     $lot = $lots[$zoneId];
     parking_add_notice($userId, [
-        'type' => 'zone', 'location' => $lot['name'], 'lot_id' => $zoneId, 'rate' => $lot['rate'],
+        'type' => 'zone', 'location' => $lot['name'], 'lot_id' => $zoneId,
     ]);
     $_SESSION['parking_zone_notice_at'][$userId][$zoneId] = $now;
 }
@@ -79,8 +79,8 @@ function parking_notice_message(array $notice): string {
         'cancelled' => t('Parking for {plate} at {location} was cancelled.', [
             'plate' => $notice['plate'], 'location' => $notice['location'],
         ]),
-        'zone' => t('You are near {location}, where parking costs RM {rate} per hour.', [
-            'location' => $notice['location'], 'rate' => number_format($notice['rate'], 2),
+        'zone' => t('You are near {location}. {price}', [
+            'location' => $notice['location'], 'price' => parking_price_label(),
         ]),
         'payment' => t(match (true) {
             isset($notice['location']) => 'You paid RM {amount} for parking at {location}.',

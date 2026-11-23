@@ -105,7 +105,7 @@ head('Operations');
   <h2><?= te('Parking locations') ?></h2>
   <div class="lot-grid">
     <?php foreach ($lots as $lot): $capacity = parking_lot_capacity($lot); ?>
-      <article class="card"><h3><?= e($lot['name']) ?></h3><p><?= e($lot['city']) ?> · RM <?= number_format($lot['rate'], 2) ?>/hour · <?= $capacity === null ? te('Capacity unavailable') : te('{count} spaces', ['count' => $capacity]) ?></p></article>
+      <article class="card"><h3><?= e($lot['name']) ?></h3><p><?= e($lot['city']) ?> · <?= e(parking_price_label()) ?> · <?= $capacity === null ? te('Capacity unavailable') : te('{count} spaces', ['count' => $capacity]) ?></p></article>
     <?php endforeach; ?>
   </div>
   <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
@@ -113,7 +113,7 @@ head('Operations');
       <h2><?= te('Add parking location') ?></h2>
       <input type="hidden" name="csrf" value="<?= csrf() ?>"><input type="hidden" name="action" value="add_lot">
       <label><?= te('Name') ?><input name="name" required></label><label><?= te('Sabah city') ?><input name="city" required></label><label><?= te('Address') ?><input name="address" required></label>
-      <label><?= te('RM / hour') ?><input type="number" step="0.5" min="0.5" name="rate" required></label><label><?= te('Spaces') ?><input type="number" min="1" name="capacity" required></label>
+      <label><?= te('Spaces') ?><input type="number" min="1" name="capacity" required></label>
       <button><?= te('Add location') ?></button>
     </form>
     <form method="post" action="admin/" class="card ops-add-location" id="oku-bay-capacity">

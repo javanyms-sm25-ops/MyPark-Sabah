@@ -1,7 +1,8 @@
 <?php
 $selectedLot = array_column($lots, null, 'id')[$draft['lot_id']] ?? null;
 $draftHours = filter_var($draft['hours'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 24]]);
-$durationChoice = in_array($draft['hours'], ['1', '2', '3', '4'], true) ? $draft['hours'] : 'custom';
+$durations = ['1' => '1 hour', '2' => '2 hours', '3' => '3 hours', '4' => '4 hours', '24' => '1 day', 'custom' => 'Custom'];
+$durationChoice = $draftHours !== false && isset($durations[$draftHours]) ? (string)$draftHours : 'custom';
 $manualVehicle = !$customer;
 $bookingContext = parking_resume_fields($draft);
 $manageVehiclesUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $bookingContext) . '#my-vehicles';
@@ -20,14 +21,15 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
     <?= te($bookingError ?: ($errors ? 'Check the highlighted booking details.' : '')) ?>
     <?php if ($bookingError === PARKING_WALLET_INSUFFICIENT): ?><a href="wallet.php"><?= te('Top up wallet') ?></a><?php endif; ?>
   </p>
-  <form method="post" action="parking-details.php" id="bookForm" novalidate<?= $review ? ' inert' : '' ?>>
+  <form method="post" action="parking-details.php" id="bookForm" novalidate<?= $review ? ' inert' : '' ?>
+    data-hourly-cents="<?= e(PARKING_HOURLY_CENTS) ?>" data-daily-cents="<?= e(PARKING_DAILY_CENTS) ?>">
     <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
     <input type="hidden" name="action" value="review_parking">
     <label for="lot_id"><?= te('Location') ?></label>
     <select name="lot_id" id="lot_id" aria-describedby="bookingLocationError" <?= isset($errors['location']) ? 'aria-invalid="true"' : '' ?> required>
       <option value=""><?= te('Select a location') ?></option>
       <?php foreach ($lots as $lot): ?>
-        <option value="<?= e($lot['id']) ?>" data-rate="<?= e($lot['rate']) ?>" <?= $draft['lot_id'] === (string)$lot['id'] ? 'selected' : '' ?>><?= e($lot['name']) ?></option>
+        <option value="<?= e($lot['id']) ?>" <?= $draft['lot_id'] === (string)$lot['id'] ? 'selected' : '' ?>><?= e($lot['name']) ?></option>
       <?php endforeach; ?>
     </select>
     <p class="booking-error" id="bookingLocationError" <?= !isset($errors['location']) ? 'hidden' : '' ?>><?= te($errors['location'] ?? '') ?></p>
@@ -37,7 +39,7 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
       <select id="bay_type" name="bay_type" aria-describedby="bookingBayError<?= oku_is_approved($userId) ? '' : ' booking-oku-help' ?>"
         <?= isset($errors['bay_type']) ? 'aria-invalid="true"' : '' ?>>
         <?php foreach (PARKING_BAY_TYPES as $key => $label): ?>
-          <option value="<?= e($key) ?>" <?= ($draft['bay_type'] ?? 'regular') === $key ? 'selected' : '' ?>><?= te($label) ?></option>
+          <option value="<?= e($key) ?>" <?= ($draft['bay_type'] ?? 'regular') === $key ? 'selected' : '' ?>><?= te($label) ?><?= $key === 'oku' ? ' · ' . te('Free') : '' ?></option>
         <?php endforeach; ?>
       </select>
     <?php endif; ?>
@@ -86,7 +88,7 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
     <fieldset class="duration-picker" id="durationPicker" hidden>
       <legend><?= te('Parking duration') ?></legend>
       <div class="duration-options">
-        <?php foreach (['1' => '1 hour', '2' => '2 hours', '3' => '3 hours', '4' => '4 hours', 'custom' => 'Custom'] as $value => $label): ?>
+        <?php foreach ($durations as $value => $label): ?>
           <label class="duration-option">
             <input type="radio" name="duration_choice" value="<?= e($value) ?>" <?= $durationChoice === (string)$value ? 'checked' : '' ?> aria-controls="customDuration"><span><?= te($label) ?></span>
           </label>
@@ -99,13 +101,14 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
       <small id="durationHint"><?= te('Choose a whole number from 1 to 24 hours.') ?></small>
     </div>
     <p class="booking-error" id="bookingHoursError" <?= !isset($errors['hours']) ? 'hidden' : '' ?>><?= te($errors['hours'] ?? '') ?></p>
+    <p class="hint"><?= e(parking_price_label()) ?></p>
     <p><?= te('Estimated fee') ?>: <b id="fee" aria-live="polite"><?php
       if ($selectedLot === null) {
           echo te('Select a location to calculate the fee');
       } elseif ($draftHours === false) {
           echo te('Enter a valid duration to calculate the fee');
       } else {
-          echo 'RM ' . e(number_format(round($selectedLot['rate'] * $draftHours, 2), 2));
+          echo 'RM ' . e(number_format(parking_fee($draftHours, $draft['bay_type'] ?? 'regular'), 2));
       }
     ?></b></p>
     <button type="submit"<?= $review ? ' disabled' : '' ?>><?= te('Submit') ?></button>
@@ -170,7 +173,9 @@ $okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $book
 ?>
   <dialog class="parking-review-dialog" id="parkingReview" aria-labelledby="parking-review-heading" open>
     <h2 id="parking-review-heading" tabindex="-1"><?= te('Review your parking session') ?></h2>
-    <p><?= te('The parking fee is deducted from your MyPark wallet when you confirm. The times below are estimates in Malaysia time.') ?></p>
+    <p><?= te($review['fee'] > 0
+      ? 'The parking fee is deducted from your MyPark wallet when you confirm. The times below are estimates in Malaysia time.'
+      : 'OKU parking is free. The times below are estimates in Malaysia time.') ?></p>
     <p class="hint"><?= te(PARKING_CANCELLATION_POLICY) ?></p>
     <dl class="parking-summary">
       <div><dt><?= te('Location') ?></dt><dd><?= e($review['lot']['name']) ?> · <?= e($review['lot']['city']) ?></dd></div>

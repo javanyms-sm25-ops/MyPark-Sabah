@@ -55,13 +55,13 @@ head('Find parking');
             <h3><?= e($lot['name']) ?></h3>
             <p class="find-parking-address"><?= e($lot['address']) ?> · <?= e($lot['city']) ?></p>
             <?php if ($hasPosition): ?><p class="find-parking-distance" data-parking-distance hidden></p><?php endif; ?>
-            <p class="find-parking-rate">RM <?= number_format($lot['rate'], 2) ?> <?= te('/ hour') ?></p>
+            <p class="find-parking-rate"><?= e(parking_price_label()) ?></p>
             <?php if ($bays['regular']['capacity'] === null): ?>
               <p><?= te('Capacity unavailable') ?></p>
             <?php else: ?>
               <p><?= te('Regular bays available: {count}', ['count' => $bays['regular']['available']]) ?>
               <?php if ($bays['oku']['capacity'] > 0): ?>
-                · <?= te('OKU bays available: {count}', ['count' => $bays['oku']['available']]) ?>
+                · <?= te('OKU bays available: {count}', ['count' => $bays['oku']['available']]) ?> (<?= te('Free') ?>)
               <?php endif; ?>
               </p>
             <?php endif; ?>

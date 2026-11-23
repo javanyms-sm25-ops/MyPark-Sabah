@@ -179,20 +179,16 @@
   // Parking location filters
   const lotSearch = document.getElementById('lotSearch');
   const cityFilter = document.getElementById('cityFilter');
-  const priceFilter = document.getElementById('priceFilter');
 
   function filterLocations() {
     document.querySelectorAll('.lot-card').forEach(function (card) {
       const matchesName = !lotSearch || card.dataset.name.includes(lotSearch.value.toLowerCase());
       const matchesCity = !cityFilter || !cityFilter.value || card.dataset.city === cityFilter.value;
-      const rate = Number(card.dataset.rate);
-      const matchesPrice = !priceFilter || !priceFilter.value ||
-        (priceFilter.value === 'low' ? rate < 2.5 : rate >= 2.5);
-      card.hidden = !(matchesName && matchesCity && matchesPrice);
+      card.hidden = !(matchesName && matchesCity);
     });
   }
 
-  [lotSearch, cityFilter, priceFilter].forEach(function (control) {
+  [lotSearch, cityFilter].forEach(function (control) {
     if (control) control.addEventListener(control.tagName === 'INPUT' ? 'input' : 'change', filterLocations);
   });
 

@@ -55,6 +55,8 @@
   const durationPicker = document.getElementById('durationPicker');
   const customDuration = document.getElementById('customDuration');
   const fee = document.getElementById('fee');
+  const hourlyCents = Number(form.dataset.hourlyCents);
+  const dailyCents = Number(form.dataset.dailyCents);
   const summaryError = document.getElementById('bookingError');
   const manage = document.getElementById('manageBookingVehicles');
   const profileLink = document.getElementById('manageVehiclesInProfile');
@@ -74,12 +76,14 @@
   }
 
   function updateParkingContext() {
-    const rate = location.selectedOptions[0]?.dataset.rate;
     let estimate = translate('Select a location to calculate the fee');
-    if (rate !== undefined) {
-      estimate = validHours()
-        ? 'RM ' + (Number(rate) * hours.valueAsNumber).toFixed(2)
-        : translate('Enter a valid duration to calculate the fee');
+    if (location.value) {
+      if (validHours()) {
+        const feeCents = bayType?.value === 'oku' ? 0 : Math.min(hours.valueAsNumber * hourlyCents, dailyCents);
+        estimate = 'RM ' + (feeCents / 100).toFixed(2);
+      } else {
+        estimate = translate('Enter a valid duration to calculate the fee');
+      }
     }
     if (fee.textContent.trim() !== estimate) fee.textContent = estimate;
 
@@ -114,7 +118,10 @@
     setError('location', location);
     updateParkingContext();
   });
-  bayType?.addEventListener('change', () => setError('bay', bayType));
+  bayType?.addEventListener('change', () => {
+    setError('bay', bayType);
+    updateParkingContext();
+  });
 
   let customHours = hours.value;
   let usingCustom = false;

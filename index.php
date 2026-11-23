@@ -45,20 +45,20 @@ head('Home');
         </div>
       </div>
       <div class="home-hero__price-row">
-        <span><?= te('From') ?></span>
-        <strong>RM 3.00/hr</strong>
+        <span><?= te('Regular parking') ?></span>
+        <strong><?= te('RM {amount}/hour', ['amount' => number_format(PARKING_HOURLY_CENTS / 100, 2)]) ?></strong>
       </div>
     </div>
 
     <div class="home-hero__panel home-hero__panel--secondary">
-      <p><?= te('Tonight') ?></p>
+      <p><?= te('Parking rates') ?></p>
       <div class="home-hero__mini-grid">
-        <span><?= te('Premium') ?></span>
-        <strong>RM 18</strong>
+        <span><?= te('Daily maximum') ?></span>
+        <strong>RM <?= e(number_format(PARKING_DAILY_CENTS / 100, 2)) ?></strong>
       </div>
       <div class="home-hero__mini-grid">
-        <span><?= te('Covered') ?></span>
-        <strong>RM 12</strong>
+        <span><?= te('OKU parking') ?></span>
+        <strong><?= te('Free') ?></strong>
       </div>
     </div>
   </div>
@@ -101,7 +101,7 @@ head('Home');
     <div class="card step-card">
       <span>1</span>
       <h3><?= te('Choose a location') ?></h3>
-      <p><?= te('Select a parking zone near your destination and compare rates instantly.') ?></p>
+      <p><?= te('Select a parking zone near your destination and check availability.') ?></p>
     </div>
 
     <div class="card step-card">

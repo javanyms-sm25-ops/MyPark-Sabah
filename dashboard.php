@@ -114,27 +114,22 @@ head('Sabah Parking');
       <option><?= e($city) ?></option>
     <?php endforeach; ?>
   </select>
-  <select id="priceFilter">
-    <option value=""><?= te('Any hourly rate') ?></option>
-    <option value="low"><?= te('Under RM 2.50') ?></option>
-    <option value="high"><?= te('RM 2.50 and above') ?></option>
-  </select>
 </section>
 
 <h2 id="locations"><?= te('Popular parking locations') ?></h2>
 <section class="lot-grid">
   <?php foreach ($lots as $lot): ?>
-    <article class="card lot-card" data-city="<?= e($lot['city']) ?>" data-name="<?= e(strtolower($lot['name'] . ' ' . $lot['city'])) ?>" data-rate="<?= $lot['rate'] ?>">
+    <article class="card lot-card" data-city="<?= e($lot['city']) ?>" data-name="<?= e(strtolower($lot['name'] . ' ' . $lot['city'])) ?>">
       <div class="lot-cover">📍 <span><?= te('Sabah, Malaysia') ?></span><button type="button" class="heart" data-wish="<?= $lot['id'] ?>">♡</button></div>
       <h3><?= e($lot['name']) ?></h3>
       <p><?= e($lot['address']) ?> · <?= e($lot['city']) ?></p>
-      <p class="rate">RM <?= number_format($lot['rate'], 2) ?><small> <?= te('/ hour') ?></small></p>
+      <p class="rate"><?= e(parking_price_label()) ?></p>
       <?php $bays = parking_bay_counts($lot, $occupiedByLot[$lot['id']] ?? []); ?>
       <?php if ($bays['regular']['capacity'] === null): ?>
         <p><?= te('Capacity unavailable') ?></p>
       <?php else: ?>
         <p><?= te('Regular bays available: {count}', ['count' => $bays['regular']['available']]) ?>
-          <?php if ($bays['oku']['capacity'] > 0): ?> · <?= te('OKU bays available: {count}', ['count' => $bays['oku']['available']]) ?><?php endif; ?>
+          <?php if ($bays['oku']['capacity'] > 0): ?> · <?= te('OKU bays available: {count}', ['count' => $bays['oku']['available']]) ?> (<?= te('Free') ?>)<?php endif; ?>
         </p>
       <?php endif; ?>
       <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $lot['lat'] ?>,<?= $lot['lng'] ?>" target="_blank" rel="noopener"><?= te('View map') ?></a>
