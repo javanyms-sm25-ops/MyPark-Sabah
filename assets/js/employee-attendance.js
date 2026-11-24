@@ -1,4 +1,8 @@
 (() => {
+  document.getElementById('attendance-clear-filters')?.addEventListener('submit', () => {
+    document.querySelector('#attendance-report form[data-date-range]').reset();
+  });
+
   const getLocation = () => new Promise((resolve) => {
     let finished = false;
     const finish = (status, coords) => {

@@ -175,7 +175,16 @@ function ops_mutate(array $actor, array $input): string {
         $name = trim($input['name'] ?? ''); $city = trim($input['city'] ?? ''); $address = trim($input['address'] ?? '');
         $capacity = filter_var($input['capacity'] ?? null, FILTER_VALIDATE_INT);
         if ($name === '' || $city === '' || $address === '' || $capacity === false || $capacity < 1) throw new RuntimeException('Enter a location name, city, address and valid capacity.', 422);
-        $_SESSION['demo_lots'][] = ['id' => max(array_column($_SESSION['demo_lots'], 'id') ?: [0]) + 1, 'name' => $name, 'city' => $city, 'address' => $address, 'rate' => PARKING_HOURLY_CENTS / 100, 'capacity' => $capacity, 'lat' => 5.98, 'lng' => 116.07];
+        $lat = filter_var($input['lat'] ?? null, FILTER_VALIDATE_FLOAT);
+        $lng = filter_var($input['lng'] ?? null, FILTER_VALIDATE_FLOAT);
+        if ($lat === false || $lng === false || abs($lat) > 90 || abs($lng) > 180) {
+            throw new RuntimeException('Choose a point on the map or enter valid coordinates.', 422);
+        }
+        $_SESSION['demo_lots'][] = [
+            'id' => max(array_column($_SESSION['demo_lots'], 'id') ?: [0]) + 1,
+            'name' => $name, 'city' => $city, 'address' => $address,
+            'rate' => PARKING_HOURLY_CENTS / 100, 'capacity' => $capacity, 'lat' => $lat, 'lng' => $lng,
+        ];
         $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
         return 'Parking location added.';
     }

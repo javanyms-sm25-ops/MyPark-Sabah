@@ -122,6 +122,10 @@ Google setup: https://developers.google.com/maps/documentation/javascript/get-ap
 The location list works without the key. Locations need valid lat/lng values
 to appear as map markers.
 
+Admin and Super Admin can open Add parking location from Parking locations in
+Operations. Click the map to set the pin, or enter its coordinates directly.
+Saved locations appear in Find parking for members using the same demo browser.
+
 OKU Parking Verification (demo)
 Use fictional proof and the demo accounts in the same browser. A member
 opens OKU Parking Verification from the Profile menu or the Profile status card.

@@ -148,6 +148,37 @@
 .operations-page .ops-add-location { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; align-items: end; }
 .ops-add-location h2 { grid-column: 1 / -1; margin: 0; font-size: 18px; }
 .ops-add-location label { margin: 0; }
+
+#parking-locations { scroll-margin-top: 6rem; }
+.ops-location-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.ops-location-heading h2, .ops-location-form h2 { margin: 0; }
+.ops-location-form {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: start;
+  gap: 20px 28px;
+}
+.ops-location-fields, .ops-location-coordinates { display: grid; gap: 14px; }
+.ops-location-coordinates { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ops-location-form label { margin: 0; }
+.ops-location-map {
+  height: clamp(280px, 46vh, 480px);
+  margin: 12px 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ops-location-submit { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+@media (max-width: 720px) {
+  .ops-location-form { grid-template-columns: minmax(0, 1fr); }
+}
 .ops-reports h2 { margin: 0 0 14px; }
 .ops-panel [hidden], .ops-dialog [hidden] { display: none; }
 .ops-availability-heading { justify-content: space-between; }

@@ -127,20 +127,20 @@ head('Operations');
     <?php foreach ($snapshot['accounts'] as $account): ?><tr><td><?= e($account['name']) ?></td><td><?= e($account['email']) ?></td><td><?= te($account['role_label']) ?></td><td><?= te($account['status']) ?></td></tr><?php endforeach; ?>
     </tbody></table></div>
   </noscript>
-  <h2><?= te('Parking locations') ?></h2>
-  <div class="lot-grid">
-    <?php foreach ($lots as $lot): $capacity = parking_lot_capacity($lot); ?>
-      <article class="card"><h3><?= e($lot['name']) ?></h3><p><?= e($lot['city']) ?> · <?= e(parking_price_label()) ?> · <?= $capacity === null ? te('Capacity unavailable') : te('{count} spaces', ['count' => $capacity]) ?></p></article>
-    <?php endforeach; ?>
-  </div>
+  <section id="parking-locations" aria-labelledby="parking-locations-heading">
+    <div class="ops-location-heading">
+      <h2 id="parking-locations-heading"><?= te('Parking locations') ?></h2>
+      <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
+        <a href="admin/add-parking-location.php" class="btn"><?= te('Add parking location') ?></a>
+      <?php endif; ?>
+    </div>
+    <div class="lot-grid">
+      <?php foreach ($lots as $lot): $capacity = parking_lot_capacity($lot); ?>
+        <article class="card"><h3><?= e($lot['name']) ?></h3><p><?= e($lot['city']) ?> · <?= e(parking_price_label()) ?> · <?= $capacity === null ? te('Capacity unavailable') : te('{count} spaces', ['count' => $capacity]) ?></p></article>
+      <?php endforeach; ?>
+    </div>
+  </section>
   <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
-    <form method="post" class="card ops-add-location">
-      <h2><?= te('Add parking location') ?></h2>
-      <input type="hidden" name="csrf" value="<?= csrf() ?>"><input type="hidden" name="action" value="add_lot">
-      <label><?= te('Name') ?><input name="name" required></label><label><?= te('Sabah city') ?><input name="city" required></label><label><?= te('Address') ?><input name="address" required></label>
-      <label><?= te('Spaces') ?><input type="number" min="1" name="capacity" required></label>
-      <button><?= te('Add location') ?></button>
-    </form>
     <form method="post" action="admin/" class="card ops-add-location" id="oku-bay-capacity">
       <h2><?= te('Set OKU bay allocation') ?></h2>
       <p class="hint ops-oku-capacity-hint"><?= te('OKU bays are reserved within the location’s existing total capacity.') ?></p>

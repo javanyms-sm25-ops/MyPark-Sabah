@@ -93,6 +93,14 @@
 }
 .attendance-controls textarea { min-height: 5rem; resize: vertical; }
 .employee-attendance :is(button, .btn) { min-height: 44px; }
+.employee-attendance .attendance-clear {
+  padding: 0;
+  background: transparent;
+  color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+  transform: none;
+}
 .employee-attendance button:disabled { opacity: .65; cursor: wait; }
 .employee-attendance .attendance-secondary {
   background: var(--card);

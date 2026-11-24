@@ -5,14 +5,15 @@ const ATTENDANCE_REPORT_STATUSES = ['scheduled', 'leave', 'on_time', 'late', 'ch
 function attendance_report(PDO $db, array $actor, array $locations, array $staff, array $query, int $now): array {
     $today = date('Y-m-d', $now);
     $filters = [];
-    foreach (['from' => $today, 'to' => $today, 'employee' => '', 'location' => '', 'status' => '', 'search' => ''] as $field => $default) {
-        $value = $query[$field] ?? $default;
+    foreach (['from', 'to', 'employee', 'location', 'status', 'search'] as $field) {
+        $value = $query[$field] ?? '';
         if (!is_string($value) || strlen($value) > 320) throw new RuntimeException('Invalid attendance filter.', 422);
         $filters[$field] = trim($value);
     }
     ['from' => $from, 'to' => $to, 'employee' => $employee, 'location' => $location, 'status' => $status, 'search' => $search] = $filters;
-    if (!attendance_date($from) || !attendance_date($to) || $from > $to || strtotime($to) > strtotime($from . ' +89 days')) {
-        throw new RuntimeException('Choose a valid reporting period of up to 90 days.', 422);
+    if ($from === '' && $to === '') $from = $to = $today;
+    if (!attendance_date($from) || !attendance_date($to) || $from > $to) {
+        throw new RuntimeException('Choose a valid start date and end date.', 422);
     }
     if ($location !== '' && !isset($locations[$location])) throw new RuntimeException('You do not have access to that parking location.', 403);
     if ($employee !== '' && !isset($staff[$employee])) throw new RuntimeException('Choose a valid employee.', 422);

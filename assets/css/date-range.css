@@ -42,6 +42,7 @@
 }
 
 .date-range-picker::backdrop { background: rgb(13 25 44 / 52%); }
+.date-range-picker [hidden] { display: none; }
 .date-range-picker h2 { margin-top: 0; }
 .date-range-selection { margin: 0; font-size: 0.9rem; font-weight: 600; }
 .date-range-instruction { margin: 4px 0 14px; color: var(--muted-text); font-size: 0.82rem; }
@@ -54,8 +55,55 @@
   text-align: center;
 }
 
-.date-range-navigation h3 { margin: 0; font-size: 1rem; }
 .date-range-navigation button { min-height: 40px; padding: 0; font-size: 1.4rem; }
+.date-range-period {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+}
+.date-range-period button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 8px;
+  color: var(--text);
+  background: transparent;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.date-range-period button::after {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: translateY(-1px) rotate(45deg);
+}
+.date-range-period button:hover { background: var(--light-blue); transform: none; }
+
+.date-range-year-navigation { margin-bottom: 8px; }
+.date-range-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.date-range-choices button {
+  min-height: 44px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-weight: 500;
+}
+.date-range-choices button:hover:not(:disabled, [aria-current]) { background: var(--light-blue); transform: none; }
+.date-range-choices button[aria-current="true"] {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--button-text, #fff);
+  transform: none;
+}
 
 .date-range-week,
 .date-range-days {
@@ -71,7 +119,7 @@
   font-size: 0.72rem;
 }
 
-.date-range-picker :is(.date-range-day, [data-calendar-prev], [data-calendar-next], .date-range-cancel) {
+.date-range-picker :is(.date-range-day, .date-range-navigation > button, .date-range-cancel) {
   background: transparent;
   color: var(--text);
   transform: none;
@@ -109,7 +157,7 @@
 }
 
 .date-range-day:not(.is-in-range, :disabled):hover span,
-.date-range-picker :is([data-calendar-prev], [data-calendar-next], .date-range-cancel):not(:disabled):hover {
+.date-range-picker :is(.date-range-navigation > button, .date-range-cancel):not(:disabled):hover {
   background: var(--light-blue);
 }
 

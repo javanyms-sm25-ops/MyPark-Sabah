@@ -97,10 +97,19 @@ head('Employee Attendance');
           <?php foreach ($summary as $label => $count): ?><div><dt><?= te($label) ?></dt><dd><?= $count ?></dd></div><?php endforeach; ?>
         </dl>
       <?php endif; ?>
-      <form method="get" action="admin/employee-attendance.php#attendance-report" class="attendance-controls">
+      <form id="attendance-clear-filters" method="get" action="admin/employee-attendance.php#attendance-report" hidden>
+        <input type="hidden" name="from" value="">
+        <input type="hidden" name="to" value="">
+      </form>
+      <form method="get" action="admin/employee-attendance.php#attendance-report" class="attendance-controls"
+            data-date-range data-date-range-require-both>
         <div class="attendance-fields">
-          <label><?= te('Start Date') ?><input type="date" name="from" value="<?= e($filters['from']) ?>" required></label>
-          <label><?= te('End Date') ?><input type="date" name="to" value="<?= e($filters['to']) ?>" required></label>
+          <label for="attendance-report-from"><?= te('Start Date') ?>
+            <input type="date" name="from" id="attendance-report-from" value="<?= e($filters['from']) ?>" aria-describedby="attendance-report-date-help" data-date-range-start>
+          </label>
+          <label for="attendance-report-to"><?= te('End Date') ?>
+            <input type="date" name="to" id="attendance-report-to" value="<?= e($filters['to']) ?>" aria-describedby="attendance-report-date-help" data-date-range-end>
+          </label>
           <label><?= te('Search by name or staff ID') ?><input type="search" name="search" maxlength="80" value="<?= e($filters['search']) ?>"></label>
           <label><?= te('Employee') ?><select name="employee"><option value=""><?= te('All employees') ?></option>
             <?php foreach ($staff as $account): ?><option value="<?= $account['id'] ?>" <?= (string)$account['id'] === $filters['employee'] ? 'selected' : '' ?>><?= e($account['name'] . ' · ' . attendance_staff_id($account['id'])) ?></option><?php endforeach; ?>
@@ -112,8 +121,11 @@ head('Employee Attendance');
             <?php foreach (ATTENDANCE_REPORT_STATUSES as $status): ?><option value="<?= e($status) ?>" <?= $status === $filters['status'] ? 'selected' : '' ?>><?= te(ATTENDANCE_LABELS[$status]) ?></option><?php endforeach; ?>
           </select></label>
         </div>
-        <div class="attendance-actions"><button class="btn"><?= te('Apply filters') ?></button><a href="admin/employee-attendance.php#attendance-report"><?= te('Clear filters') ?></a></div>
-        <small><?= te('Choose up to 90 calendar days. Times shown are Malaysia time (MYT).') ?></small>
+        <div class="attendance-actions">
+          <button type="submit" class="btn" data-date-range-submit="visible"><?= te('Apply filters') ?></button>
+          <button type="submit" form="attendance-clear-filters" class="attendance-clear"><?= te('Clear filters') ?></button>
+        </div>
+        <small id="attendance-report-date-help"><?= te('Leave both dates blank to view today’s report.') ?> <?= te('Times shown are Malaysia time (MYT).') ?></small>
       </form>
       <?php if ($rows): ?>
         <div class="attendance-table" tabindex="0" role="region" aria-label="<?= te('Attendance Report') ?>"><table>
@@ -165,5 +177,6 @@ head('Employee Attendance');
     <?php if ($super): require dirname(__DIR__) . '/includes/attendance-settings.php'; endif; ?>
   <?php endif; ?>
 </div>
+<?php if ($ready) require dirname(__DIR__) . '/includes/date-range-dialog.php'; ?>
 <script src="assets/js/employee-attendance.js" defer></script>
 <?php foot(false); ?>

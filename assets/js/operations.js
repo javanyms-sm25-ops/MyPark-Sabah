@@ -95,8 +95,8 @@
     }
     changed() { clearTimeout(this.debounce); this.state.page = 1; this.render(); }
     build() {
-      this.host.replaceChildren();
       const toolbar = el('div', 'ops-toolbar'), searchWrap = el('div', 'ops-search');
+      this.host.replaceChildren(toolbar);
       this.search = el('input'); this.search.type = 'search'; this.search.placeholder = this.kind === 'accounts' ? translate('Search name or email') : translate('Search member, plate or location'); this.search.setAttribute('aria-label', this.search.placeholder);
       this.search.addEventListener('input', () => { this.state.q = this.search.value; clearTimeout(this.debounce); this.debounce = setTimeout(() => this.changed(), 300); });
       this.clearSearch = btn(translate('Clear'), () => { this.state.q = ''; this.search.value = ''; this.changed(); this.search.focus(); }, 'ops-search-clear');
@@ -128,8 +128,8 @@
           field.append(label, input);
           this.dateGroup.append(field);
         });
-        this.syncDateRange = window.MyParkDateRange?.enhance(this.filters.from, this.filters.to, updateDates);
         toolbar.append(this.dateGroup);
+        this.syncDateRange = window.MyParkDateRange?.enhance(this.filters.from, this.filters.to, updateDates);
       }
       const tools = el('div', 'ops-tools'); this.refresh = btn(translate('Refresh'), () => refresh(this));
       const menu = el('details', 'ops-columns'), summary = el('summary', '', translate('Columns')), choices = el('div', 'ops-column-menu'); menu.append(summary);
@@ -154,7 +154,7 @@
       [10, 25, 50].forEach(n => size.add(new Option(String(n), String(n)))); size.value = String(this.state.size);
       size.addEventListener('change', () => { this.state.size = Number(size.value); this.save(); this.changed(); }); label.append(size);
       this.pager = el('nav', 'ops-pager'); this.pager.setAttribute('aria-label', this.heading + ' pages'); footer.append(this.counter, label, this.pager);
-      this.host.append(toolbar, tools, this.tags, this.notice, this.loading, this.scroll, footer);
+      this.host.append(tools, this.tags, this.notice, this.loading, this.scroll, footer);
     }
     updateOptions() {
       const values = this.kind === 'accounts'
