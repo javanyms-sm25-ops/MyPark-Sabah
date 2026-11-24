@@ -5,10 +5,13 @@ function staff_head(string $title): void {
     try { $actor = staff_actor(); }
     catch (RuntimeException $error) { http_response_code($error->getCode()); exit(e($error->getMessage())); }
     $profile = basename($_SERVER['SCRIPT_NAME'] ?? '') === 'profile.php';
-    $receipts = basename($_SERVER['SCRIPT_NAME'] ?? '') === 'receipts.php';
-    $page = $profile ? 'profile' : ($receipts ? 'receipts' : ($_GET['page'] ?? 'dashboard'));
+    $page = match (basename($_SERVER['SCRIPT_NAME'] ?? '')) {
+        'profile.php' => 'profile', 'receipts.php' => 'receipts', 'staff-attendance.php' => 'attendance',
+        default => is_string($_GET['page'] ?? null) ? $_GET['page'] : 'dashboard',
+    };
     $links = ['dashboard' => ['Dashboard', 'staff.php'], 'fines' => ['Fine Management', 'staff.php?page=fines'],
         'vehicles' => ['Vehicle Lookup', 'staff.php?page=vehicles'], 'maintenance' => ['Parking Maintenance', 'staff.php?page=maintenance'],
+        'attendance' => ['My Attendance', 'staff-attendance.php'],
         'receipts' => ['Receipts', 'receipts.php'], 'profile' => ['My Profile', 'profile.php']];
     $message = flash();
     header('Content-Language: ' . current_language());

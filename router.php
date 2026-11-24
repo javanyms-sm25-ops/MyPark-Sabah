@@ -24,6 +24,7 @@ $pages = [
     'dashboard.php', 'find_parking.php', 'parking-details.php', 'parking.php', 'history.php', 'profile.php', 'oku-verification.php', 'support.php', 'ticket.php', 'notifications.php',
     'wallet.php', 'checkout.php', 'compound.php', 'receipts.php', 'staff.php', 'admin/index.php', 'admin/attendance.php', 'api/availability.php',
     'api/export.php', 'api/operations.php', 'api/staff.php', 'api/oku-proof.php', 'api/paypal.php', 'api/vehicles.php', 'api/notifications.php',
+    'staff-attendance.php', 'admin/employee-attendance.php', 'api/attendance-photo.php',
 ];
 if (in_array($page, $pages, true)) {
     $_SERVER['SCRIPT_NAME'] = '/' . $page;

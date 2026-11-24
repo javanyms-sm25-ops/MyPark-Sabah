@@ -1,0 +1,142 @@
+.employee-attendance {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+.employee-attendance h1,
+.employee-attendance h2,
+.employee-attendance h3,
+.employee-attendance p {
+  margin: 0;
+}
+.employee-attendance p + p { margin-top: .5rem; }
+.employee-attendance .staff-card,
+.operations-page.employee-attendance .attendance-panel {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  margin: 0;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border-color: var(--border);
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.operations-page.employee-attendance .attendance-panel h2 { color: var(--text); }
+.operations-page.employee-attendance details.attendance-panel:not([open]) { display: block; }
+.employee-attendance details:not([open]) { display: block; }
+.employee-attendance details summary {
+  color: var(--navy);
+  font-weight: 600;
+  padding: .35rem 0;
+  cursor: pointer;
+}
+.employee-attendance details[open] > summary { margin-bottom: .5rem; }
+.employee-attendance [hidden] { display: none !important; }
+.employee-attendance :focus-visible {
+  outline: 3px solid var(--navy);
+  outline-offset: 4px;
+}
+.attendance-heading,
+.attendance-actions,
+.attendance-grant {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.attendance-actions { justify-content: flex-start; }
+.attendance-heading > div { min-width: 0; }
+.attendance-facts,
+.attendance-fields,
+.attendance-evidence {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: .75rem;
+}
+.attendance-facts { margin: 0; }
+.attendance-facts > div,
+.attendance-review {
+  padding: .85rem;
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  overflow-wrap: anywhere;
+}
+.attendance-facts dt { color: var(--muted-text); }
+.attendance-facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+.attendance-summary dd { font-size: 1.5rem; }
+.attendance-summary > div { background: var(--light-blue); }
+.attendance-controls,
+.attendance-reviews,
+.attendance-evidence > div {
+  display: grid;
+  gap: .75rem;
+  align-content: start;
+}
+.attendance-controls > button { justify-self: start; }
+.attendance-controls label {
+  display: grid;
+  margin: 0;
+  gap: .35rem;
+}
+.employee-attendance .attendance-controls label :is(input, select, textarea) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border-color: var(--border);
+  background: var(--card);
+  color: var(--text);
+}
+.attendance-controls textarea { min-height: 5rem; resize: vertical; }
+.employee-attendance :is(button, .btn) { min-height: 44px; }
+.employee-attendance button:disabled { opacity: .65; cursor: wait; }
+.employee-attendance .attendance-secondary {
+  background: var(--card);
+  color: var(--navy);
+  border: 1px solid var(--border);
+}
+.employee-attendance .attendance-secondary:hover { background: var(--light-blue); }
+.attendance-details { padding-top: .65rem; border-top: 1px solid var(--border); }
+.attendance-notice,
+.attendance-empty {
+  padding: 1rem;
+  border-radius: .75rem;
+  border: 1px solid var(--border);
+  background: var(--light-blue);
+}
+.attendance-notice[role="alert"] { border-inline-start: 4px solid var(--red); }
+.attendance-badge {
+  display: inline-block;
+  padding: .16rem .55rem;
+  border-radius: 1rem;
+  font-size: .82rem;
+  font-weight: 600;
+  background: var(--light-blue);
+  color: var(--text);
+}
+.attendance-on_time, .attendance-within, .attendance-approved { background: #d1fae5; color: #14532d; }
+.attendance-late, .attendance-pending, .attendance-uncertain { background: #fef3c7; color: #78350f; }
+.attendance-missing, .attendance-outside, .attendance-rejected { background: #ffe4e6; color: #881337; }
+.attendance-preview {
+  width: min(100%, 24rem);
+  max-height: 24rem;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  background: var(--background);
+}
+.attendance-table { max-width: 100%; overflow: auto; border: 1px solid var(--border); border-radius: .75rem; }
+.attendance-table table { width: 100%; margin: 0; border: 0; border-collapse: collapse; box-shadow: none; }
+.attendance-table :is(th, td) { padding: .7rem .85rem; color: var(--text); text-align: left; vertical-align: top; }
+.attendance-table thead { background: var(--light-blue); }
+.attendance-table tbody tr { border-top: 1px solid var(--border); }
+.employee-attendance > section,
+.employee-attendance > details { scroll-margin-top: 6rem; }
+@media (max-width: 640px) {
+  .employee-attendance > :is(.attendance-heading, .staff-page-heading) { align-items: flex-start; }
+  .attendance-fields { grid-template-columns: minmax(0, 1fr); }
+}

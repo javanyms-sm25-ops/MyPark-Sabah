@@ -193,8 +193,8 @@ function head(string $title): void {
     if (in_array($user['role'] ?? '', ['admin', 'superadmin'], true)) {
         unset($links['dashboard.php']);
         $links['admin/'] = 'Operations';
+        $links['admin/employee-attendance.php'] = 'Employee Attendance';
     }
-    if (($user['role'] ?? '') === 'admin') $links['admin/attendance.php'] = 'Attendance';
     header('Content-Language: ' . current_language());
     ?>
     <!doctype html>

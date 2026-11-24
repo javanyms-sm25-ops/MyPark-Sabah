@@ -80,6 +80,14 @@ head('Operations');
     <div class="card"><small><?= te('Active stays') ?></small><b data-ops-stat="active"><?= $snapshot['summary']['active'] ?></b></div>
     <div class="card"><small><?= te('Demo revenue') ?></small><b data-ops-stat="revenue">RM <?= number_format($snapshot['summary']['revenue'], 2) ?></b></div>
   </div>
+  <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
+    <section class="ops-panel" aria-labelledby="attendance-heading">
+      <div class="ops-panel-heading">
+        <div><h2 id="attendance-heading"><?= te('Employee Attendance') ?></h2><p><?= te('Review shifts, attendance and requests for your permitted locations.') ?></p></div>
+        <a class="btn" href="admin/employee-attendance.php"><?= te('Open attendance management') ?></a>
+      </div>
+    </section>
+  <?php endif; ?>
   <?php if ($availability !== null): ?>
     <section class="ops-panel" id="parking-availability" aria-labelledby="parking-availability-heading"
       data-maps-key="<?= e($mapsApiKey) ?>" data-maps-id="<?= e($mapsId) ?>">

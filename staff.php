@@ -49,6 +49,12 @@ head($pages[$page]);
       <article><span><?= te('Outstanding amount') ?></span><strong data-summary="outstanding_cents"><?= staff_money($snapshot['summary']['outstanding_cents']) ?></strong><small><?= te('Unpaid records only') ?></small></article>
       <article><span><?= te('Open maintenance') ?></span><strong data-summary="open_maintenance"><?= $snapshot['summary']['open_maintenance'] ?></strong><small><?= te('Open or in progress') ?></small></article>
     </section>
+    <section class="staff-card">
+      <div class="staff-section-heading">
+        <div><h2><?= te('My Attendance') ?></h2><p class="staff-muted"><?= te('Check in or out and view your shift history.') ?></p></div>
+        <a class="staff-text-link" href="staff-attendance.php"><?= te('Open My Attendance') ?></a>
+      </div>
+    </section>
     <section class="staff-card"><div class="staff-section-heading"><h2><?= te('Recent fine records') ?></h2><a href="staff.php?page=fines" class="staff-text-link"><?= te('Manage fines') ?></a></div><div id="staff-recent"></div></section>
     <?php require __DIR__ . '/includes/staff-leave-panel.php'; ?>
   <?php elseif ($page === 'fines' || $page === 'maintenance'): ?>

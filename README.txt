@@ -208,3 +208,38 @@ directory. Checks covered multiple vehicles, default/selection fallback, sign-ou
 duplicate normalization, cross-member API requests, forged booking IDs, CSRF,
 review replay, stale/deleted selections, active-stay edit/removal restrictions,
 historical plates, legacy migration and OKU review/confirmation eligibility.
+
+Employee Attendance
+Open Operations > Employee Attendance as Super Admin. Use Admin Location Access
+to assign an Admin to their workplaces, then schedule a shift for a Staff account.
+An end time earlier than the start time means the shift ends the following day.
+The Admin's existing Leave requests page is linked from Employee Attendance.
+Staff open My Attendance from their dashboard to check in, check out, see the
+last 31 calendar days of shifts, and request a review or time correction.
+
+PHP needs PDO SQLite and Fileinfo, and a writable session directory outside the
+web root. The app creates attendance.sqlite3 and applies schema version 1 on the
+first attendance visit. The new tables do not change existing app data. Use
+localhost or HTTPS for camera and location permissions. This prototype still uses
+browser-session workspaces for accounts, parking locations, and approved leave.
+For a demo, use the same browser when switching between Staff and Admin accounts.
+A deployment with independent employee devices requires shared account, location,
+and leave storage and a shared workspace identity.
+
+The default workplace radius is 150 m, maximum GPS error 100 m, and late grace
+period 10 minutes. Super Admin can change these for new records. Staff can check
+in up to 30 minutes before work begins and before the shift ends. Missing
+check-ins are flagged after that shift ends. Any approved full-day leave that
+overlaps a shift excludes it from missing-attendance counts, including overnight
+shifts. Staff can request corrections when outside the normal recording window.
+Super Admin summary cards use the current report filters. The first two count
+distinct employees, and the other cards count shifts. Check-in counts include
+submissions marked for review. Approved time corrections affect those counts
+and durations, while the captured timestamps and review history remain visible.
+
+Photos and raw reported coordinates are available to the employee, scoped Admins,
+and Super Admin for up to 90 days, then purged on the next attendance request.
+Keep the database and its backups private. CSV reports omit photos, raw GPS
+coordinates, and review notes. They retain zone, distance, accuracy and timestamps.
+Browser GPS and camera capture are reported evidence. They cannot establish true
+physical presence or image authenticity. Failed verification triggers human review.
