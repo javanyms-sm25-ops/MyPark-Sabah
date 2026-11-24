@@ -66,7 +66,9 @@ head('Find parking');
               </p>
             <?php endif; ?>
             <div class="find-parking-actions">
-              <a class="btn" href="parking-details.php?lot_id=<?= e($lot['id']) ?>"><?= te('Select location') ?></a>
+              <?php if (can_use_customer_wallet(me())): ?>
+                <a class="btn" href="parking-details.php?lot_id=<?= e($lot['id']) ?>"><?= te('Select location') ?></a>
+              <?php endif; ?>
               <?php if ($hasPosition): ?>
                 <button class="ghost" type="button" data-show-on-map aria-pressed="false"
                         aria-controls="find-parking-map" hidden><?= te('Show on map') ?></button>

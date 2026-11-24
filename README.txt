@@ -52,17 +52,19 @@ to the site's base URL, including any project subfolder.
 Gmail uses smtp.gmail.com on port 587
 with STARTTLS. PHP cURL with SMTP support and a trusted CA bundle is required.
 
-Accounts, parking locations, OKU verifications, issued compounds
-and digital receipts survive sign-out in the same browser. Sign-out clears
-booking history, wallet activity, maintenance and customer support reviews.
+Accounts, parking locations, OKU verifications, issued compounds, digital
+receipts, wallet balances and wallet activity survive sign-out in the same
+browser. Sign-out clears booking history, maintenance and customer support reviews.
 The browser's demo session expires after roughly a month of inactivity.
 Saved vehicles and their default/selected preferences persist in SQLite and
 survive sign-out using the same browser-specific demo account identity.
 Do not use this prototype for real payments or official enforcement.
 
 To try compound payments, create a fine in Staff → Fine Management, sign out,
-then sign in as a member, admin or superadmin in the same browser. Open Compounds
-and search for the fine number or plate. Payments use demo wallet credit.
+then sign in as a member in the same browser. Open Compounds and search for the
+fine number or plate. Only members can use wallet credit, pay parking fees or
+top up with PayPal Sandbox. Admin and Super Admin can look up compounds and view
+the records available through Operations.
 
 Open Receipts to find parking bookings, compound payments and wallet top-ups.
 Parking cards and the Parking tab show session details and let you open tickets,

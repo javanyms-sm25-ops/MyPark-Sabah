@@ -6,6 +6,10 @@ if (in_array(me()['role'], ['admin', 'superadmin'], true)) {
     header('Location: admin/', true, 303);
     exit;
 }
+if (me()['role'] === 'staff') {
+    header('Location: staff.php', true, 303);
+    exit;
+}
 
 $userId = me()['id'];
 require_once __DIR__ . '/includes/parking-booking.php';

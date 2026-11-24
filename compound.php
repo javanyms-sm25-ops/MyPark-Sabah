@@ -9,8 +9,18 @@ if (!in_array($actor['role'], ['user', 'admin', 'superadmin'], true)) {
     exit('The compound payment page is available to members, admins and superadmins.');
 }
 
+$canPay = can_use_customer_wallet($actor);
+$title = $canPay ? 'Scan & Pay Compound' : 'Check compounds';
+$isPaymentRequest = $_SERVER['REQUEST_METHOD'] === 'POST';
+if ($isPaymentRequest) {
+    require_customer_wallet();
+    check_csrf();
+}
 staff_store();
-$wallet =& demo_wallet();
+if ($canPay) {
+    $wallet =& demo_wallet();
+    $balanceCents = (int) round($wallet['balance'] * 100);
+}
 $query = $_GET['q'] ?? '';
 $validQuery = is_string($query) && preg_match('/^[A-Z0-9][A-Z0-9 -]{0,23}$/iD', trim($query));
 $query = $validQuery ? trim($query) : '';
@@ -21,12 +31,10 @@ function compound_matches(array $fine, string $lookupKey): bool {
     return $lookupKey !== '' && ($fine['plate_key'] === $lookupKey || staff_plate_key($fine['code']) === $lookupKey);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    check_csrf();
+if ($isPaymentRequest) {
     $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
     $version = filter_var($_POST['version'] ?? null, FILTER_VALIDATE_INT);
     $fine = $_SESSION['staff_fines'][$id] ?? null;
-    $balanceCents = (int) round($wallet['balance'] * 100);
 
     if (!$fine || !compound_matches($fine, $lookupKey)) {
         $error = 'Compound not found. Search for it again.';
@@ -66,12 +74,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $results = array_filter($_SESSION['staff_fines'], fn($fine) => compound_matches($fine, $lookupKey));
 $lookupUrl = 'compound.php?q=' . rawurlencode($query);
-head('Scan & Pay Compound');
+head($title);
 ?>
 <link rel="stylesheet" href="assets/css/compound.css">
 <div class="compound-page">
   <section class="compound-hero" aria-labelledby="compound-title">
-    <h1 id="compound-title"><?= te('Scan & Pay Compound') ?></h1>
+    <h1 id="compound-title"><?= te($title) ?></h1>
     <div class="card compound-search">
       <form action="compound.php" method="get" id="compound-lookup" role="search">
         <label for="compound-query"><?= te('Compound number or vehicle plate') ?></label>
@@ -89,11 +97,13 @@ head('Scan & Pay Compound');
     </div>
   </section>
 
-  <div class="compound-wallet">
-    <span><?= te('Demo wallet balance') ?> <strong><?= staff_money((int) round($wallet['balance'] * 100)) ?></strong></span>
-    <a href="wallet.php"><?= te('Top up wallet') ?></a>
-    <a href="receipts.php?type=compound"><?= te('View compound receipts') ?></a>
-  </div>
+  <?php if ($canPay): ?>
+    <div class="compound-wallet">
+      <span><?= te('Demo wallet balance') ?> <strong><?= staff_money($balanceCents) ?></strong></span>
+      <a href="wallet.php"><?= te('Top up wallet') ?></a>
+      <a href="receipts.php?type=compound"><?= te('View compound receipts') ?></a>
+    </div>
+  <?php endif; ?>
   <?php if ($error): ?><p class="error" role="alert"><?= te($error) ?></p><?php endif; ?>
 
   <?php if ($query !== ''): ?>
@@ -114,7 +124,7 @@ head('Scan & Pay Compound');
               <div><dt><?= te('Amount') ?></dt><dd><strong><?= staff_money($fine['amount_cents']) ?></strong></dd></div>
             </dl>
 
-            <?php if ($fine['status'] === 'unpaid'): ?>
+            <?php if ($canPay && $fine['status'] === 'unpaid'): ?>
               <form method="post" action="<?= e($lookupUrl) ?>">
                 <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
                 <input type="hidden" name="id" value="<?= $fine['id'] ?>">

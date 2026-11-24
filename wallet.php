@@ -1,10 +1,12 @@
 <?php
 require __DIR__ . '/includes/bootstrap.php';
-require_login();
+require_customer_wallet();
+header('Cache-Control: private, no-store');
 
 $wallet =& demo_wallet();
 $transactions = array_reverse($wallet['transactions']);
 $userId = me()['id'];
+$bookings = array_column($_SESSION['demo_bookings'], null, 'id');
 $invalidAmount = $_SESSION['wallet_topup_invalid_amount'][$userId] ?? null;
 unset($_SESSION['wallet_topup_invalid_amount'][$userId]);
 $amountError = te('Enter an amount from RM 1.00 to RM 500.00, with up to two decimal places.');
@@ -18,9 +20,7 @@ head('Wallet');
   <section class="wallet-balance fade-in">
     <small><?= te('Available balance') ?></small>
     <b>RM <?= number_format($wallet['balance'], 2) ?></b>
-    <?php if (me()['role'] !== 'staff'): ?>
-      <span><?= te('Use demo credit to') ?> <a href="compound.php"><?= te('pay compounds') ?></a>.</span>
-    <?php endif; ?>
+    <span><?= te('Use demo credit to') ?> <a href="compound.php"><?= te('pay compounds') ?></a>.</span>
   </section>
 
   <section class="card wallet-topup">
@@ -60,7 +60,12 @@ head('Wallet');
             <?php if ($type === 'compound'): ?>
               Compound <?= e($transaction['compound']) ?><br><small>Receipt <?= e($transaction['reference']) ?></small>
             <?php elseif ($type === 'parking'): ?>
-              <a href="ticket.php?id=<?= e($transaction['booking_id']) ?>"><?= te('Parking booking') ?> #<?= e($transaction['booking_id']) ?></a><br><small><?= e($transaction['location']) ?></small>
+              <?php if (($bookings[$transaction['booking_id']]['user_id'] ?? null) === $userId): ?>
+                <a href="ticket.php?id=<?= e($transaction['booking_id']) ?>"><?= te('Parking booking') ?> #<?= e($transaction['booking_id']) ?></a>
+              <?php else: ?>
+                <?= te('Parking booking') ?> #<?= e($transaction['booking_id']) ?>
+              <?php endif; ?>
+              <br><small><?= e($transaction['location']) ?></small>
             <?php else: ?><?= te('Top up') ?><?php endif; ?>
           </td>
           <td><?= in_array($type, ['compound', 'parking'], true) ? '−' : '+' ?> RM <?= number_format($transaction['amount'], 2) ?></td>

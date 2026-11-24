@@ -2,7 +2,7 @@
 require __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/includes/receipt-data.php';
 
-if (me()) demo_wallet();
+migrate_legacy_demo_wallet();
 receipt_sync();
 
 // Keep issued compounds in this browser so a demo payer can sign in after staff.
@@ -11,6 +11,9 @@ $_SESSION = [
     'demo_users' => $_SESSION['demo_users'],
     'demo_lots' => $_SESSION['demo_lots'],
     'demo_receipts' => $_SESSION['demo_receipts'],
+    'demo_wallets' => $_SESSION['demo_wallets'],
+    // Retained wallet activity refers to these booking numbers.
+    'last_booking_id' => max($_SESSION['last_booking_id'] ?? 0, max(array_column($_SESSION['demo_bookings'], 'id') ?: [0])),
     'saved_vehicles' => $_SESSION['saved_vehicles'] ?? [],
     'default_vehicle_ids' => $_SESSION['default_vehicle_ids'] ?? [],
     'vehicle_account_scope' => $_SESSION['vehicle_account_scope'] ?? bin2hex(random_bytes(24)),

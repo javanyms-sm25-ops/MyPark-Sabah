@@ -1,11 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
-require_login();
-
-if (me()['role'] === 'superadmin') {
-    header('Location: admin/', true, 303);
-    exit;
-}
+require_customer_wallet();
 
 require_once __DIR__ . '/includes/parking-booking.php';
 

@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'This account is blocked.';
         } elseif ($user && password_verify($_POST['password'] ?? '', $user['password'])) {
             $_SESSION['failures'][$email] = 0;
-            if (me()) demo_wallet();
+            migrate_legacy_demo_wallet();
             session_regenerate_id(true);
             unset($_SESSION['csrf']);
             $_SESSION['demo_last_active'] = time();

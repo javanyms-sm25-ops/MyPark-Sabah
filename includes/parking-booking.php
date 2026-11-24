@@ -97,6 +97,8 @@ function validate_parking_draft(array $actor, array $draft): array {
 }
 
 function start_parking(array $actor, array $details): int {
+    if (!can_use_customer_wallet($actor)) throw new RuntimeException(CUSTOMER_WALLET_REQUIRED, 403);
+
     // Check again at the write boundary, including callers that bypass the review page.
     $checked = validate_parking_draft($actor, [
         'lot_id' => (string)$details['lot']['id'],
@@ -116,7 +118,7 @@ function start_parking(array $actor, array $details): int {
     if ($feeCents > $balanceCents) throw new RuntimeException(PARKING_WALLET_INSUFFICIENT, 409);
 
     $start = time();
-    $bookingId = max(array_column($_SESSION['demo_bookings'], 'id') ?: [0]) + 1;
+    $bookingId = max($_SESSION['last_booking_id'] ?? 0, max(array_column($_SESSION['demo_bookings'], 'id') ?: [0])) + 1;
     $_SESSION['demo_bookings'][] = [
         'id' => $bookingId,
         'user_id' => $actor['id'],

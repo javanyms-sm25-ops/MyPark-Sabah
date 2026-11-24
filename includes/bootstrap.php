@@ -38,13 +38,27 @@ function check_csrf(){
     }
 }
 function me(){return $_SESSION['user']??null;}
-function &demo_wallet(): array {
+const CUSTOMER_WALLET_REQUIRED = 'Only customers can use the wallet or make payments.';
+
+function can_use_customer_wallet(?array $account): bool {
+    return ($account['role'] ?? null) === 'user';
+}
+
+function migrate_legacy_demo_wallet(): void {
+    if (!me() || (!isset($_SESSION['demo_wallet_balance']) && !isset($_SESSION['demo_wallet_transactions']))) return;
     $userId = me()['id'];
     $_SESSION['demo_wallets'][$userId] ??= [
         'balance' => $_SESSION['demo_wallet_balance'] ?? 30.00,
         'transactions' => $_SESSION['demo_wallet_transactions'] ?? [],
     ];
     unset($_SESSION['demo_wallet_balance'], $_SESSION['demo_wallet_transactions']);
+}
+
+function &demo_wallet(): array {
+    if (!can_use_customer_wallet(me())) throw new RuntimeException(CUSTOMER_WALLET_REQUIRED, 403);
+    migrate_legacy_demo_wallet();
+    $userId = me()['id'];
+    $_SESSION['demo_wallets'][$userId] ??= ['balance' => 30.00, 'transactions' => []];
     return $_SESSION['demo_wallets'][$userId];
 }
 function require_login(string $loginPath = 'pages/login.php'){
@@ -54,6 +68,13 @@ function require_login(string $loginPath = 'pages/login.php'){
     }
     unset($_SESSION['user']);
     http_response_code(403); exit('Your account is no longer available. Please sign in again.');
+}
+function require_customer_wallet(): void {
+    require_login();
+    if (!can_use_customer_wallet(me())) {
+        http_response_code(403);
+        exit(te(CUSTOMER_WALLET_REQUIRED));
+    }
 }
 function booking_expiry(array $booking): ?int {
     $expiry = filter_var($booking['expires_at'] ?? null, FILTER_VALIDATE_INT);
@@ -163,11 +184,9 @@ function head(string $title): void {
     if ($user) {
         $links = ['dashboard.php' => 'Parking'];
         if ($user['role'] === 'user') $links['find_parking.php'] = 'Find parking';
-        $links += [
-            'receipts.php' => 'Receipts',
-            'wallet.php' => 'Wallet',
-            'compound.php' => 'Compounds',
-        ];
+        $links['receipts.php'] = 'Receipts';
+        if (can_use_customer_wallet($user)) $links['wallet.php'] = 'Wallet';
+        $links['compound.php'] = 'Compounds';
     } else {
         $links = ['pages/login.php' => 'Login', 'pages/register.php' => 'Register'];
     }

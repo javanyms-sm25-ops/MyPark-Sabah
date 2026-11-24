@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-demo_wallet();
+migrate_legacy_demo_wallet();
 receipt_sync();
 $receipts = $_SESSION['demo_receipts'][$userId] ?? [];
 $receipt = null;

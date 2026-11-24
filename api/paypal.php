@@ -13,6 +13,7 @@ function paypal_reply(array $payload, int $status = 200): never {
 try {
     if (!me()) paypal_reply(['error' => 'Sign in again to continue checkout.'], 401);
     require_login('../pages/login.php');
+    if (!can_use_customer_wallet(me())) paypal_reply(['error' => t(CUSTOMER_WALLET_REQUIRED)], 403);
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') paypal_reply(['error' => 'Method not allowed.'], 405);
     check_csrf();
     $checkout =& $_SESSION['paypal_checkout'];

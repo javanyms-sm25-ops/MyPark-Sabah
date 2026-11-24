@@ -60,7 +60,7 @@ head('Operations');
       <h1><?= te('Operations dashboard') ?></h1>
       <p class="ops-subtitle"><?= te('Manage reservations and member access.') ?></p>
       <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
-        <a class="btn" href="compound.php"><?= te('Check and pay compounds') ?></a>
+        <a class="btn" href="compound.php"><?= te('Check compounds') ?></a>
       <?php endif; ?>
     </div>
     <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>

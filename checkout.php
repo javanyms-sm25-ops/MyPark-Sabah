@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/includes/bootstrap.php';
 require __DIR__ . '/includes/paypal-checkout.php';
-require_login();
+require_customer_wallet();
 header('Cache-Control: private, no-store');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
