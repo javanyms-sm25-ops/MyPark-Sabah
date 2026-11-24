@@ -156,6 +156,10 @@
   color-scheme: dark;
 }
 
+.receipts-filter.has-date-picker .receipts-filter-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+}
+
 .receipt-list {
   margin: 0;
   padding: 0;
@@ -267,6 +271,7 @@
 
 @media (max-width: 620px) {
   .receipts-filter-fields,
+  .receipts-filter.has-date-picker .receipts-filter-fields,
   .receipt-row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
@@ -282,7 +287,8 @@
 }
 
 @media (max-width: 370px) {
-  .receipts-filter-fields {
+  .receipts-filter-fields,
+  .receipts-filter.has-date-picker .receipts-filter-fields {
     grid-template-columns: minmax(0, 1fr);
   }
 }

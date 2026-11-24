@@ -351,14 +351,6 @@ header .logo {
   box-shadow: inset 0 -2px 0 var(--navy);
 }
 
-.site-nav .profile-nav-link {
-  max-width: 15rem;
-  border: 1px solid var(--border);
-  font-weight: 600;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
 .profile-nav-menu {
   position: relative;
   flex: 0 0 auto;
@@ -367,12 +359,12 @@ header .logo {
 .profile-nav-trigger {
   display: grid;
   place-items: center;
-  min-height: 44px;
-  padding: 0 8px;
-  color: var(--navy);
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-  font-size: 0.88rem;
-  font-weight: 600;
+  background: transparent;
   list-style: none;
   cursor: pointer;
 }
@@ -386,15 +378,21 @@ header .logo {
   outline-offset: 2px;
 }
 
-.profile-nav-trigger.profile-nav-avatar {
-  width: 44px;
-  padding: 0;
-}
-
-.profile-nav-avatar img {
+.profile-nav-avatar {
   display: block;
+  width: 32px;
+  height: 32px;
   object-fit: cover;
   border-radius: 50%;
+}
+
+.profile-nav-initial {
+  display: grid;
+  place-items: center;
+  background: var(--light-blue);
+  color: var(--navy);
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .profile-nav-options {
@@ -403,7 +401,9 @@ header .logo {
   inset-block-start: 100%;
   inset-inline-end: 0;
   display: grid;
-  min-width: 132px;
+  width: max-content;
+  min-width: 148px;
+  max-width: min(240px, calc(100vw - 48px));
   padding: 4px;
   background: var(--card);
   border: 1px solid var(--border);
@@ -415,13 +415,31 @@ header .logo {
   display: none;
 }
 
-.profile-nav-link strong,
-.profile-nav-link small {
-  font: inherit;
+.profile-nav-account {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
 }
 
-.profile-nav-link small::before {
-  content: '· ';
+.profile-nav-account small {
+  color: var(--muted-text);
+}
+
+.profile-nav-options a {
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.profile-nav-options a:hover {
+  background: var(--light-blue);
 }
 
 @media (1120px < width <= 1440px) {
@@ -735,6 +753,63 @@ button.ghost {
 
 .registration-field > input {
   margin: 0;
+}
+
+.card.email-code-card {
+  max-width: 440px;
+  padding: clamp(20px, 5vw, 28px);
+}
+
+.email-code-card h2 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: clamp(21px, 5vw, 26px);
+}
+
+.email-code-intro {
+  margin: 0 0 20px;
+  color: var(--muted-text);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.email-code-field {
+  margin-bottom: 14px;
+}
+
+.email-code-field label {
+  margin: 0 0 6px;
+  font-weight: 500;
+}
+
+.email-code-field input {
+  margin-top: 0;
+}
+
+.email-code-field .email-code-input {
+  min-height: 48px;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.22em;
+}
+
+.email-code-submit {
+  width: 100%;
+  min-height: 44px;
+}
+
+.email-code-back {
+  margin: 14px 0 0;
+  font-size: 0.85rem;
+}
+
+.registration-code-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 14px;
+  font-size: 0.9rem;
 }
 
 .registration-form input[aria-invalid="true"] {
@@ -2754,18 +2829,7 @@ tr[hidden] {
     overflow-wrap: anywhere;
   }
 
-  .site-nav .profile-nav-link {
-    flex: 1;
-    min-width: 0;
-    max-width: none;
-    padding-block: 7px;
-  }
-
-  .profile-nav-trigger {
-    justify-self: start;
-  }
-
-  .profile-nav-options {
+  .site-nav .profile-nav-options {
     position: static;
   }
 

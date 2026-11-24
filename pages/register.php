@@ -1,11 +1,37 @@
 <?php
 const MYPARK_AUTH_PAGE = true;
 require dirname(__DIR__) . '/includes/bootstrap.php';
+require dirname(__DIR__) . '/includes/registration-verification.php';
+require dirname(__DIR__) . '/includes/registration-smtp.php';
+
+header('Cache-Control: private, no-store');
+header('Referrer-Policy: no-referrer');
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['verify'])) {
+    try {
+        registration_complete(is_string($_GET['verify']) ? $_GET['verify'] : '');
+        flash('Account created. You can now sign in.');
+        $destination = 'login.php';
+    } catch (RuntimeException $error) {
+        $_SESSION['registration_link_error'] = $error->getMessage();
+        $destination = isset($_SESSION['registration_pending']) ? 'register.php?step=verify' : 'register.php';
+    }
+    header('Location: ' . $destination, true, 303);
+    exit;
+}
 
 $errors = [];
+$formError = $_SESSION['registration_link_error'] ?? '';
+unset($_SESSION['registration_link_error']);
+$pending = $_SESSION['registration_pending'] ?? null;
+$verifyScreen = ($_GET['step'] ?? '') === 'verify' && $pending !== null;
+$action = $_POST['action'] ?? 'register';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'register') {
+    $verifyScreen = false;
     $name = trim($_POST['name'] ?? '');
     $email = strtolower(trim($_POST['email'] ?? ''));
     $password = $_POST['password'] ?? '';
@@ -18,30 +44,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (($_POST['confirm'] ?? '') === '') $errors['confirm'] = 'Please confirm your password.';
     elseif ($password !== ($_POST['confirm'] ?? '')) $errors['confirm'] = 'Passwords do not match.';
 
-    foreach ($_SESSION['demo_users'] as $user) {
-        if ($user['email'] === $email) $errors['email'] = 'Email already registered.';
-    }
+    if (registration_email_exists($email)) $errors['email'] = 'Email already registered.';
 
     if (!$errors) {
-        $_SESSION['demo_users'][] = [
-            'id' => count($_SESSION['demo_users']) + 1,
-            'name' => $name,
-            'email' => $email,
-            'password' => password_hash($password, PASSWORD_DEFAULT),
-            'role' => 'user',
-            'blocked' => false
-        ];
-        flash('Demo account created. Email OTP delivery will be connected with backend services later.');
-        header('Location: login.php');
-        exit;
+        try {
+            $account = [
+                'name' => $name,
+                'email' => $email,
+                'password' => password_hash($password, PASSWORD_DEFAULT),
+            ];
+            if (registration_link_is_active($pending) && $pending['account']['email'] === $email) {
+                $_SESSION['registration_pending']['account'] = $account;
+            } else {
+                registration_issue_link($account, 'send_registration_link');
+            }
+            header('Location: register.php?step=verify', true, 303);
+            exit;
+        } catch (RuntimeException $error) {
+            http_response_code($error->getCode());
+            $formError = $error->getMessage();
+        }
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        if ($action !== 'resend') throw new RuntimeException('Invalid request fields.', 400);
+        if ($pending === null) throw new RuntimeException('Start registration to request a verification link.', 422);
+        $verifyScreen = true;
+        $resendWait = registration_resend_wait($pending);
+        if ($resendWait > 0) {
+            header('Retry-After: ' . $resendWait);
+            http_response_code(429);
+        } else {
+            registration_issue_link($pending['account'], 'send_registration_link');
+            flash('A new verification link has been sent.');
+            header('Location: register.php?step=verify', true, 303);
+            exit;
+        }
+    } catch (RuntimeException $error) {
+        http_response_code($error->getCode());
+        $formError = $error->getMessage();
+        $pending = $_SESSION['registration_pending'] ?? null;
+        $verifyScreen = $pending !== null;
     }
 }
 
-head('Register');
+head($verifyScreen ? 'Verify your email' : 'Register');
 ?>
 
+<?php if ($verifyScreen): $resendWait = registration_resend_wait($pending); ?>
+  <section class="card narrow registration-form email-code-card" aria-labelledby="verify-email-heading">
+    <h2 id="verify-email-heading"><?= te('Verify your email') ?></h2>
+    <?php if (registration_link_is_active($pending)): ?>
+      <p class="email-code-intro"><?= te('Open the verification link sent to {email} in this browser. The link expires in 10 minutes.', ['email' => $pending['account']['email']]) ?></p>
+    <?php else: ?>
+      <p class="email-code-intro"><?= te('Request a new verification link to finish registering.') ?></p>
+    <?php endif; ?>
+    <?php if ($formError !== ''): ?><p class="registration-summary" role="alert"><?= te($formError) ?></p><?php endif; ?>
+    <form id="registration-resend" method="post" action="pages/register.php?step=verify" class="registration-code-actions">
+      <input type="hidden" name="csrf" value="<?= csrf() ?>">
+      <input type="hidden" name="action" value="resend">
+      <button type="submit" class="ghost" aria-describedby="registration-resend-status"><?= te('Resend verification link') ?></button>
+      <a href="pages/register.php"><?= te('Change email address') ?></a>
+    </form>
+    <p class="email-code-back" id="registration-resend-status" data-resend-seconds="<?= $resendWait ?>" <?= $resendWait === 0 ? 'hidden' : '' ?>>
+      <?= te('You can resend the link in {seconds}s.', ['seconds' => $resendWait]) ?>
+    </p>
+  </section>
+<?php else: ?>
 <form method="post" action="pages/register.php" class="card narrow registration-form" id="registration-form" novalidate>
   <h2><?= te('Create member account') ?></h2>
+  <?php if ($formError !== ''): ?><p class="registration-summary" role="alert"><?= te($formError) ?></p><?php endif; ?>
   <p class="registration-summary" id="registration-summary" role="alert" tabindex="-1" <?= !$errors ? 'hidden' : '' ?>><?= te('Please check the highlighted fields below.') ?></p>
   <input type="hidden" name="csrf" value="<?= csrf() ?>">
   <div class="registration-field">
@@ -72,8 +144,9 @@ head('Register');
     <p class="field-feedback" id="register-confirm-error" <?= !isset($errors['confirm']) ? 'hidden' : '' ?>><span data-error-text><?= te($errors['confirm'] ?? '') ?></span></p>
     <p class="password-match" id="register-password-match" role="status"></p>
   </div>
-  <button><?= te('Create account') ?></button>
+  <button type="submit"><?= te('Send verification link') ?></button>
 </form>
 
+<?php endif; ?>
 <script src="assets/js/register-validation.js" defer></script>
 <?php foot(showChatbot: false); ?>

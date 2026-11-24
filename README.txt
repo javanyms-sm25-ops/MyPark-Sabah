@@ -40,6 +40,18 @@ return [
 MyPark stores demo data in a private app folder under PHP's session.save_path
 (or the system temporary folder if that setting is empty). PHP must be able to
 write there. Keep this location outside the web root.
+
+Registration sends a one-time verification link over SMTP. Open it within
+10 minutes in the browser where you started registration. Password recovery
+sends a six-digit OTP. Request it from the browser where you registered your
+demo account.
+In config/smtp.local.php, set email to the SMTP sender address and app_password
+to its app password. Git ignores this local config file. Localhost links use
+the current port and project path automatically. For other hosts set app_url
+to the site's base URL, including any project subfolder.
+Gmail uses smtp.gmail.com on port 587
+with STARTTLS. PHP cURL with SMTP support and a trusted CA bundle is required.
+
 Accounts, parking locations, OKU verifications, issued compounds
 and digital receipts survive sign-out in the same browser. Sign-out clears
 booking history, wallet activity, maintenance and customer support reviews.

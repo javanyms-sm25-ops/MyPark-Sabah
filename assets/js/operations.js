@@ -3,6 +3,31 @@
   'use strict';
   const translate = window.MyParkLocale?.text ?? (message => message);
 
+  const clock = document.querySelector('[data-ops-clock]');
+  if (clock) {
+    const time = clock.querySelector('.ops-clock__time');
+    const date = clock.querySelector('.ops-clock__date');
+    const locale = document.documentElement.lang || 'en-MY';
+    const timeZone = 'Asia/Kuala_Lumpur';
+    const timeFormat = new Intl.DateTimeFormat(locale, {
+      timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+    });
+    const dateFormat = new Intl.DateTimeFormat(locale, { timeZone, dateStyle: 'full' });
+
+    const updateClock = () => {
+      const now = new Date();
+      const dateText = dateFormat.format(now);
+      time.textContent = timeFormat.format(now);
+      if (date.textContent !== dateText) date.textContent = dateText;
+      clock.dateTime = now.toISOString();
+    };
+    updateClock();
+    window.setInterval(updateClock, 1000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) updateClock();
+    });
+  }
+
   const bootstrap = document.getElementById('operations-data');
   if (!bootstrap) return;
   let data = JSON.parse(bootstrap.textContent);
@@ -85,11 +110,26 @@
       });
       if (this.kind === 'reservations') {
         this.dateGroup = el('div', 'ops-dates');
+        const updateDates = () => {
+          const { from, to } = this.filters;
+          this.state.from = from.value;
+          this.state.to = to.value;
+          from.max = to.value;
+          to.min = from.value;
+          this.changed();
+        };
         [['from', translate('Created from')], ['to', translate('Created to')]].forEach(([key, text]) => {
-          const label = el('label', '', text), input = el('input'); input.type = 'date';
-          input.addEventListener('change', () => { this.state[key] = input.value; this.filters.from.max = this.state.to; this.filters.to.min = this.state.from; this.changed(); });
-          this.filters[key] = input; label.append(input); this.dateGroup.append(label);
-        }); toolbar.append(this.dateGroup);
+          const field = el('div'), label = el('label', '', text), input = el('input');
+          input.id = 'reservation-created-' + key;
+          input.type = 'date';
+          label.htmlFor = input.id;
+          input.addEventListener('change', updateDates);
+          this.filters[key] = input;
+          field.append(label, input);
+          this.dateGroup.append(field);
+        });
+        this.syncDateRange = window.MyParkDateRange?.enhance(this.filters.from, this.filters.to, updateDates);
+        toolbar.append(this.dateGroup);
       }
       const tools = el('div', 'ops-tools'); this.refresh = btn(translate('Refresh'), () => refresh(this));
       const menu = el('details', 'ops-columns'), summary = el('summary', '', translate('Columns')), choices = el('div', 'ops-column-menu'); menu.append(summary);
@@ -140,6 +180,7 @@
       Object.entries(this.filters).forEach(([key, input]) => { this.state[key] = ''; input.value = ''; if (input.type === 'date') { input.min = ''; input.max = ''; } }); this.changed();
     }
     renderTags() {
+      this.syncDateRange?.();
       this.tags.replaceChildren();
       const labels = { q: translate('Search'), role: translate('Role'), status: translate('Status'), location: translate('Location'), from: translate('Created from'), to: translate('Created to') };
       Object.keys(labels).forEach(key => {

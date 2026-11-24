@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/staff-leave.php';
+
 // Session-only private parking prototype. Empty stores; no seed fines or maintenance.
 const STAFF_FINE_STATUSES = ['unpaid' => 'Unpaid', 'paid' => 'Paid', 'void' => 'Void'];
 const STAFF_MAINTENANCE_STATUSES = ['open' => 'Open', 'in_progress' => 'In progress', 'completed' => 'Completed'];
@@ -86,6 +88,7 @@ function staff_change(array $actor, array $input): string {
     $currentActor = staff_actor();
     if ($currentActor['id'] !== $actor['id']) throw new RuntimeException('Staff identity mismatch.', 403);
     $action = $input['action'] ?? '';
+    if ($action === 'leave_submit') return staff_leave_submit($currentActor, $input);
     $allowed = ['fine_create', 'fine_update', 'fine_paid', 'fine_void', 'maintenance_create', 'maintenance_update', 'maintenance_delete'];
     if (!in_array($action, $allowed, true)) throw new RuntimeException('Unknown staff operation.', 400);
     $kind = str_starts_with($action, 'fine_') ? 'fine' : 'maintenance';

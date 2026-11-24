@@ -67,13 +67,16 @@ function booking_expiry(array $booking): ?int {
     return $start->getTimestamp() + $hours * 3600;
 }
 
-const PARKING_CANCELLATION_SECONDS = 300;
-const PARKING_CANCELLATION_POLICY = 'You can cancel while more than 5 minutes remain.';
-const PARKING_CANCELLATION_CLOSED = 'Cancellation is closed. More than 5 minutes must remain.';
+const PARKING_CANCELLATION_SECONDS = 180;
+const PARKING_CANCELLATION_POLICY = 'You can cancel within the first 3 minutes of parking.';
+const PARKING_CANCELLATION_CLOSED = 'The 3-minute cancellation window has closed.';
 
 function booking_cancellation_deadline(array $booking): ?int {
     $expiry = booking_expiry($booking);
-    return $expiry === null ? null : $expiry - PARKING_CANCELLATION_SECONDS;
+    $hours = filter_var($booking['hours'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 24]]);
+    if ($expiry === null || $hours === false) return null;
+    $startedAt = $expiry - $hours * 3600;
+    return $startedAt + PARKING_CANCELLATION_SECONDS;
 }
 
 function complete_expired_bookings(): void {
@@ -116,6 +119,39 @@ function flash(?string $message = null): ?string {
     unset($_SESSION['flash']);
     return $message;
 }
+function profile_nav(array $account): void {
+    $photo = $account['photo'] ?? '';
+    $role = match ($account['role']) {
+        'user' => 'Member',
+        'superadmin' => 'Super Admin',
+        default => ucfirst($account['role']),
+    };
+    ?>
+    <details class="profile-nav-menu" data-profile-nav-menu>
+      <summary class="profile-nav-trigger" aria-label="<?= te('Profile') ?>">
+        <?php if ($photo): ?>
+          <img class="profile-nav-avatar" src="<?= e($photo) ?>" alt="" width="32" height="32">
+        <?php else:
+            preg_match('/[\p{L}\p{N}]/u', $account['name'], $initial);
+        ?>
+          <span class="profile-nav-avatar profile-nav-initial" aria-hidden="true"><?= e(strtoupper($initial[0] ?? 'P')) ?></span>
+        <?php endif; ?>
+      </summary>
+      <div class="profile-nav-options">
+        <div class="profile-nav-account">
+          <strong><?= e($account['name']) ?></strong>
+          <small><?= te($role) ?></small>
+        </div>
+        <a href="profile.php"><?= te('Profile') ?></a>
+        <?php if ($account['role'] === 'user'): ?>
+          <a href="oku-verification.php"><?= te('OKU Parking Verification') ?></a>
+        <?php endif; ?>
+        <a href="logout.php"><?= te('Logout') ?></a>
+      </div>
+    </details>
+    <?php
+}
+
 function head(string $title): void {
     if ((me()['role'] ?? '') === 'staff') {
         require_once __DIR__ . '/staff-layout.php';
@@ -124,15 +160,22 @@ function head(string $title): void {
     }
     $user = me();
     $message = flash();
-    $links = $user ? [
-        'dashboard.php' => 'Parking',
-        ...($user['role'] === 'user' ? ['find_parking.php' => 'Find parking'] : []),
-        'receipts.php' => 'Receipts',
-        'wallet.php' => 'Wallet',
-        'compound.php' => 'Compounds',
-    ] : ['pages/login.php' => 'Login', 'pages/register.php' => 'Register'];
-    if (($user['role'] ?? '') === 'superadmin') unset($links['dashboard.php']);
-    if (in_array($user['role'] ?? '', ['admin', 'superadmin'], true)) $links['admin/'] = 'Operations';
+    if ($user) {
+        $links = ['dashboard.php' => 'Parking'];
+        if ($user['role'] === 'user') $links['find_parking.php'] = 'Find parking';
+        $links += [
+            'receipts.php' => 'Receipts',
+            'wallet.php' => 'Wallet',
+            'compound.php' => 'Compounds',
+        ];
+    } else {
+        $links = ['pages/login.php' => 'Login', 'pages/register.php' => 'Register'];
+    }
+    if (in_array($user['role'] ?? '', ['admin', 'superadmin'], true)) {
+        unset($links['dashboard.php']);
+        $links['admin/'] = 'Operations';
+    }
+    if (($user['role'] ?? '') === 'admin') $links['admin/attendance.php'] = 'Attendance';
     header('Content-Language: ' . current_language());
     ?>
     <!doctype html>
@@ -159,33 +202,7 @@ function head(string $title): void {
           </div>
           <?php if ($user): ?>
             <div class="nav-account">
-              <?php if ($user['role'] === 'user'): ?>
-                <?php $photo = $user['photo'] ?? ''; ?>
-                <details class="profile-nav-menu" data-profile-nav-menu>
-                  <summary class="profile-nav-trigger<?= $photo ? ' profile-nav-avatar' : '' ?>" aria-label="<?= te('Profile') ?>">
-                    <?php if ($photo): ?>
-                      <img src="<?= e($photo) ?>" alt="" width="32" height="32">
-                    <?php else: ?>
-                      <?= te('Profile') ?>
-                    <?php endif; ?>
-                  </summary>
-                  <div class="profile-nav-options">
-                    <a href="profile.php"><?= te('Profile') ?></a>
-                    <a href="oku-verification.php"><?= te('OKU Parking Verification') ?></a>
-                    <a href="logout.php"><?= te('Logout') ?></a>
-                  </div>
-                </details>
-              <?php else: ?>
-                <?php
-                $roleLabel = t($user['role'] === 'superadmin' ? 'Super Admin' : ucfirst($user['role']));
-                $accountLabel = $user['name'] . ' · ' . $roleLabel;
-                ?>
-                <a class="profile-nav-link" href="profile.php" aria-label="<?= te('Open profile for {account}', ['account' => $accountLabel]) ?>" title="<?= e($accountLabel) ?>">
-                  <strong><?= e($user['name']) ?></strong>
-                  <small><?= e($roleLabel) ?></small>
-                </a>
-                <a class="nav-logout" href="logout.php"><?= te('Logout') ?></a>
-              <?php endif; ?>
+              <?php profile_nav($user); ?>
             </div>
           <?php endif; ?>
           <div class="nav-preferences">

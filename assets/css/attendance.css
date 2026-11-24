@@ -1,0 +1,259 @@
+.attendance-page h1 {
+  margin-bottom: 6px;
+}
+
+.attendance-subtitle {
+  margin: 0 0 20px;
+  color: var(--muted-text);
+}
+
+.attendance-page .attendance-panel {
+  margin: 0;
+  border-color: var(--border);
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.attendance-panel-heading {
+  justify-content: space-between;
+  padding: 16px 20px;
+}
+
+.attendance-page .attendance-panel-heading h2 {
+  color: var(--text);
+}
+
+.attendance-pending-count {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--light-blue);
+  color: var(--navy);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.attendance-date-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px 12px;
+  padding: 0 20px 16px;
+}
+
+.attendance-date-filter > div { flex: 0 1 12rem; }
+.attendance-date-filter label { margin: 0 0 4px; font-size: 0.8rem; }
+.attendance-panel .attendance-date-filter input { width: 100%; }
+.attendance-date-filter > a {
+  align-self: center;
+  font-size: 0.85rem;
+}
+.attendance-date-filter > p {
+  flex: 1 0 100%;
+  margin: 0;
+  color: var(--muted-text);
+  font-size: 0.8rem;
+}
+
+.attendance-empty {
+  margin: 0;
+  padding: 32px 16px;
+  border-top: 1px solid var(--border);
+  color: var(--muted-text);
+  text-align: center;
+}
+
+.attendance-panel .ops-table-scroll {
+  border-color: var(--border);
+  border-radius: 0 0 12px 12px;
+}
+
+.attendance-page .ops-leave-table {
+  min-width: 790px;
+  table-layout: fixed;
+  background: var(--card);
+}
+
+.attendance-col-staff { width: 21%; }
+.attendance-col-date { width: 13%; }
+.attendance-col-status { width: 12%; }
+.attendance-col-actions { width: 170px; }
+
+.attendance-page .ops-leave-table th {
+  width: auto;
+  border-color: var(--border);
+  background: var(--light-blue);
+  color: var(--text);
+}
+
+.attendance-page .ops-leave-table td {
+  height: 58px;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.attendance-page .ops-leave-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.attendance-page .ops-leave-table tbody tr:hover {
+  background: var(--background);
+}
+
+.attendance-page .ops-leave-table .ops-leave-reason {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.attendance-name,
+.attendance-reviewer {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.attendance-name {
+  font-weight: 600;
+}
+
+.attendance-reviewer {
+  font-size: 0.8rem;
+}
+
+.ops-leave-submitted {
+  display: block;
+  color: var(--muted-text);
+  font-size: 0.75rem;
+}
+
+.attendance-panel .ops-badge {
+  padding-inline: 9px;
+  border-radius: 999px;
+}
+
+.attendance-panel .ops-badge--pending {
+  background: #fff2dc;
+  color: #815319;
+}
+
+.attendance-panel .attendance-approve {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--button-text, #fff);
+}
+
+.attendance-panel .attendance-approve:hover {
+  border-color: var(--navy-hover);
+  background: var(--navy-hover);
+}
+
+.attendance-panel .attendance-reject {
+  border-color: var(--border);
+  background: var(--card);
+  color: var(--red);
+}
+
+.attendance-panel .attendance-reject:hover {
+  background: var(--background);
+}
+
+.attendance-review-dialog {
+  width: min(420px, calc(100% - 28px));
+  max-height: calc(100dvh - 28px);
+  margin: auto;
+  padding: clamp(18px, 5vw, 24px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 18px 52px rgb(11 25 46 / 25%);
+}
+
+.attendance-review-dialog::backdrop {
+  background: rgb(11 24 44 / 56%);
+}
+
+.attendance-review-dialog h2 {
+  margin: 0 0 14px;
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+.attendance-review-summary {
+  display: grid;
+  gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--background);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.attendance-review-summary span {
+  color: var(--muted-text);
+  font-size: 0.82rem;
+}
+
+.attendance-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.attendance-review-actions button {
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.attendance-review-actions button:hover {
+  transform: none;
+}
+
+.attendance-review-actions button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.attendance-review-actions [data-review-cancel] {
+  border-color: var(--border);
+  background: var(--card);
+  color: var(--text);
+}
+
+.attendance-review-actions [data-review-cancel]:hover {
+  background: var(--light-blue);
+}
+
+.attendance-review-dialog[data-decision="rejected"] [data-review-confirm] {
+  background: var(--red);
+  color: var(--button-text, #fff);
+}
+
+.attendance-review-dialog[data-decision="rejected"] [data-review-confirm]:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--red) 88%, var(--text));
+}
+
+.attendance-review-actions button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .attendance-review-dialog[open] {
+    animation: attendance-review-in 140ms ease-out;
+  }
+
+  @keyframes attendance-review-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}

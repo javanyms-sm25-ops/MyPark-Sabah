@@ -31,10 +31,15 @@ function staff_head(string $title): void {
       <nav aria-label="<?= te('Staff pages') ?>">
         <?php foreach ($links as $key => [$label, $href]): ?><a href="<?= e($href) ?>" <?= $page === $key ? 'aria-current="page"' : '' ?>><?= te($label) ?></a><?php endforeach; ?>
       </nav>
-      <div class="staff-sidebar-bottom"><strong><?= e(me()['name']) ?></strong><span><?= te('Staff') ?> · Sabah</span><?php language_switcher(); ?><a href="logout.php"><?= te('Logout') ?></a></div>
+      <div class="staff-sidebar-bottom"><strong><?= e(me()['name']) ?></strong><span><?= te('Staff') ?> · Sabah</span><?php language_switcher(); ?></div>
     </aside>
     <div class="staff-workspace">
-      <header class="staff-topbar"><button type="button" class="staff-menu-toggle" aria-controls="staff-sidebar" aria-expanded="false"><?= te('Menu') ?></button><span><?= te($links[$page][0] ?? $title) ?></span><span class="staff-context"><?= te('Private parking · Staff portal') ?></span></header>
+      <header class="staff-topbar">
+        <button type="button" class="staff-menu-toggle" aria-controls="staff-sidebar" aria-expanded="false"><?= te('Menu') ?></button>
+        <span><?= te($links[$page][0] ?? $title) ?></span>
+        <span class="staff-context"><?= te('Private parking · Staff portal') ?></span>
+        <?php profile_nav(me()); ?>
+      </header>
       <main id="staff-main" class="staff-main" tabindex="-1">
         <?php localized_flash($message ?? ''); ?>
     <?php

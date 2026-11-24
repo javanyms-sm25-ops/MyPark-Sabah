@@ -101,20 +101,21 @@ head('Digital receipts');
       <?php endforeach; ?>
     </nav>
 
-    <form class="card receipts-filter" method="get" action="receipts.php" aria-labelledby="receipts-filter-title">
+    <form class="card receipts-filter" method="get" action="receipts.php" aria-labelledby="receipts-filter-title" data-date-range>
       <h2 id="receipts-filter-title"><?= te('Filter by date') ?></h2>
-      <p id="receipts-date-help">Choose dates from <?= e($firstDay->format('j M Y')) ?> to <?= e($today->format('j M Y')) ?> (Malaysia time).</p>
+      <p id="receipts-date-help"><?= te('Choose dates from {start} to {end} (Malaysia time).', [
+          'start' => $firstDay->format('j M Y'), 'end' => $today->format('j M Y'),
+      ]) ?></p>
       <input type="hidden" name="type" value="<?= e($category) ?>">
       <div class="receipts-filter-fields">
-        <div>
-          <label for="receipt-start"><?= te('Start date') ?></label>
-          <input type="date" id="receipt-start" name="start" min="<?= e($minDate) ?>" max="<?= e($maxDate) ?>" value="<?= e($filters['start']) ?>" aria-describedby="receipts-date-help" required>
-        </div>
-        <div>
-          <label for="receipt-end"><?= te('End date') ?></label>
-          <input type="date" id="receipt-end" name="end" min="<?= e($minDate) ?>" max="<?= e($maxDate) ?>" value="<?= e($filters['end']) ?>" aria-describedby="receipts-date-help" required>
-        </div>
-        <button type="submit"><?= te('Apply dates') ?></button>
+        <?php foreach (['start' => 'Start date', 'end' => 'End date'] as $field => $label): ?>
+          <div>
+            <label for="receipt-<?= e($field) ?>"><?= te($label) ?></label>
+            <input type="date" id="receipt-<?= e($field) ?>" name="<?= e($field) ?>" min="<?= e($minDate) ?>" max="<?= e($maxDate) ?>"
+              value="<?= e($filters[$field]) ?>" aria-describedby="receipts-date-help" data-date-range-<?= e($field) ?> required>
+          </div>
+        <?php endforeach; ?>
+        <button type="submit" data-date-range-submit><?= te('Apply dates') ?></button>
         <a class="receipts-link" href="receipts.php?type=<?= e($category) ?>"><?= te('Reset dates') ?></a>
       </div>
       <?php if ($filterError): ?><p class="error" role="alert"><?= te($filterError) ?></p><?php endif; ?>
@@ -211,4 +212,5 @@ head('Digital receipts');
     </article>
   <?php endif; ?>
 </div>
+<?php if (!$showDetails) require __DIR__ . '/includes/date-range-dialog.php'; ?>
 <?php foot(false); ?>
