@@ -52,10 +52,10 @@ head($pages[$page]);
     <section class="staff-card">
       <div class="staff-section-heading">
         <div><h2><?= te('My Attendance') ?></h2><p class="staff-muted"><?= te('Check in or out and view your shift history.') ?></p></div>
-        <a class="staff-text-link" href="staff-attendance.php"><?= te('Open My Attendance') ?></a>
+        <a class="btn btn-secondary" href="staff-attendance.php"><?= te('Open My Attendance') ?></a>
       </div>
     </section>
-    <section class="staff-card"><div class="staff-section-heading"><h2><?= te('Recent fine records') ?></h2><a href="staff.php?page=fines" class="staff-text-link"><?= te('Manage fines') ?></a></div><div id="staff-recent"></div></section>
+    <section class="staff-card"><div class="staff-section-heading"><h2><?= te('Recent fine records') ?></h2><a class="btn btn-secondary" href="staff.php?page=fines"><?= te('Manage fines') ?></a></div><div id="staff-recent"></div></section>
     <?php require __DIR__ . '/includes/staff-leave-panel.php'; ?>
   <?php elseif ($page === 'fines' || $page === 'maintenance'): ?>
     <section class="staff-card"><div class="staff-section-heading"><div><h2><?= te($page === 'fines' ? 'Fine records' : 'Maintenance records') ?></h2><span id="staff-record-count" class="staff-muted"></span></div>

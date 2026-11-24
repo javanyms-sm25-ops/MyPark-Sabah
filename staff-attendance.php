@@ -59,7 +59,7 @@ head('My Attendance');
 <div class="employee-attendance">
   <div class="staff-page-heading">
     <div><h1><?= te('My Attendance') ?></h1><p><?= te('Record your shift and review your attendance in Malaysia time.') ?></p></div>
-    <a href="#attendance-history"><?= te('View Attendance History') ?></a>
+    <a class="btn btn-secondary" href="#attendance-history"><?= te('View Attendance History') ?></a>
   </div>
   <?php if ($error !== ''): ?><p class="attendance-notice" role="alert"><?= te($error) ?></p><?php endif; ?>
   <section class="staff-card" id="shift-attendance" aria-labelledby="shift-attendance-heading">
@@ -143,7 +143,7 @@ head('My Attendance');
           <tr><th scope="row"><?= e($entry['shift_date']) ?></th><td><?= e($entry['lot_name']) ?></td>
             <td><?= e(attendance_clock($in)) ?></td><td><?= e(attendance_clock($out)) ?></td><td><?= e(attendance_duration($entry)) ?></td>
             <td><?= attendance_badge(attendance_status($entry, $now)) ?></td><td><?= attendance_badge($entry['in_zone']) ?></td>
-            <td><a href="staff-attendance.php?shift=<?= $entry['id'] ?>#shift-attendance"><?= te('View details') ?></a></td></tr>
+            <td><a class="btn btn-secondary" href="staff-attendance.php?shift=<?= $entry['id'] ?>#shift-attendance"><?= te('View details') ?></a></td></tr>
         <?php endforeach; ?></tbody>
       </table></div>
     <?php else: ?><p><?= te($error === '' ? 'No shifts to show yet.' : 'Attendance history is unavailable.') ?></p><?php endif; ?>

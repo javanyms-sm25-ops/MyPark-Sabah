@@ -4,7 +4,7 @@ require_login();
 
 $role = me()['role'];
 if ($role === 'superadmin' || $role === 'staff') {
-    header('Location: ' . ($role === 'superadmin' ? 'admin/' : 'staff.php'), true, 303);
+    header('Location: ' . ($role === 'superadmin' ? 'admin/dashboard.php' : 'staff.php'), true, 303);
     exit;
 }
 

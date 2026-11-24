@@ -16,13 +16,14 @@ if (in_array($path, ['/login.php', '/register.php'], true)) {
     exit;
 }
 if ($path === '/admin') {
-    header('Location: /admin/', true, 308);
+    $query = http_build_query($_GET);
+    header('Location: /admin/dashboard.php' . ($query === '' ? '' : '?' . $query), true, 308);
     exit;
 }
 $pages = [
     'index.php', 'pages/login.php', 'logout.php', 'pages/register.php', 'forgot.php',
     'dashboard.php', 'find_parking.php', 'parking-details.php', 'parking.php', 'history.php', 'profile.php', 'oku-verification.php', 'support.php', 'ticket.php', 'notifications.php',
-    'wallet.php', 'checkout.php', 'compound.php', 'receipts.php', 'staff.php', 'admin/index.php', 'admin/attendance.php', 'api/availability.php',
+    'wallet.php', 'checkout.php', 'compound.php', 'receipts.php', 'staff.php', 'admin/index.php', 'admin/dashboard.php', 'admin/attendance.php', 'api/availability.php',
     'api/export.php', 'api/operations.php', 'api/staff.php', 'api/oku-proof.php', 'api/paypal.php', 'api/vehicles.php', 'api/notifications.php',
     'staff-attendance.php', 'admin/employee-attendance.php', 'admin/add-parking-location.php', 'api/attendance-photo.php',
 ];

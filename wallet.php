@@ -61,7 +61,7 @@ head('Wallet');
               Compound <?= e($transaction['compound']) ?><br><small>Receipt <?= e($transaction['reference']) ?></small>
             <?php elseif ($type === 'parking'): ?>
               <?php if (($bookings[$transaction['booking_id']]['user_id'] ?? null) === $userId): ?>
-                <a href="ticket.php?id=<?= e($transaction['booking_id']) ?>"><?= te('Parking booking') ?> #<?= e($transaction['booking_id']) ?></a>
+                <a class="btn btn-secondary" href="ticket.php?id=<?= e($transaction['booking_id']) ?>"><?= te('Parking booking') ?> #<?= e($transaction['booking_id']) ?></a>
               <?php else: ?>
                 <?= te('Parking booking') ?> #<?= e($transaction['booking_id']) ?>
               <?php endif; ?>

@@ -3,7 +3,7 @@ require __DIR__ . '/includes/bootstrap.php';
 
 if (me()) {
     $home = match (me()['role']) {
-        'superadmin' => 'admin/',
+        'admin', 'superadmin' => 'admin/dashboard.php',
         'staff' => 'staff.php',
         default => 'dashboard.php',
     };

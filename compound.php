@@ -118,8 +118,8 @@ head($title);
   <?php if ($canPay): ?>
     <div class="compound-wallet">
       <span><?= te('Demo wallet balance') ?> <strong><?= staff_money($balanceCents) ?></strong></span>
-      <a href="wallet.php"><?= te('Top up wallet') ?></a>
-      <a href="receipts.php?type=compound"><?= te('View compound receipts') ?></a>
+      <a class="btn btn-secondary" href="wallet.php"><?= te('Top up wallet') ?></a>
+      <a class="btn btn-secondary" href="receipts.php?type=compound"><?= te('View compound receipts') ?></a>
     </div>
   <?php endif; ?>
   <?php if ($error): ?><p class="error" role="alert"><?= te($error) ?></p><?php endif; ?>

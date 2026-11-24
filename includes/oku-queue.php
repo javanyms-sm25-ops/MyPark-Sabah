@@ -10,7 +10,7 @@ $okuRows = oku_review_rows($actor, $okuFilter);
       <?php foreach ($_SESSION['demo_users'] as $account): ?>
         <?php if ($account['role'] !== 'admin') continue; ?>
         <?php $granted = ($account['can_review_oku'] ?? false) === true; ?>
-        <form method="post" action="admin/" class="ops-oku-access-row">
+        <form method="post" action="admin/dashboard.php" class="ops-oku-access-row">
           <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
           <input type="hidden" name="action" value="oku_reviewer_access">
           <input type="hidden" name="admin_id" value="<?= e($account['id']) ?>">
@@ -21,7 +21,7 @@ $okuRows = oku_review_rows($actor, $okuFilter);
       <?php endforeach; ?>
     </details>
   <?php endif; ?>
-  <form method="get" action="admin/#oku-verification" class="ops-toolbar ops-oku-filter">
+  <form method="get" action="admin/dashboard.php#oku-verification" class="ops-toolbar ops-oku-filter">
     <label for="oku-status-filter"><?= te('Status') ?></label>
     <select id="oku-status-filter" name="oku_status">
       <?php foreach (['pending', 'approved', 'rejected', 'all'] as $status): ?>
@@ -52,7 +52,7 @@ $okuRows = oku_review_rows($actor, $okuFilter);
                     <input type="hidden" name="submission_id" value="<?= e($row['id']) ?>">
                     <button class="ops-button" type="submit"><?= te('Open proof in a new tab') ?></button>
                   </form>
-                  <form method="post" action="admin/" class="ops-oku-decision">
+                  <form method="post" action="admin/dashboard.php" class="ops-oku-decision">
                     <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
                     <input type="hidden" name="action" value="oku_decide">
                     <input type="hidden" name="submission_id" value="<?= e($row['id']) ?>">

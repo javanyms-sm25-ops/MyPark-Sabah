@@ -80,7 +80,7 @@ head('Password recovery');
     <form method="post" action="forgot.php?step=reset" class="registration-code-actions">
       <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
       <button type="submit" name="action" value="resend" class="ghost"><?= te('Resend code') ?></button>
-      <a href="forgot.php"><?= te('Change email address') ?></a>
+      <a class="btn btn-secondary" href="forgot.php"><?= te('Change email address') ?></a>
     </form>
   <?php else: ?>
     <p class="email-code-intro"><?= te('Enter your email address to request a password reset code.') ?></p>
@@ -94,6 +94,6 @@ head('Password recovery');
       <button type="submit" class="email-code-submit"><?= te('Send reset code') ?></button>
     </form>
   <?php endif; ?>
-  <p class="email-code-back"><a href="pages/login.php"><?= te('Back to sign in') ?></a></p>
+  <p class="email-code-back"><a class="btn btn-secondary" href="pages/login.php"><?= te('Back to sign in') ?></a></p>
 </section>
 <?php foot(false); ?>

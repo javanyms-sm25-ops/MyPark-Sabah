@@ -32,7 +32,7 @@ $selectedVehicle = $vehicleState['vehicles'][$selectedVehicleId ?? ''] ?? null;
     <?php endif; ?>
     <div class="parking-actions">
       <a class="btn" href="profile.php?from=parking&amp;vehicle_edit=new#vehicle-editor"><?= te($selectedVehicle ? 'Add vehicle' : 'Add your vehicle to start parking') ?></a>
-      <a class="vehicle-secondary-link" href="profile.php#my-vehicles"><?= te('Manage vehicles') ?></a>
+      <a class="btn btn-secondary vehicle-secondary-link" href="profile.php#my-vehicles"><?= te('Manage vehicles') ?></a>
     </div>
   </div>
   <p class="selected-vehicle__feedback hint" id="vehicle-selection-status" role="status" aria-live="polite"></p>

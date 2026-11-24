@@ -3,7 +3,7 @@ require __DIR__ . '/includes/bootstrap.php';
 require_login();
 
 if (in_array(me()['role'], ['admin', 'superadmin'], true)) {
-    header('Location: admin/', true, 303);
+    header('Location: admin/dashboard.php', true, 303);
     exit;
 }
 if (me()['role'] === 'staff') {

@@ -13,7 +13,7 @@
       <input type="date" id="attendance-to" name="to" value="<?= e($to) ?>" aria-describedby="attendance-date-help" data-date-range-end>
     </div>
     <button type="submit" class="ops-button" data-date-range-submit><?= te('Apply dates') ?></button>
-    <?php if ($dateQuery !== ''): ?><a href="admin/attendance.php"><?= te('Reset dates') ?></a><?php endif; ?>
+    <?php if ($dateQuery !== ''): ?><a class="btn btn-secondary" href="admin/attendance.php"><?= te('Reset dates') ?></a><?php endif; ?>
     <p id="attendance-date-help"><?= te('Shows leave requests that overlap the selected dates.') ?></p>
   </form>
   <?php if ($rangeError !== ''): ?><p class="ops-notice" role="alert"><?= te($rangeError) ?></p><?php endif; ?>

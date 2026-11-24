@@ -521,6 +521,14 @@ button:hover,
   transform: translateY(-1px);
 }
 
+.btn.btn-secondary {
+  background: var(--card);
+  color: var(--navy);
+  border: 1px solid var(--border);
+}
+
+.btn.btn-secondary:hover { background: var(--light-blue); }
+
 button:focus-visible,
 .btn:focus-visible,
 a:focus-visible {

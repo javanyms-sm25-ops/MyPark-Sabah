@@ -22,7 +22,7 @@ Member: user@park.com / user123
 Styles: assets/css/
 Scripts: assets/js/
 Images: assets/images/
-Admin: admin/; staff: staff.php; browser data endpoints: api/
+Admin Dashboard: admin/dashboard.php; staff: staff.php; browser data endpoints: api/
 Legacy SQLite archive: storage/parking.db. The Session prototype does not open it.
 If config/recaptcha.local.php is missing, create it with the following content.
 Replace both placeholders with your development reCAPTCHA v3 keys. Use the
@@ -64,7 +64,7 @@ To try compound payments, create a fine in Staff → Fine Management, sign out,
 then sign in as a member in the same browser. Open Compounds and search for the
 fine number or plate. Only members can use wallet credit, pay parking fees or
 top up with PayPal Sandbox. Admin and Super Admin can look up compounds and view
-the records available through Operations.
+the records available through Dashboard.
 
 Open Receipts to find parking bookings, compound payments and wallet top-ups.
 Parking cards and the Parking tab show session details and let you open tickets,
@@ -99,8 +99,8 @@ return [
 Dashboard https://developer.paypal.com/dashboard/applications/sandbox
 
 Super Admin parking availability
-Open admin/ as Super Admin. The panel above Reservation Management uses the same
-Operations snapshot as the table. Each active stay counts as one occupied bay
+Open admin/dashboard.php as Super Admin. The panel above Reservation Management
+uses the same snapshot as the table. Each active stay counts as one occupied bay
 at its location. Available bays = max(0, capacity minus occupied bays) for each
 bay type. Completed and cancelled stays do not occupy bays. Missing capacity is shown as
 "Capacity unavailable". Counts come from this browser's MyPark demo session.
@@ -108,7 +108,7 @@ Select a marker or a location in the list to set the table's Location filter.
 Completing a stay or using Refresh availability updates the counts and time.
 
 To turn on the Google map, enable Maps JavaScript API and billing in your Google
-Cloud project. Restrict a browser API key to Maps JavaScript API and to the sites
+Cloud project. Restrict the browser API key to the APIs it uses and the sites
 that serve MyPark, for example http://localhost:8000/* for the PHP dev server.
 Create the ignored file config/maps.local.php with:
 
@@ -123,7 +123,10 @@ The location list works without the key. Locations need valid lat/lng values
 to appear as map markers.
 
 Admin and Super Admin can open Add parking location from Parking locations in
-Operations. Click the map to set the pin, or enter its coordinates directly.
+Dashboard. Enable Places API (New) and allow it on the browser key to search by
+place name and fill in the city and address. Enable and allow Geocoding API to
+look up the city and address from a dropped pin. Review the details before
+saving. Choose the pin on the map or select a search result to set the position.
 Saved locations appear in Find parking for members using the same demo browser.
 
 OKU Parking Verification (demo)
@@ -131,7 +134,7 @@ Use fictional proof and the demo accounts in the same browser. A member
 opens OKU Parking Verification from the Profile menu or the Profile status card.
 The dedicated oku-verification.php page handles proof uploads and resubmissions.
 The supplied accessibility logo appears above its heading. A Super Admin can review
-in Operations > OKU Verification, or grant review access to an Admin there.
+in Dashboard > OKU Verification, or grant review access to an Admin there.
 An Admin without a grant and Staff cannot review or open proof. Keep document
 numbers out of rejection reasons. A rejected member can submit a new proof.
 
@@ -148,7 +151,7 @@ Keep request-body logging disabled for uploads and verification requests.
 The existing browser-specific session model does not share reviews across
 separate browsers. OKU verification uses its existing session records.
 
-Use Operations > Set OKU bay allocation to reserve bays within a location's
+Use Dashboard > Set OKU bay allocation to reserve bays within a location's
 existing total. New demo sessions start with one OKU bay at Kota Kinabalu
 Waterfront. Locations missing an allocation default to zero. Existing stays
 without a bay type count as regular. Verified members can choose the OKU type
@@ -214,7 +217,7 @@ review replay, stale/deleted selections, active-stay edit/removal restrictions,
 historical plates, legacy migration and OKU review/confirmation eligibility.
 
 Employee Attendance
-Open Operations > Employee Attendance as Super Admin. Use Admin Location Access
+Open Employee Attendance as Super Admin. Use Admin Location Access
 to assign an Admin to their workplaces, then schedule a shift for a Staff account.
 An end time earlier than the start time means the shift ends the following day.
 The Admin's existing Leave requests page is linked from Employee Attendance.

@@ -117,7 +117,7 @@ function parking_notice_list(array $items, bool $showLinks = false): string {
                     },
                 };
             ?>
-              <a href="<?= e($url) ?>"><?= te($label) ?></a>
+              <a class="btn btn-secondary" href="<?= e($url) ?>"><?= te($label) ?></a>
             <?php endif; ?>
           </li>
         <?php endforeach; ?>

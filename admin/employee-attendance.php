@@ -81,8 +81,8 @@ head('Employee Attendance');
 <div class="operations-page employee-attendance" id="employee-attendance">
   <div class="attendance-heading">
     <div><h1><?= te('Employee Attendance') ?></h1><p><?= te($super ? 'Review attendance across all parking locations.' : 'Review attendance for your assigned parking locations.') ?></p></div>
-    <div class="attendance-actions"><a href="admin/"><?= te('Operations dashboard') ?></a>
-      <?php if (!$super): ?><a href="admin/attendance.php"><?= te('Leave requests') ?></a><?php endif; ?>
+    <div class="attendance-actions"><a class="btn btn-secondary" href="admin/dashboard.php"><?= te('Dashboard') ?></a>
+      <?php if (!$super): ?><a class="btn btn-secondary" href="admin/attendance.php"><?= te('Leave requests') ?></a><?php endif; ?>
     </div>
   </div>
   <?php if ($error !== ''): ?><p class="attendance-notice" role="alert"><?= te($error) ?></p><?php endif; ?>
@@ -123,7 +123,7 @@ head('Employee Attendance');
         </div>
         <div class="attendance-actions">
           <button type="submit" class="btn" data-date-range-submit="visible"><?= te('Apply filters') ?></button>
-          <button type="submit" form="attendance-clear-filters" class="attendance-clear"><?= te('Clear filters') ?></button>
+          <button type="submit" form="attendance-clear-filters" class="btn btn-secondary"><?= te('Clear filters') ?></button>
         </div>
         <small id="attendance-report-date-help"><?= te('Leave both dates blank to view today’s report.') ?> <?= te('Times shown are Malaysia time (MYT).') ?></small>
       </form>
@@ -137,7 +137,7 @@ head('Employee Attendance');
               <td><?= $entry['in_distance'] === null ? '—' : e($entry['in_distance']) . ' m' ?></td><td><?= $entry['in_accuracy'] === null ? '—' : e($entry['in_accuracy']) . ' m' ?></td>
               <td><?= attendance_badge(attendance_status($entry, $now)) ?><?php if (attendance_punctuality($entry) && attendance_status($entry, $now) !== attendance_punctuality($entry)): ?><br><?= attendance_badge(attendance_punctuality($entry)) ?><?php endif; ?></td>
               <td><?= attendance_badge($entry['in_zone']) ?></td><td><?= e(attendance_clock($entry['checked_out'])) ?></td>
-              <td><a href="admin/employee-attendance.php?<?= e(http_build_query($filters + ['shift' => $entry['id']])) ?>#record"><?= te('View details') ?></a></td>
+              <td><a class="btn btn-secondary" href="admin/employee-attendance.php?<?= e(http_build_query($filters + ['shift' => $entry['id']])) ?>#record"><?= te('View details') ?></a></td>
             </tr>
           <?php endforeach; ?></tbody>
         </table></div>

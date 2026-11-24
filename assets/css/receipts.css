@@ -104,14 +104,11 @@
 
 .receipts-categories a,
 .receipts-link {
+  text-decoration: none;
   border-radius: 9px;
   color: var(--navy);
   background: var(--card);
   border: 1px solid var(--border);
-}
-
-.receipts-categories a {
-  text-decoration: none;
 }
 
 .receipts-categories a[aria-current="page"],

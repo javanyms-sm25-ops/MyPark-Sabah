@@ -51,7 +51,7 @@
         <tr><td><?= e(attendance_clock($change['created_at'])) ?> MYT</td>
           <td><?= e(($accounts[$change['admin_id']]['name'] ?? '—') . ' · #' . $change['admin_id']) ?></td>
           <td><?= te($change['action']) ?></td>
-          <td><?php if ($change['shift_id']): ?><a href="admin/employee-attendance.php?shift=<?= $change['shift_id'] ?>#record">#<?= $change['shift_id'] ?></a><?php else: ?>—<?php endif; ?></td>
+          <td><?php if ($change['shift_id']): ?><a class="btn btn-secondary" href="admin/employee-attendance.php?shift=<?= $change['shift_id'] ?>#record">#<?= $change['shift_id'] ?></a><?php else: ?>—<?php endif; ?></td>
           <td><?= attendance_audit_values($change['before_value']) ?></td><td><?= attendance_audit_values($change['after_value']) ?></td><td><?= e($change['reason']) ?></td></tr>
       <?php endforeach; ?></tbody>
     </table></div>

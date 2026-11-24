@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['demo_last_active'] = time();
             $_SESSION['user'] = ['id' => $user['id'], 'name' => $user['name'], 'email' => $user['email'], 'role' => $user['role']];
             foreach (['phone', 'photo'] as $key) if (isset($user[$key])) $_SESSION['user'][$key] = $user[$key];
-            header('Location: ' . ($user['role'] === 'staff' ? '../staff.php' : ($user['role'] === 'user' ? '../dashboard.php' : '../admin/')));
+            header('Location: ' . ($user['role'] === 'staff' ? '../staff.php' : ($user['role'] === 'user' ? '../dashboard.php' : '../admin/dashboard.php')));
             exit;
         } else {
             $attempts = ($_SESSION['failures'][$email] ?? 0) + 1;
@@ -84,7 +84,7 @@ head('Login');
     </div>
     <p class="field-feedback" id="login-password-error" aria-live="polite" <?= !isset($fieldErrors['password']) ? 'hidden' : '' ?>><span data-error-text><?= te($fieldErrors['password'] ?? '') ?></span></p>
   </div>
-  <p class="login-forgot"><a href="forgot.php"><?= te('Forgot password?') ?></a></p>
+  <p class="login-forgot"><a class="btn btn-secondary" href="forgot.php"><?= te('Forgot password?') ?></a></p>
   <p class="login-error" id="login-request-error" role="alert" tabindex="-1" <?= !$error ? 'hidden' : '' ?>><span data-request-error><?= te($error) ?></span></p>
   <button class="login-submit" type="submit"><span class="login-spinner" aria-hidden="true" hidden></span><span data-submit-label><?= te('Sign in') ?></span></button>
   <span class="validation-sr-only" id="login-status" role="status" aria-live="polite"></span>

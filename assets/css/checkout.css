@@ -4,9 +4,7 @@
 }
 
 .checkout-back {
-  display: inline-block;
   margin-bottom: 16px;
-  color: var(--navy);
 }
 
 .checkout-card {

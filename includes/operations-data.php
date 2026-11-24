@@ -12,7 +12,7 @@ function ops_actor(): array {
     foreach ($_SESSION['demo_users'] as $user) {
         if ($user['id'] === me()['id'] && !$user['blocked'] && in_array($user['role'], ['staff', 'admin', 'superadmin'], true)) return $user;
     }
-    throw new RuntimeException('You do not have permission to access Operations.', 403);
+    throw new RuntimeException('You do not have permission to access the Dashboard.', 403);
 }
 
 function ops_json(array $data, int $status = 200): never {
@@ -178,7 +178,7 @@ function ops_mutate(array $actor, array $input): string {
         $lat = filter_var($input['lat'] ?? null, FILTER_VALIDATE_FLOAT);
         $lng = filter_var($input['lng'] ?? null, FILTER_VALIDATE_FLOAT);
         if ($lat === false || $lng === false || abs($lat) > 90 || abs($lng) > 180) {
-            throw new RuntimeException('Choose a point on the map or enter valid coordinates.', 422);
+            throw new RuntimeException('Choose a location on the map.', 422);
         }
         $_SESSION['demo_lots'][] = [
             'id' => max(array_column($_SESSION['demo_lots'], 'id') ?: [0]) + 1,

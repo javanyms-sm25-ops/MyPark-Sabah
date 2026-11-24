@@ -30,7 +30,7 @@ head('Checkout');
 ?>
 <link rel="stylesheet" href="assets/css/checkout.css">
 <div class="checkout-page">
-  <a class="checkout-back" href="wallet.php">← <?= te('Wallet') ?></a>
+  <a class="btn btn-secondary checkout-back" href="wallet.php">← <?= te('Wallet') ?></a>
   <div class="checkout-card">
     <p class="eyebrow">MY PARK SABAH · SANDBOX CHECKOUT</p>
     <h1>Top up wallet</h1>

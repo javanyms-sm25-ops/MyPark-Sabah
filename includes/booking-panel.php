@@ -9,7 +9,7 @@ $manageVehiclesUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $
 $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'] + $bookingContext);
 ?>
 <section class="card" id="bookingPanel" aria-labelledby="parking-heading">
-  <p><a href="dashboard.php#locations"><?= te('Back to parking locations') ?></a></p>
+  <p><a class="btn btn-secondary" href="dashboard.php#locations"><?= te('Back to parking locations') ?></a></p>
   <h1 id="parking-heading" tabindex="-1"><?= te('Parking details') ?></h1>
   <p><?= te('Choose a location, vehicle and duration. Your parking time starts when you confirm.') ?></p>
   <ol class="booking-steps">
@@ -51,7 +51,7 @@ $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'
     <div class="vehicle-toolbar">
       <label id="bookingVehicleLabel" for="<?= $customer ? 'savedVehicle' : 'plate' ?>"><?= te($customer ? 'Vehicle' : 'Vehicle plate') ?></label>
       <?php if ($customer): ?>
-        <a id="manageBookingVehicles" href="<?= e($manageVehiclesUrl) ?>"><?= te('Add vehicle') ?></a>
+        <a class="btn btn-secondary" id="manageBookingVehicles" href="<?= e($manageVehiclesUrl) ?>"><?= te('Add vehicle') ?></a>
       <?php endif; ?>
     </div>
     <?php if ($customer): ?>
@@ -73,7 +73,7 @@ $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'
     <?php endif; ?>
     <p class="booking-error" id="bookingVehicleError" <?= !isset($errors['vehicle']) ? 'hidden' : '' ?>><?= te($errors['vehicle'] ?? '') ?></p>
     <?php if ($customer && !$vehicles): ?>
-      <p class="hint"><a href="<?= e($manageVehiclesUrl) ?>"><?= te('Add your vehicle to start parking') ?></a></p>
+      <p class="hint"><a class="btn btn-secondary" href="<?= e($manageVehiclesUrl) ?>"><?= te('Add your vehicle to start parking') ?></a></p>
     <?php endif; ?>
     <fieldset id="manualVehicle" class="manual-vehicle" <?= !$manualVehicle ? 'hidden disabled' : '' ?>>
       <?php if ($vehicles): ?><label for="plate"><?= te('Vehicle plate') ?></label><?php endif; ?>
@@ -160,7 +160,7 @@ $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'
           <button type="submit"><?= te('Add vehicle') ?></button>
           <button type="button" class="ghost" data-close-vehicle-dialog><?= te('Cancel') ?></button>
         </div>
-        <a class="vehicle-secondary-link" id="manageVehiclesInProfile" href="<?= e($manageVehiclesUrl) ?>"><?= te('Manage vehicles in Profile') ?></a>
+        <a class="btn btn-secondary vehicle-secondary-link" id="manageVehiclesInProfile" href="<?= e($manageVehiclesUrl) ?>"><?= te('Manage vehicles in Profile') ?></a>
       </form>
     </dialog>
     <?php if ($addVehicleError): ?><noscript><p class="booking-error" role="alert"><?= te($addVehicleError) ?></p></noscript><?php endif; ?>

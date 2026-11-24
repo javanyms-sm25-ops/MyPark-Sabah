@@ -55,7 +55,6 @@
 .staff-leave-dates { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: 0 12px; }
 .staff-leave-empty { margin: 0; padding: 0 20px 18px; }
 .staff-portal .staff-table.staff-leave-table { min-width: 280px; }
-.staff-text-link { color: #28547f; font-size: 13px; font-weight: 500; }
 .staff-table-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 0 20px 18px; }
 .staff-table-tools input { flex: 1 1 260px; max-width: 350px; }
 .staff-table-tools select { flex: 0 1 170px; width: auto; }

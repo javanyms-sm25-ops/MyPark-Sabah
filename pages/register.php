@@ -104,7 +104,7 @@ head($verifyScreen ? 'Verify your email' : 'Register');
       <input type="hidden" name="csrf" value="<?= csrf() ?>">
       <input type="hidden" name="action" value="resend">
       <button type="submit" class="ghost" aria-describedby="registration-resend-status"><?= te('Resend verification link') ?></button>
-      <a href="pages/register.php"><?= te('Change email address') ?></a>
+      <a class="btn btn-secondary" href="pages/register.php"><?= te('Change email address') ?></a>
     </form>
     <p class="email-code-back" id="registration-resend-status" data-resend-seconds="<?= $resendWait ?>" <?= $resendWait === 0 ? 'hidden' : '' ?>>
       <?= te('You can resend the link in {seconds}s.', ['seconds' => $resendWait]) ?>
