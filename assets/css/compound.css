@@ -112,7 +112,8 @@
   overflow-wrap: anywhere;
 }
 
-.compound-camera {
+.compound-camera,
+.compound-payment-dialog {
   width: min(480px, calc(100% - 32px));
   padding: 22px;
   border: 1px solid var(--border);
@@ -123,6 +124,39 @@
 
 .compound-camera::backdrop {
   background: rgb(10 20 30 / 65%);
+}
+
+.compound-payment-dialog {
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  overflow: auto;
+  box-shadow: var(--shadow);
+}
+
+.compound-payment-dialog::backdrop {
+  background: rgb(15 34 55 / 45%);
+}
+
+.compound-payment-dialog h2 {
+  margin: 0 0 12px;
+}
+
+.compound-payment-dialog p {
+  margin: 0;
+  color: var(--muted-text);
+  overflow-wrap: anywhere;
+}
+
+.compound-payment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.compound-payment-actions .ghost {
+  padding-inline: 16px;
 }
 
 .compound-camera video {

@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/receipt-data.php';
 require_once __DIR__ . '/includes/staff-data.php';
 require_login();
 
@@ -65,7 +66,14 @@ if ($isPaymentRequest) {
         $_SESSION['staff_fines'][$id] = $paid;
         staff_audit('fine', $id, 'paid', $actor, $fine, $paid, 'MyPark demo wallet payment');
 
-        flash('Compound ' . $paid['code'] . ' paid. Receipt: ' . $paid['payment_reference'] . '.');
+        flash([
+            'title' => 'Payment confirmed',
+            'type' => 'success',
+            'message' => t('{amount} paid for compound {compound}.', [
+                'amount' => staff_money($paid['paid_amount_cents']),
+                'compound' => $paid['code'],
+            ]),
+        ]);
         header('Location: compound.php?q=' . rawurlencode($query));
         exit;
     }
@@ -73,6 +81,16 @@ if ($isPaymentRequest) {
 }
 
 $results = array_filter($_SESSION['staff_fines'], fn($fine) => compound_matches($fine, $lookupKey));
+$compoundReceiptIds = [];
+if ($canPay && $results) {
+    receipt_sync();
+    foreach ($_SESSION['demo_receipts'][$actor['id']] ?? [] as $receipt) {
+        $details = $receipt['details'];
+        if ($receipt['type'] === 'compound' && isset($details['Compound number'], $details['Payment reference'])) {
+            $compoundReceiptIds[$details['Compound number']][$details['Payment reference']] = $receipt['id'];
+        }
+    }
+}
 $lookupUrl = 'compound.php?q=' . rawurlencode($query);
 head($title);
 ?>
@@ -111,7 +129,9 @@ head($title);
       <h2 id="compound-results-title"><?= te('Search results') ?></h2>
       <?php if (!$results): ?><p class="card">No compounds found for <?= e($query) ?>. Check the number and try again.</p><?php endif; ?>
       <div class="compound-results">
-        <?php foreach ($results as $fine): ?>
+        <?php foreach ($results as $fine):
+            $receiptId = $compoundReceiptIds[$fine['code']][$fine['payment_reference'] ?? ''] ?? null;
+        ?>
           <article class="card compound-result">
             <div class="compound-result-heading">
               <h3><?= e($fine['code']) ?></h3>
@@ -125,12 +145,15 @@ head($title);
             </dl>
 
             <?php if ($canPay && $fine['status'] === 'unpaid'): ?>
-              <form method="post" action="<?= e($lookupUrl) ?>">
+              <form method="post" action="<?= e($lookupUrl) ?>"
+                data-compound-payment="<?= te('Pay {amount} for {compound} from your demo wallet?', ['amount' => staff_money($fine['amount_cents']), 'compound' => $fine['code']]) ?>">
                 <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
                 <input type="hidden" name="id" value="<?= $fine['id'] ?>">
                 <input type="hidden" name="version" value="<?= $fine['version'] ?>">
-                <button type="submit" data-confirm="<?= e('Pay ' . staff_money($fine['amount_cents']) . ' for ' . $fine['code'] . ' from your demo wallet?') ?>">Pay <?= staff_money($fine['amount_cents']) ?> with wallet</button>
+                <button type="submit" aria-haspopup="dialog"><?= te('Pay {amount} with wallet', ['amount' => staff_money($fine['amount_cents'])]) ?></button>
               </form>
+            <?php elseif ($fine['status'] === 'paid' && $receiptId !== null): ?>
+              <a class="btn" href="receipts.php?type=compound&amp;id=<?= e($receiptId) ?>"><?= te('View receipt') ?><span class="validation-sr-only"> <?= e($fine['code']) ?></span></a>
             <?php endif; ?>
           </article>
         <?php endforeach; ?>
@@ -138,6 +161,17 @@ head($title);
     </section>
   <?php endif; ?>
 </div>
+
+<?php if ($canPay): ?>
+  <dialog id="compound-payment" class="compound-payment-dialog" aria-labelledby="compound-payment-title" aria-describedby="compound-payment-message">
+    <h2 id="compound-payment-title"><?= te('Confirm compound payment') ?></h2>
+    <p id="compound-payment-message"></p>
+    <form method="dialog" class="compound-payment-actions">
+      <button type="submit" class="ghost" value="cancel" autofocus><?= te('Cancel') ?></button>
+      <button type="submit" value="pay"><?= te('Pay with wallet') ?></button>
+    </form>
+  </dialog>
+<?php endif; ?>
 
 <dialog id="compound-camera" class="compound-camera" aria-labelledby="compound-camera-title">
   <h2 id="compound-camera-title"><?= te('Scan compound barcode') ?></h2>

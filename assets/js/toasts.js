@@ -13,13 +13,14 @@
 
   function show(message, type = 'info', options = {}) {
     if (!Object.prototype.hasOwnProperty.call(titles, type)) type = 'info';
+    const title = options.title || titles[type];
     const key = options.key || type + ':' + message;
     if (active.has(key)) return;
     const origin = document.activeElement;
     const toast = document.createElement('section');
     toast.className = 'pe-toast pe-toast--' + type;
     if (options.parkingNotice) toast.classList.add('pe-toast--parking-notice');
-    toast.setAttribute('aria-label', titles[type]);
+    toast.setAttribute('aria-label', title);
     const icon = document.createElement('span');
     icon.className = 'pe-toast__icon';
     icon.setAttribute('aria-hidden', 'true');
@@ -27,7 +28,7 @@
     const body = document.createElement('div');
     body.className = 'pe-toast__body';
     const heading = document.createElement('strong');
-    heading.textContent = titles[type];
+    heading.textContent = title;
     const text = document.createElement('p');
     text.textContent = translate(message);
     body.append(heading, text);
@@ -40,7 +41,7 @@
     const close = document.createElement('button');
     close.type = 'button';
     close.className = 'pe-toast__close';
-    close.setAttribute('aria-label', 'Dismiss ' + titles[type].toLowerCase() + ' notification');
+    close.setAttribute('aria-label', 'Dismiss ' + title.toLowerCase() + ' notification');
     close.textContent = '×';
     toast.append(icon, body, close);
     stack.append(toast);
@@ -50,7 +51,7 @@
     const announcer = type === 'error' ? urgent : polite;
     announcer.textContent = '';
     window.setTimeout(function () {
-      if (toast.isConnected) announcer.textContent = titles[type] + '. ' + message;
+      if (toast.isConnected) announcer.textContent = title + '. ' + message;
     }, 50);
 
     let timer;
@@ -103,7 +104,7 @@
     const failure = element.classList.contains('error') || /not found|must be|enter a valid|use jpg|invalid|failed|cannot|can be cancelled|location is full/i.test(message);
     const success = /updated|created|reserved|cancelled|added|topped up|registered/i.test(message);
     const type = element.dataset.toastType || (failure ? 'error' : success ? 'success' : 'info');
-    show(message, type);
+    show(message, type, { title: element.dataset.toastTitle });
     if (type !== 'error') element.hidden = true;
   });
 }());

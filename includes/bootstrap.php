@@ -131,7 +131,7 @@ function cancel_booking(int $id, int $userId): void {
     throw new RuntimeException('Booking not found.', 404);
 }
 function require_admin(){require_login();if(!in_array(me()['role'],['admin','superadmin'],true)){http_response_code(403);exit('Forbidden');}}
-function flash(?string $message = null): ?string {
+function flash(string|array|null $message = null): string|array|null {
     if ($message !== null) {
         $_SESSION['flash'] = $message;
         return null;

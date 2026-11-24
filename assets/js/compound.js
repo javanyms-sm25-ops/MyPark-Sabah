@@ -2,6 +2,31 @@
   'use strict';
   const translate = window.MyParkLocale?.text ?? (message => message);
 
+  const paymentDialog = document.getElementById('compound-payment');
+  if (paymentDialog) {
+    const message = document.getElementById('compound-payment-message');
+    let paymentForm;
+
+    document.querySelectorAll('[data-compound-payment]').forEach((form) => {
+      form.addEventListener('submit', (event) => {
+        const prompt = form.dataset.compoundPayment;
+        if (typeof paymentDialog.showModal !== 'function') {
+          if (!window.confirm(prompt)) event.preventDefault();
+          return;
+        }
+
+        event.preventDefault();
+        if (paymentDialog.open) return;
+        paymentForm = form;
+        message.textContent = prompt;
+        paymentDialog.showModal();
+      });
+    });
+
+    paymentDialog.addEventListener('submit', (event) => {
+      if (paymentDialog.open && event.submitter?.value === 'pay') paymentForm.submit();
+    });
+  }
 
   const form = document.getElementById('compound-lookup');
   const input = document.getElementById('compound-query');

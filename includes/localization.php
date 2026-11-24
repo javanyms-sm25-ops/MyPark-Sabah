@@ -82,10 +82,20 @@ function locale_client_scripts(): void {
         . '</script><script src="assets/js/localization.js"></script>';
 }
 
-function localized_flash(string $message): void {
+function localized_flash(string|array $message): void {
+    $title = '';
+    $type = null;
+    if (is_array($message)) {
+        $title = $message['title'] ?? '';
+        $type = $message['type'] ?? null;
+        $message = $message['message'];
+    }
     if ($message === '') return;
-    $failure = preg_match('/not found|must be|enter a valid|use jpg|invalid|failed|cannot|can be cancelled|location is full/i', $message);
-    $success = preg_match('/updated|created|reserved|cancelled|added|topped up|registered/i', $message);
-    $type = $failure ? 'error' : ($success ? 'success' : 'info');
-    echo '<div class="flash" data-toast-type="' . $type . '">' . te($message) . '</div>';
+    if ($type === null) {
+        $failure = preg_match('/not found|must be|enter a valid|use jpg|invalid|failed|cannot|can be cancelled|location is full/i', $message);
+        $success = preg_match('/updated|created|reserved|cancelled|added|topped up|registered/i', $message);
+        $type = $failure ? 'error' : ($success ? 'success' : 'info');
+    }
+    echo '<div class="flash" data-toast-type="' . e($type) . '"'
+        . ($title === '' ? '' : ' data-toast-title="' . te($title) . '"') . '>' . te($message) . '</div>';
 }
