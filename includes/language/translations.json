@@ -637,7 +637,7 @@
   "Regular parking": {"zh-Hans":"普通停车","ms":"Parkir biasa"},
   "OKU parking": {"zh-Hans":"OKU 停车","ms":"Parkir OKU"},
   "Parking bay type": {"zh-Hans":"车位类型","ms":"Jenis petak parkir"},
-  "Approved OKU parking verification is required. Check your status or submit proof in Profile.": {"zh-Hans":"使用 OKU 车位需要已批准的验证。请在个人资料中查看状态或提交证明。","ms":"Pengesahan parkir OKU yang diluluskan diperlukan. Semak status atau hantar bukti dalam Profil."},
+  "Approved OKU parking verification is required. Open the OKU verification page to check your status or submit proof.": {"zh-Hans":"使用 OKU 车位需要已批准的验证。请打开 OKU 验证页面查看状态或提交证明。","ms":"Pengesahan parkir OKU yang diluluskan diperlukan. Buka halaman pengesahan OKU untuk menyemak status atau menghantar bukti."},
   "Approval is required to book OKU parking.": {"zh-Hans":"预订 OKU 车位需要审核批准。","ms":"Kelulusan diperlukan untuk menempah parkir OKU."},
   "Choose a valid parking bay type.": {"zh-Hans":"请选择有效的车位类型。","ms":"Pilih jenis petak parkir yang sah."},
   "No OKU bays are available at this location. Choose another location.": {"zh-Hans":"此地点没有可用的 OKU 车位。请选择其他地点。","ms":"Tiada petak OKU tersedia di lokasi ini. Pilih lokasi lain."},
@@ -693,5 +693,8 @@
   "End this vehicle’s active parking session before changing its plate.": {"zh-Hans":"请先结束此车辆的停车，再更改车牌。","ms":"Tamatkan sesi parkir aktif kenderaan ini sebelum menukar nombor platnya."},
   "Edit {plate}": {"zh-Hans":"编辑 {plate}","ms":"Sunting {plate}"},
   "Set {plate} as default": {"zh-Hans":"将 {plate} 设为默认车辆","ms":"Tetapkan {plate} sebagai kenderaan lalai"},
-  "Remove {plate}": {"zh-Hans":"删除 {plate}","ms":"Buang {plate}"}
+  "Remove {plate}": {"zh-Hans":"删除 {plate}","ms":"Buang {plate}"},
+  "Open verification page": {"zh-Hans":"打开验证页面","ms":"Buka halaman pengesahan"},
+  "Back to profile": {"zh-Hans":"返回个人资料","ms":"Kembali ke profil"},
+  "OKU parking symbol": {"zh-Hans":"OKU 停车标志","ms":"Simbol parkir OKU"}
 }

@@ -110,7 +110,9 @@ to appear as map markers.
 
 OKU Parking Verification (demo)
 Use fictional proof and the demo accounts in the same browser. A member
-submits through Profile > OKU Parking Verification. A Super Admin can review
+opens OKU Parking Verification from the Profile menu or the Profile status card.
+The dedicated oku-verification.php page handles proof uploads and resubmissions.
+The supplied accessibility logo appears above its heading. A Super Admin can review
 in Operations > OKU Verification, or grant review access to an Admin there.
 An Admin without a grant and Staff cannot review or open proof. Keep document
 numbers out of rejection reasons. A rejected member can submit a new proof.

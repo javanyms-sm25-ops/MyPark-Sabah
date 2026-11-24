@@ -128,7 +128,7 @@ head('Digital receipts');
         <?php if ($bayError): ?>
           <p class="booking-error" role="alert">
             <?= te($bayError) ?>
-            <?php if ($bayError === OKU_APPROVAL_REQUIRED): ?><a href="profile.php#oku-parking-verification"><?= te('OKU Parking Verification') ?></a><?php endif; ?>
+            <?php if ($bayError === OKU_APPROVAL_REQUIRED): ?><a href="oku-verification.php"><?= te('OKU Parking Verification') ?></a><?php endif; ?>
           </p>
         <?php endif; ?>
         <?php if (!$receipts): ?>

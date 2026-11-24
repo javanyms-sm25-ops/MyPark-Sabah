@@ -6,7 +6,7 @@ $durationChoice = $draftHours !== false && isset($durations[$draftHours]) ? (str
 $manualVehicle = !$customer;
 $bookingContext = parking_resume_fields($draft);
 $manageVehiclesUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $bookingContext) . '#my-vehicles';
-$okuProfileUrl = 'profile.php?' . http_build_query(['from' => 'booking'] + $bookingContext) . '#oku-parking-verification';
+$okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'] + $bookingContext);
 ?>
 <section class="card" id="bookingPanel" aria-labelledby="parking-heading">
   <p><a href="dashboard.php#locations"><?= te('Back to parking locations') ?></a></p>

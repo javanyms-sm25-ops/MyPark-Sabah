@@ -8,7 +8,7 @@ const OKU_STATUS_LABELS = [
 ];
 const OKU_PROOF_TYPES = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
 const OKU_MAX_PROOF_BYTES = 2000000;
-const OKU_APPROVAL_REQUIRED = 'Approved OKU parking verification is required. Check your status or submit proof in Profile.';
+const OKU_APPROVAL_REQUIRED = 'Approved OKU parking verification is required. Open the OKU verification page to check your status or submit proof.';
 
 function oku_current_submission(int $memberId): ?array {
     $id = $_SESSION['oku_latest'][$memberId] ?? '';

@@ -171,6 +171,7 @@ function head(string $title): void {
                   </summary>
                   <div class="profile-nav-options">
                     <a href="profile.php"><?= te('Profile') ?></a>
+                    <a href="oku-verification.php"><?= te('OKU Parking Verification') ?></a>
                     <a href="logout.php"><?= te('Logout') ?></a>
                   </div>
                 </details>

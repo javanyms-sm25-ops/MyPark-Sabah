@@ -4,29 +4,23 @@ require_login();
 require __DIR__ . '/includes/parking-booking.php';
 require_once __DIR__ . '/includes/oku-verification.php';
 
+// Older open Profile forms still submit their proof to the dedicated page.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['oku_action'])) {
+    require __DIR__ . '/oku-verification.php';
+    return;
+}
+
 $fromParking = ($_GET['from'] ?? '') === 'parking';
 $bookingContext = ($_GET['from'] ?? '') === 'booking' ? ['from' => 'booking'] + parking_resume_fields($_GET) : ($fromParking ? ['from' => 'parking'] : []);
 $vehiclesPage = 'profile.php' . ($bookingContext ? '?' . http_build_query($bookingContext) : '');
 $editor = is_string($_GET['vehicle_edit'] ?? null) ? $_GET['vehicle_edit'] : '';
 $vehicleError = '';
-$okuError = '';
 $vehicleFormInput = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
 }
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['oku_action'])) {
-    try {
-        if ($_POST['oku_action'] !== 'submit') throw new RuntimeException('Unknown OKU operation.', 400);
-        oku_submit(me(), $_FILES['oku_proof'] ?? []);
-        flash('OKU proof submitted for review.');
-        header('Location: ' . $vehiclesPage . '#oku-parking-verification', true, 303);
-        exit;
-    } catch (RuntimeException $error) {
-        $okuError = $error->getMessage();
-        http_response_code($error->getCode());
-    }
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vehicle_action'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vehicle_action'])) {
     if (me()['role'] !== 'user') {
         http_response_code(403);
         exit('Vehicle management is available to customers.');

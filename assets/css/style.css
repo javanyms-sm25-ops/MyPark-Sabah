@@ -2535,6 +2535,49 @@ footer a:hover {
 #oku-parking-verification { scroll-margin-top: 120px; }
 .oku-rejection-reason { white-space: pre-wrap; overflow-wrap: anywhere; }
 
+.oku-verification-page {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.oku-verification-logo {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto 20px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.oku-profile-card h2,
+.oku-verification-card h1 {
+  margin-top: 0;
+}
+
+.oku-verification-card {
+  padding: clamp(20px, 4vw, 32px);
+}
+
+.oku-verification-card h1 {
+  font-size: clamp(1.3rem, 3.5vw, 1.65rem);
+  line-height: 1.35;
+  text-align: center;
+}
+
+.oku-verification-status {
+  margin: 20px 0;
+}
+
+.oku-verification-card input[type="file"] {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.oku-verification-card :is(a, button, input):focus-visible {
+  outline: 3px solid var(--navy);
+  outline-offset: 3px;
+}
+
 /* ---------- 10. Legacy slot-grid styles ---------- */
 
 .grid {
