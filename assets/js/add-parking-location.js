@@ -73,12 +73,15 @@
         includedRegionCodes: ['my'],
         locationBias: { north: 7.6, south: 3.9, east: 119.5, west: 114.9 },
         placeholder: translate('Search by place name'),
+        description: translate('Search for an address or landmark in Malaysia'),
       });
       autocomplete.addEventListener('gmp-select', ({ placePrediction }) => {
         searchStatus.textContent = '';
         selectPlace(placePrediction);
       });
-      autocomplete.addEventListener('gmp-error', searchUnavailable);
+      autocomplete.addEventListener('gmp-error', () => {
+        searchStatus.textContent = translate('Google Places denied the search. Check that Places API (New) is enabled and allowed for this site’s Maps key. You can still choose a pin on the map.');
+      });
       search.querySelector('[data-place-search-input]').append(autocomplete);
       search.hidden = false;
     } catch (_) {

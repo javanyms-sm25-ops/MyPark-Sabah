@@ -289,14 +289,17 @@ header {
   box-shadow: 0 2px 10px rgba(23, 59, 104, 0.05);
 }
 
-header .logo {
-  position: static;
+.site-header .logo {
+  display: block;
   flex: 0 0 auto;
-  white-space: nowrap;
-  color: var(--navy);
-  font-size: 1.2rem;
-  font-weight: 700;
-  text-decoration: none;
+  width: clamp(116px, 12vw, 160px);
+  aspect-ratio: 3.6;
+  /* Both supplied logos include transparent padding around the artwork. */
+  background: url("../images/mypark-logo-light.png") center 55% / 150% auto no-repeat;
+}
+
+[data-theme="dark"] .site-header .logo {
+  background-image: url("../images/mypark-logo-dark.png");
 }
 
 .site-header {
@@ -446,10 +449,6 @@ header .logo {
   .site-header {
     gap: 10px;
     padding-inline: 12px;
-  }
-
-  .site-header .logo {
-    font-size: 1.08rem;
   }
 
   .site-nav a {
@@ -736,7 +735,12 @@ button.ghost {
 .login-form .login-submit:hover { background: #194979; transform: none; }
 .login-form .login-submit:disabled { cursor: wait; background: #294d78; }
 .login-form .login-signup { margin: 20px 0 0; text-align: center; font-size: 14px; line-height: 21px; }
-.login-form .login-signup a { font-weight: 600; text-decoration: underline; }
+.login-form :is(.login-forgot, .login-signup) a,
+.password-reset-resend button {
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+}
 .login-form .login-demo { margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e9ee; color: #657184; font-size: 12px; }
 .login-form .login-demo summary { cursor: pointer; list-style: none; font-weight: 500; }
 .login-form .login-demo summary::-webkit-details-marker { display: none; }
@@ -809,6 +813,131 @@ button.ghost {
 .email-code-back {
   margin: 14px 0 0;
   font-size: 0.85rem;
+}
+
+.reset-code-layout {
+  max-width: 620px;
+  margin: 28px auto;
+  padding: clamp(22px, 6vw, 54px) clamp(0px, 5vw, 40px);
+  background:
+    radial-gradient(ellipse 44% 45% at 86% 21%, var(--light-blue) 0 60%, transparent 61%),
+    radial-gradient(ellipse 35% 42% at 14% 82%, rgba(22, 131, 107, 0.16) 0 60%, transparent 61%);
+}
+
+.reset-code-layout .password-reset-card {
+  margin: 0 auto;
+}
+
+.reset-code-control {
+  position: relative;
+}
+
+.reset-code-slots {
+  display: none;
+}
+
+.reset-code-control.is-enhanced .email-code-input {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+.reset-code-control.is-enhanced .reset-code-slots {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(4px, 1.7vw, 10px);
+  pointer-events: none;
+}
+
+.reset-code-slots > span {
+  display: grid;
+  min-height: clamp(40px, 10vw, 52px);
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--card);
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.reset-code-control input[aria-invalid="true"] + .reset-code-slots > span {
+  border-color: var(--red);
+}
+
+.reset-code-control:focus-within .reset-code-slots > .is-current {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 2px var(--light-blue);
+}
+
+.password-reset-intro {
+  margin-bottom: 8px;
+}
+
+.password-reset-email {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 0 0 20px;
+  font-size: 14px;
+}
+
+.password-reset-email span {
+  min-width: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.password-reset-back {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.password-reset-card :is(.password-reset-email, .password-reset-back) a {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  text-decoration: none;
+}
+
+.password-reset-card :is(.password-reset-email, .password-reset-back) a:is(:hover, :focus-visible) {
+  text-decoration: underline;
+}
+
+.password-reset-resend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-height: 36px;
+  margin-bottom: 14px;
+  color: var(--muted-text);
+  font-size: 0.8rem;
+}
+
+.password-reset-resend button {
+  min-height: 24px;
+  padding: 0;
+  background: transparent;
+  color: var(--navy);
+  text-underline-offset: 3px;
+  transform: none;
+}
+
+.password-reset-resend [hidden] {
+  display: none;
+}
+
+.password-reset-card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
 }
 
 .registration-code-actions {

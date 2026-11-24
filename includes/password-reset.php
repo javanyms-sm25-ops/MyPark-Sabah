@@ -26,7 +26,7 @@ function password_reset_issue_code(string $email, callable $deliver): void {
     });
 
     $previous = $_SESSION['password_reset_pending'] ?? null;
-    if (!$delivered && $previous && $previous['email'] === $email && $previous['account_id'] !== null
+    if (!$delivered && isset($previous['code_hash']) && $previous['email'] === $email && $previous['account_id'] !== null
         && $previous['expires_at'] > time() && $previous['attempts'] < EMAIL_OTP_ATTEMPTS) {
         return;
     }
@@ -37,7 +37,40 @@ function password_reset_issue_code(string $email, callable $deliver): void {
     ] + $challenge;
 }
 
-function password_reset_complete(string $code, string $password, string $confirmation): int {
+function password_reset_is_verified(?array $pending): bool {
+    return isset($pending['verified_at']) && $pending['expires_at'] > time();
+}
+
+function password_reset_target_index(array $pending): int {
+    $index = password_reset_account_index($pending['email']);
+    $account = $index === null ? null : $_SESSION['demo_users'][$index];
+    if ($account === null || $account['id'] !== $pending['account_id']
+        || !hash_equals(hash('sha256', $account['password']), $pending['password_fingerprint'])) {
+        unset($_SESSION['password_reset_pending']);
+        throw new RuntimeException('Your verification code has expired. Request a new code.', 422);
+    }
+    return $index;
+}
+
+function password_reset_verify_code(string $code): void {
+    $pending =& $_SESSION['password_reset_pending'];
+    if (!isset($pending['code_hash'])) {
+        throw new RuntimeException('Your verification code has expired. Request a new code.', 422);
+    }
+    verify_email_otp($pending, $code);
+    password_reset_target_index($pending);
+    // Keep the original expiry and discard the code once it has been verified.
+    $pending['verified_at'] = time();
+    unset($pending['code_hash'], $pending['attempts']);
+}
+
+function password_reset_complete(string $password, string $confirmation): int {
+    $pending = $_SESSION['password_reset_pending'] ?? null;
+    if (!password_reset_is_verified($pending)) {
+        throw new RuntimeException('Verify your email code before changing your password.', 422);
+    }
+    $index = password_reset_target_index($pending);
+
     if (preg_match_all('/./us', $password) < 8) {
         throw new RuntimeException('Password must be at least 8 characters.', 422);
     }
@@ -48,17 +81,7 @@ function password_reset_complete(string $code, string $password, string $confirm
         throw new RuntimeException('Passwords do not match.', 422);
     }
 
-    $pending =& $_SESSION['password_reset_pending'];
-    verify_email_otp($pending, $code);
-    $index = password_reset_account_index($pending['email']);
-    $account = $index === null ? null : $_SESSION['demo_users'][$index];
-    if ($account === null || $account['id'] !== $pending['account_id']
-        || !hash_equals(hash('sha256', $account['password']), $pending['password_fingerprint'])) {
-        unset($_SESSION['password_reset_pending']);
-        throw new RuntimeException('Your verification code has expired. Request a new code.', 422);
-    }
-
     $_SESSION['demo_users'][$index]['password'] = password_hash($password, PASSWORD_DEFAULT);
-    unset($_SESSION['password_reset_pending'], $_SESSION['failures'][$account['email']]);
-    return $account['id'];
+    unset($_SESSION['password_reset_pending'], $_SESSION['failures'][$pending['email']]);
+    return $_SESSION['demo_users'][$index]['id'];
 }

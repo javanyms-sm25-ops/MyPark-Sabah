@@ -124,8 +124,9 @@ to appear as map markers.
 
 Admin and Super Admin can open Add parking location from Parking locations in
 Dashboard. Enable Places API (New) and allow it on the browser key to search by
-place name and fill in the city and address. Enable and allow Geocoding API to
-look up the city and address from a dropped pin. Review the details before
+place name. Suggestions cover Malaysia and prioritize Sabah. Selecting a
+suggestion places the pin and fills in the city and address. Enable and allow
+Geocoding API to look up the city and address from a dropped pin. Review the details before
 saving. Choose the pin on the map or select a search result to set the position.
 Saved locations appear in Find parking for members using the same demo browser.
 

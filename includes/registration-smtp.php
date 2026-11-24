@@ -1,7 +1,7 @@
 <?php
 
 function send_registration_link(string $recipient, string $token): void {
-    send_account_email($recipient, $token, 'Verify your email', 'Open this link in the browser where you started registration to create your MyPark Sabah account.', true);
+    send_account_email($recipient, $token, 'Verify your email address', 'Confirm that {email} is your email address to finish setting up your MyPark Sabah account.', true);
 }
 
 function send_password_reset_code(string $recipient, string $code): void {
@@ -37,16 +37,24 @@ function registration_verification_url(array $config, string $token): string {
 }
 
 function account_email_message(string $sender, string $recipient, string $detail, string $title, string $instructions, bool $useLink): string {
-    $kind = $useLink ? 'link' : 'code';
-    $notice = "This {$kind} expires in 10 minutes. If you did not request it, you can ignore this email.";
-    $plain = implode("\r\n\r\n", ['MyPark Sabah', $title, $instructions, $detail, $notice]);
+    $notice = $useLink ? 'This link expires in 10 minutes and can be used once.' : 'This code expires in 10 minutes.';
+    $guidance = 'If you did not request this email, you can ignore it.';
+    if ($useLink) $guidance = 'Open the link in the browser where you started registration. ' . $guidance;
+    $plain = implode("\r\n\r\n", ['MyPark Sabah', $title, str_replace('{email}', $recipient, $instructions), $detail, $notice, $guidance]);
     $heading = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
     $description = htmlspecialchars($instructions, ENT_QUOTES, 'UTF-8');
     $detail = htmlspecialchars($detail, ENT_QUOTES, 'UTF-8');
     $footer = htmlspecialchars($notice, ENT_QUOTES, 'UTF-8');
+    $guidance = htmlspecialchars($guidance, ENT_QUOTES, 'UTF-8');
     if ($useLink) {
+        $address = htmlspecialchars($recipient, ENT_QUOTES, 'UTF-8');
+        $description = str_replace('{email}', '<strong style="color:#172d49">' . $address . '</strong>', $description);
         $content = <<<HTML
-<a href="{$detail}" style="display:inline-block;padding:13px 24px;background:#163d68;border-radius:8px;color:#fff;font-size:16px;font-weight:bold;text-decoration:none">Verify email</a>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+  <tr><td align="center" bgcolor="#163d68" style="border-radius:8px">
+    <a href="{$detail}" style="display:block;padding:13px 20px;border-radius:8px;color:#fff;font-size:16px;font-weight:bold;text-decoration:none">Verify email</a>
+  </td></tr>
+</table>
 HTML;
     } else {
         $content = <<<HTML
@@ -69,7 +77,10 @@ HTML;
           <p style="margin:0;color:#52677f;font-size:15px;line-height:1.6">{$description}</p>
         </td></tr>
         <tr><td align="center" style="padding:21px 24px">{$content}</td></tr>
-        <tr><td align="center" style="padding:0 24px 27px;color:#52677f;font-size:13px;line-height:1.6">{$footer}</td></tr>
+        <tr><td align="center" style="padding:0 24px 27px;color:#52677f;font-size:13px;line-height:1.6">
+          <p style="margin:0 0 12px">{$footer}</p>
+          <p style="margin:0;padding-top:12px;border-top:1px solid #dbe5f1">{$guidance}</p>
+        </td></tr>
       </table>
     </td></tr>
   </table>

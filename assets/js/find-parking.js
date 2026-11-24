@@ -119,9 +119,12 @@
     const title = document.createElement('strong');
     title.textContent = location.title;
     const rate = location.card.querySelector('.find-parking-rate').cloneNode(true);
-    const link = location.card.querySelector('a').cloneNode(true);
-    link.removeAttribute('class');
-    content.append(title, rate, link);
+    const link = location.card.querySelector('a')?.cloneNode(true);
+    content.append(title, rate);
+    if (link) {
+      link.removeAttribute('class');
+      content.append(link);
+    }
     infoWindow.setOptions({ ariaLabel: location.title });
     infoWindow.setContent(content);
     infoWindow.open({ map, anchor: location.marker, shouldFocus: false });

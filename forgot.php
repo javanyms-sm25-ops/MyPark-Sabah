@@ -31,9 +31,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: forgot.php?step=reset', true, 303);
             exit;
         }
+        if ($action === 'verify') {
+            if (!password_reset_is_verified($pending)) {
+                password_reset_verify_code(trim($_POST['code'] ?? ''));
+                session_regenerate_id(true);
+            }
+            header('Location: forgot.php?step=reset', true, 303);
+            exit;
+        }
         if ($action !== 'reset') throw new RuntimeException('Invalid request fields.', 400);
         $accountId = password_reset_complete(
-            trim($_POST['code'] ?? ''),
             $_POST['password'] ?? '',
             $_POST['confirm'] ?? ''
         );
@@ -49,20 +56,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$pending = $_SESSION['password_reset_pending'] ?? null;
+$showReset = $showReset && $pending !== null;
+$showPassword = $showReset && password_reset_is_verified($pending);
+$showCode = $showReset && !$showPassword;
+$invalidCode = $showCode && ($_POST['action'] ?? '') === 'verify' && $formError !== '';
+
 head('Password recovery');
 ?>
-<section class="card narrow email-code-card" aria-labelledby="password-reset-heading">
+<div<?= $showCode ? ' class="reset-code-layout"' : '' ?>>
+<section class="card narrow email-code-card password-reset-card" aria-labelledby="password-reset-heading">
   <h2 id="password-reset-heading"><?= te('Reset your password') ?></h2>
-  <?php if ($formError !== ''): ?><p class="registration-summary" role="alert"><?= te($formError) ?></p><?php endif; ?>
+  <?php if ($formError !== ''): ?><p class="registration-summary" id="password-reset-error" role="alert"><?= te($formError) ?></p><?php endif; ?>
+  <?php if ($showCode): ?>
+    <p class="email-code-intro password-reset-intro" id="reset-code-intro">
+      <?php if ($pending['expires_at'] <= time()): ?>
+        <?= te('Your verification code has expired. Request a new code.') ?>
+      <?php else: ?>
+        <?= te('If this email is registered, we’ll send a six-digit code that expires in 10 minutes.') ?>
+      <?php endif; ?>
+    </p>
+  <?php endif; ?>
   <?php if ($showReset): ?>
-    <p class="email-code-intro"><?= te('If an account uses {email}, a password reset code will be sent there. The code expires in 10 minutes.', ['email' => $email]) ?></p>
+    <p class="password-reset-email">
+      <span id="password-reset-email-address"><?= e($email) ?></span>
+      <a href="forgot.php"><?= te('Change email') ?></a>
+    </p>
+  <?php endif; ?>
+  <?php if ($showCode): ?>
+    <form method="post" action="forgot.php?step=reset" id="reset-code-form">
+      <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
+      <input type="hidden" name="action" value="verify">
+      <div class="email-code-field">
+        <label for="reset-code"><?= te('Verification code') ?></label>
+        <div class="reset-code-control" data-reset-code>
+          <input class="email-code-input" id="reset-code" name="code" type="text" inputmode="numeric"
+                 autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required
+                 aria-describedby="reset-code-intro password-reset-email-address<?= $invalidCode ? ' password-reset-error' : '' ?>"
+                 <?= $invalidCode ? 'aria-invalid="true"' : '' ?>>
+          <div class="reset-code-slots" aria-hidden="true">
+            <?php for ($slot = 0; $slot < 6; $slot++): ?><span></span><?php endfor; ?>
+          </div>
+        </div>
+      </div>
+    </form>
+    <form method="post" action="forgot.php?step=reset" id="reset-resend-form"
+          class="password-reset-resend" data-resend-seconds="<?= email_delivery_wait('password_reset_delivery') ?>">
+      <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
+      <input type="hidden" name="action" value="resend">
+      <span><?= te('Didn’t get a code?') ?></span>
+      <button type="submit"><?= te('Resend code') ?></button>
+      <span data-reset-countdown hidden></span>
+    </form>
+    <button type="submit" id="verify-reset-code" form="reset-code-form" class="email-code-submit"><?= te('Verify email OTP') ?></button>
+  <?php elseif ($showPassword): ?>
     <form method="post" action="forgot.php?step=reset">
       <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
       <input type="hidden" name="action" value="reset">
-      <div class="email-code-field">
-        <label for="reset-code"><?= te('Verification code') ?></label>
-        <input class="email-code-input" id="reset-code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
-      </div>
       <div class="email-code-field">
         <label for="reset-password"><?= te('New password') ?></label>
         <div class="password-field__control">
@@ -77,11 +127,6 @@ head('Password recovery');
       </div>
       <button type="submit" class="email-code-submit"><?= te('Reset password') ?></button>
     </form>
-    <form method="post" action="forgot.php?step=reset" class="registration-code-actions">
-      <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-      <button type="submit" name="action" value="resend" class="ghost"><?= te('Resend code') ?></button>
-      <a class="btn btn-secondary" href="forgot.php"><?= te('Change email address') ?></a>
-    </form>
   <?php else: ?>
     <p class="email-code-intro"><?= te('Enter your email address to request a password reset code.') ?></p>
     <form method="post" action="forgot.php">
@@ -94,6 +139,10 @@ head('Password recovery');
       <button type="submit" class="email-code-submit"><?= te('Send reset code') ?></button>
     </form>
   <?php endif; ?>
-  <p class="email-code-back"><a class="btn btn-secondary" href="pages/login.php"><?= te('Back to sign in') ?></a></p>
+  <p class="email-code-back password-reset-back">
+    <a href="pages/login.php"><?= te('Back to sign in') ?></a>
+  </p>
 </section>
+</div>
+<?php if ($showCode): ?><script src="assets/js/password-reset.js" defer></script><?php endif; ?>
 <?php foot(false); ?>

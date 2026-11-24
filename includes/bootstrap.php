@@ -192,7 +192,10 @@ function head(string $title): void {
     }
     if (in_array($user['role'] ?? '', ['admin', 'superadmin'], true)) {
         unset($links['dashboard.php']);
-        $links = ['admin/dashboard.php' => 'Dashboard'] + $links;
+        $links = [
+            'admin/dashboard.php' => 'Dashboard',
+            'admin/add-parking-location.php' => 'Add parking location',
+        ] + $links;
         $links['admin/employee-attendance.php'] = 'Employee Attendance';
     }
     header('Content-Language: ' . current_language());
@@ -214,7 +217,7 @@ function head(string $title): void {
     </head>
     <body>
       <header class="site-header">
-        <a class="logo" href="index.php">🅿 MyPark Sabah</a>
+        <a class="logo" href="index.php" aria-label="MyPark Sabah"></a>
         <nav class="site-nav" id="site-navigation" aria-label="<?= te('Main menu') ?>">
           <div class="nav-pages">
             <?php foreach ($links as $href => $label): ?><a href="<?= e($href) ?>"><?= te($label) ?></a><?php endforeach; ?>

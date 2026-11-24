@@ -167,11 +167,56 @@
 }
 .ops-location-fields { display: grid; gap: 14px; }
 .ops-location-form label { margin: 0; }
-.ops-place-search { margin-top: 12px; }
-.ops-place-search gmp-place-autocomplete { display: block; width: 100%; }
+.ops-place-search {
+  position: relative;
+  z-index: 1;
+  margin-top: 12px;
+}
+.ops-place-search gmp-place-autocomplete {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background-color: var(--card);
+  color: var(--text);
+  color-scheme: light;
+  font: inherit;
+}
+[data-theme="dark"] .ops-place-search gmp-place-autocomplete {
+  color-scheme: dark;
+}
+.ops-place-search gmp-place-autocomplete:focus-within {
+  border-color: var(--blue);
+}
+.ops-place-search gmp-place-autocomplete::part(prediction-list) {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background-color: var(--card);
+  box-shadow: var(--shadow-hover);
+}
+.ops-place-search gmp-place-autocomplete::part(prediction-item) {
+  min-height: 44px;
+  border-bottom: 1px solid var(--border);
+}
+.ops-place-search gmp-place-autocomplete::part(prediction-item):hover,
+.ops-place-search gmp-place-autocomplete::part(prediction-item-selected) {
+  background-color: var(--light-blue);
+}
+.ops-place-search gmp-place-autocomplete::part(prediction-item-main-text) {
+  color: var(--text);
+}
+.ops-place-search gmp-place-autocomplete::part(prediction-item-match) {
+  color: var(--navy);
+  font-weight: 600;
+}
+.ops-place-search gmp-place-autocomplete::part(prediction-item-secondary-text),
+.ops-place-search gmp-place-autocomplete::part(prediction-item-icon) {
+  color: var(--muted-text);
+}
 .ops-place-search p { margin: 8px 0; }
 .ops-place-search p:empty { display: none; }
 .ops-location-map {
+  isolation: isolate;
   height: clamp(280px, 46vh, 480px);
   margin: 12px 0;
   border: 1px solid var(--border);

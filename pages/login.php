@@ -84,7 +84,7 @@ head('Login');
     </div>
     <p class="field-feedback" id="login-password-error" aria-live="polite" <?= !isset($fieldErrors['password']) ? 'hidden' : '' ?>><span data-error-text><?= te($fieldErrors['password'] ?? '') ?></span></p>
   </div>
-  <p class="login-forgot"><a class="btn btn-secondary" href="forgot.php"><?= te('Forgot password?') ?></a></p>
+  <p class="login-forgot"><a href="forgot.php"><?= te('Forgot password?') ?></a></p>
   <p class="login-error" id="login-request-error" role="alert" tabindex="-1" <?= !$error ? 'hidden' : '' ?>><span data-request-error><?= te($error) ?></span></p>
   <button class="login-submit" type="submit"><span class="login-spinner" aria-hidden="true" hidden></span><span data-submit-label><?= te('Sign in') ?></span></button>
   <span class="validation-sr-only" id="login-status" role="status" aria-live="polite"></span>
