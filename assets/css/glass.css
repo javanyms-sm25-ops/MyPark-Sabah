@@ -1,0 +1,417 @@
+/* MyPark Sabah shared surfaces, controls and theme colours. */
+:root {
+  color-scheme: light;
+  --brand-navy: #12335b;
+  --brand-ocean: #247ba0;
+  --brand-cyan: #38b6c9;
+  --background: #f6f9fc;
+  --card: #ffffff;
+  --text: #14263d;
+  --muted-text: #546980;
+  --navy: var(--brand-navy);
+  --navy-hover: #1c5180;
+  --light-blue: #e8f3fa;
+  --blue: #176589;
+  --green: #176b45;
+  --red: #a52e44;
+  --border: #d5e2ee;
+  --button-text: #ffffff;
+  --shadow: 0 2px 4px rgb(18 51 91 / 4%), 0 10px 28px rgb(18 51 91 / 7%);
+  --shadow-hover: 0 14px 36px rgb(18 51 91 / 15%);
+
+  --glass-page-glow: rgb(137 201 231 / 28%);
+  --glass-rim: #c4d7e7;
+  --glass-highlight: rgb(255 255 255 / 90%);
+  --glass-header: #f4faff;
+  --glass-control: #edf5fb;
+  --glass-control-hover: #dceef9;
+  --glass-field-border: #8197ad;
+  --glass-focus: #245e90;
+  --glass-elevation: inset 0 1px var(--glass-highlight), var(--shadow);
+  --glass-panel: linear-gradient(155deg, var(--card) 55%, #f2f8fc);
+  --glass-tab-surface: #d6eaf8;
+  --glass-success-bg: #e0f4e9;
+  --glass-warning-bg: #fff1d6;
+  --glass-warning-text: #7c460a;
+  --glass-error-bg: #fce9ec;
+  --glass-ocean-start: var(--brand-navy);
+  --glass-ocean-end: #1e6288;
+  --glass-ocean-glow: rgb(79 185 215 / 40%);
+  --glass-ocean-reflection: rgb(130 194 239 / 18%);
+  --glass-hero:
+    radial-gradient(ellipse at 92% 14%, var(--glass-ocean-glow), transparent 47%),
+    radial-gradient(ellipse at 68% 112%, var(--glass-ocean-reflection), transparent 48%),
+    linear-gradient(122deg, var(--glass-ocean-start), var(--glass-ocean-end));
+  --glass-on-hero: #ffffff;
+  --glass-hero-muted: #e1f1f9;
+  --glass-hero-accent: #bde9f2;
+  --glass-hero-rim: rgb(203 241 255 / 36%);
+  --glass-hero-panel: #15395f;
+  --glass-hero-detail: #102e50;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0d192a;
+  --card: #17283f;
+  --text: #eef5fc;
+  --muted-text: #bdcede;
+  --navy: #a6ddf6;
+  --navy-hover: #cef0ff;
+  --light-blue: #223b54;
+  --blue: #9bdaf3;
+  --green: #91e1bb;
+  --red: #ffadb8;
+  --border: #38516b;
+  --button-text: #102641;
+  --shadow: 0 3px 9px rgb(4 11 22 / 18%), 0 12px 32px rgb(4 11 22 / 24%);
+  --shadow-hover: 0 18px 38px rgb(4 11 22 / 43%);
+
+  --glass-page-glow: rgb(38 100 147 / 29%);
+  --glass-rim: #3d5872;
+  --glass-highlight: rgb(162 215 250 / 15%);
+  --glass-header: #152840;
+  --glass-control: #203a54;
+  --glass-control-hover: #2c4a65;
+  --glass-field-border: #7791ac;
+  --glass-focus: #a4def7;
+  --glass-panel: linear-gradient(155deg, #1c324c, var(--card) 66%);
+  --glass-tab-surface: #254764;
+  --glass-success-bg: #193e36;
+  --glass-warning-bg: #48341d;
+  --glass-warning-text: #ffdc9f;
+  --glass-error-bg: #482932;
+  --glass-ocean-start: #102340;
+  --glass-ocean-end: #184265;
+  --glass-ocean-glow: rgb(31 153 181 / 40%);
+  --glass-ocean-reflection: rgb(74 139 220 / 24%);
+  --glass-hero-rim: rgb(170 229 255 / 34%);
+  --glass-hero-panel: #153552;
+  --glass-hero-detail: #102944;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 50rem 28rem at 91% 0%, var(--glass-page-glow), transparent),
+    var(--background);
+}
+
+.site-header {
+  top: 10px;
+  max-width: min(1340px, calc(100% - 32px));
+  margin: 12px auto 0;
+  padding-inline: clamp(14px, 2vw, 24px);
+  border: 1px solid var(--glass-rim);
+  border-radius: 20px;
+  background: var(--glass-header);
+  box-shadow: var(--glass-elevation);
+}
+
+.site-header .site-nav { gap: 7px; }
+
+.site-nav a {
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.site-header .site-nav a.nav-active {
+  background: var(--glass-tab-surface);
+  color: var(--navy);
+  box-shadow: inset 0 -2px var(--navy);
+}
+
+.theme-toggle,
+[data-theme="dark"] .theme-toggle,
+.site-header :is(.nav-toggle, .language-switcher select) {
+  min-height: 44px;
+  border: 1px solid var(--glass-field-border);
+  border-radius: 999px;
+  background: var(--glass-control);
+  color: var(--navy);
+  box-shadow: inset 0 1px var(--glass-highlight);
+}
+
+.site-header .nav-toggle { min-width: 44px; }
+.theme-toggle { padding-inline: 12px; }
+.site-header .language-switcher select { padding-inline-start: 12px; }
+
+.theme-toggle:hover,
+[data-theme="dark"] .theme-toggle:hover,
+.site-header :is(.nav-toggle, .language-switcher select):hover {
+  background: var(--glass-control-hover);
+  color: var(--navy);
+  transform: none;
+}
+
+@media (1120px < width <= 1280px) {
+  .site-header { padding-inline: 14px; gap: 10px; }
+  .site-header .site-nav { gap: 5px; }
+}
+
+@media (max-width: 1120px) {
+  .site-header {
+    max-width: calc(100% - 24px);
+    border-radius: 16px;
+  }
+
+  .site-header .site-nav {
+    inset-inline: 0;
+    border-color: var(--glass-rim);
+    border-radius: 16px;
+    background: var(--glass-header);
+  }
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) and
+          (background: color-mix(in srgb, white 90%, transparent)) {
+  .site-header {
+    background: color-mix(in srgb, var(--glass-header) 89%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
+    backdrop-filter: blur(16px) saturate(130%);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  .site-header {
+    background: var(--glass-header);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Data and task surfaces stay opaque for reliable text contrast. */
+.card,
+.profile-nav-options,
+.notification-preview,
+body dialog:modal {
+  border: 1px solid var(--glass-rim);
+  background: var(--card);
+  background: var(--glass-panel);
+  color: var(--text);
+  box-shadow: var(--glass-elevation);
+}
+
+.card { border-radius: 18px; }
+
+.stats .card {
+  border-radius: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats .card small { color: var(--muted-text); }
+
+.hint,
+.muted {
+  color: var(--muted-text);
+  opacity: 1;
+}
+
+.hero :is(.hint, .muted) { color: var(--glass-hero-muted); }
+
+.profile-nav-options { border-radius: 14px; }
+
+.notification-trigger {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.notification-trigger:focus-visible { outline-color: var(--glass-focus); }
+
+body dialog::backdrop { background: rgb(7 21 38 / 58%); }
+
+input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"]),
+select,
+textarea {
+  border-color: var(--glass-field-border);
+}
+
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"] { accent-color: var(--navy); }
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted-text);
+  opacity: 1;
+}
+
+:where(textarea) {
+  max-width: 100%;
+  border: 1px solid var(--glass-field-border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  padding: 10px 12px;
+  font: inherit;
+}
+
+:is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--glass-focus);
+  outline-offset: 3px;
+}
+
+.btn {
+  min-height: 44px;
+  border-radius: 11px;
+}
+
+button:is(:disabled, [aria-disabled="true"]),
+.btn[aria-disabled="true"] { cursor: not-allowed; }
+
+.btn.btn-secondary,
+button.ghost {
+  border-color: var(--glass-field-border);
+  background: var(--glass-control);
+}
+
+.btn.btn-secondary:hover,
+button.ghost:hover {
+  background: var(--glass-control-hover);
+  transform: none;
+}
+
+.tag {
+  border: 1px solid currentColor;
+  background: var(--glass-control);
+  color: var(--navy);
+}
+
+.tag.active { background: var(--glass-tab-surface); }
+
+.tag:is(.completed, .available, .paid) {
+  background: var(--glass-success-bg);
+  color: var(--green);
+}
+
+.tag:is(.cancelled, .unpaid) {
+  background: var(--glass-error-bg);
+  color: var(--red);
+}
+
+.tag.pending {
+  background: var(--glass-warning-bg);
+  color: var(--glass-warning-text);
+}
+
+.flash {
+  border-color: var(--glass-rim);
+  background: var(--light-blue);
+  color: var(--text);
+}
+
+.flash[data-toast-type="success"] {
+  background: var(--glass-success-bg);
+  color: var(--green);
+}
+
+.flash[data-toast-type="error"] {
+  background: var(--glass-error-bg);
+  color: var(--red);
+}
+
+/* Keep sign-in, registration and password recovery in the same palette. */
+.login-form.card {
+  border-color: var(--glass-rim);
+  background: var(--glass-panel);
+  color: var(--text);
+}
+
+.login-form h2 { color: var(--text); }
+.login-form > .muted,
+.login-form .login-demo,
+.password-requirements { color: var(--muted-text); }
+.login-form .login-demo { border-color: var(--border); }
+.login-form a { color: var(--navy); }
+
+.login-form input:not([type="hidden"]),
+.password-field__control > input {
+  border-color: var(--glass-field-border);
+  background: var(--card);
+  color: var(--text);
+}
+
+.login-form input::placeholder { color: var(--muted-text); }
+
+.login-form input:not([type="hidden"]):focus,
+.password-field__control > input:focus,
+.registration-form input:focus {
+  outline: 2px solid var(--glass-focus);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.login-form input[aria-invalid="true"],
+.login-form input[aria-invalid="true"]:focus,
+.registration-form input[aria-invalid="true"]:focus {
+  border-color: var(--red);
+  outline-color: var(--red);
+}
+
+.login-form input:autofill { color: var(--text); }
+.login-form input:-webkit-autofill { -webkit-text-fill-color: var(--text); caret-color: var(--text); }
+
+.login-form .field-feedback,
+.registration-form .field-feedback { color: var(--red); }
+
+.login-form .password-field__toggle,
+.password-field__toggle { color: var(--muted-text); }
+
+.login-form .password-field__toggle:hover,
+.password-field__toggle:hover { color: var(--navy); }
+
+.login-form .login-error {
+  border-color: var(--red);
+  background: var(--glass-error-bg);
+  color: var(--red);
+}
+
+.login-form .login-error:focus { outline-color: var(--red); }
+.login-form .login-demo summary:focus-visible { outline-color: var(--glass-focus); }
+
+.login-form .login-submit {
+  border-radius: 11px;
+  background: var(--navy);
+  color: var(--button-text);
+}
+
+.login-form .login-submit:hover { background: var(--navy-hover); }
+
+.login-form .login-submit:disabled {
+  background: var(--glass-control);
+  color: var(--muted-text);
+}
+
+.login-form .login-spinner {
+  border-color: var(--glass-rim);
+  border-top-color: currentColor;
+}
+
+footer {
+  --glass-focus: var(--glass-hero-accent);
+  border-top: 1px solid var(--glass-hero-rim);
+  background: var(--glass-ocean-start);
+  color: var(--glass-on-hero);
+}
+
+footer p { color: var(--glass-hero-muted); overflow-wrap: anywhere; }
+
+#locations { scroll-margin-top: 6rem; }
+
+.ticket #qr { color-scheme: light; }
+
+@media print {
+  :root,
+  [data-theme="dark"] {
+    color-scheme: light;
+    --card: #ffffff;
+    --text: #14263d;
+    --muted-text: #546980;
+    --navy: #12335b;
+    --light-blue: #e8f3fa;
+    --glass-panel: #ffffff;
+  }
+
+  body { background: #ffffff; }
+  .card { box-shadow: none; }
+}

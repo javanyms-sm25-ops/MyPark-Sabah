@@ -23,7 +23,9 @@ function staff_head(string $title): void {
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="assets/js/theme.js"></script>
-    <link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/css/staff.css"></head>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/glass.css">
+    <link rel="stylesheet" href="assets/css/staff.css"></head>
     <body class="staff-portal<?= $profile ? ' staff-profile-page' : '' ?>">
     <a class="staff-skip" href="#staff-main"><?= te('Skip to content') ?></a>
     <div class="staff-backdrop" id="staff-backdrop" hidden></div>
@@ -41,6 +43,7 @@ function staff_head(string $title): void {
         <button type="button" class="staff-menu-toggle" aria-controls="staff-sidebar" aria-expanded="false"><?= te('Menu') ?></button>
         <span><?= te($links[$page][0] ?? $title) ?></span>
         <span class="staff-context"><?= te('Private parking · Staff portal') ?></span>
+        <?php require __DIR__ . '/theme-toggle.php'; ?>
         <?php profile_nav(me()); ?>
       </header>
       <main id="staff-main" class="staff-main" tabindex="-1">

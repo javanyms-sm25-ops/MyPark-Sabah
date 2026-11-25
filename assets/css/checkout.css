@@ -9,10 +9,10 @@
 
 .checkout-card {
   padding: clamp(24px, 5vw, 36px);
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
+  background: var(--glass-panel);
+  border: 1px solid var(--glass-rim);
+  border-radius: 20px;
+  box-shadow: var(--glass-elevation);
 }
 
 .checkout-card h1 {
@@ -27,6 +27,7 @@
   margin: 24px 0;
   padding: 18px;
   background: var(--light-blue);
+  border: 1px solid var(--glass-rim);
   border-radius: 12px;
 }
 

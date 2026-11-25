@@ -17,10 +17,10 @@
   min-width: 0;
   margin: 0;
   padding: clamp(1rem, 2vw, 1.5rem);
-  border-color: var(--border);
-  background: var(--card);
+  border-color: var(--glass-rim);
+  background: var(--glass-panel);
   color: var(--text);
-  box-shadow: var(--shadow);
+  box-shadow: var(--glass-elevation);
 }
 .operations-page.employee-attendance .attendance-panel h2 { color: var(--text); }
 .operations-page.employee-attendance details.attendance-panel:not([open]) { display: block; }
@@ -34,7 +34,7 @@
 .employee-attendance details[open] > summary { margin-bottom: .5rem; }
 .employee-attendance [hidden] { display: none !important; }
 .employee-attendance :focus-visible {
-  outline: 3px solid var(--navy);
+  outline: 3px solid var(--glass-focus);
   outline-offset: 4px;
 }
 .attendance-heading,
@@ -118,9 +118,9 @@
   background: var(--light-blue);
   color: var(--text);
 }
-.attendance-on_time, .attendance-within, .attendance-approved { background: #d1fae5; color: #14532d; }
-.attendance-late, .attendance-pending, .attendance-uncertain { background: #fef3c7; color: #78350f; }
-.attendance-missing, .attendance-outside, .attendance-rejected { background: #ffe4e6; color: #881337; }
+.attendance-on_time, .attendance-within, .attendance-approved { background: var(--glass-success-bg); color: var(--green); }
+.attendance-late, .attendance-pending, .attendance-uncertain { background: var(--glass-warning-bg); color: var(--glass-warning-text); }
+.attendance-missing, .attendance-outside, .attendance-rejected { background: var(--glass-error-bg); color: var(--red); }
 .attendance-preview {
   width: min(100%, 24rem);
   max-height: 24rem;

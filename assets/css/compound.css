@@ -5,13 +5,15 @@
 
 .compound-hero {
   padding: clamp(16px, 5vw, 40px);
+  border: 1px solid var(--glass-hero-rim);
   border-radius: 20px;
-  background: linear-gradient(155deg, #872b17 0%, #ac3815 37%, #df710b 78%, #efac38 100%);
+  background: var(--glass-hero);
+  box-shadow: var(--shadow-hover);
 }
 
 .compound-hero h1 {
   margin: 0 0 18px;
-  color: #fff;
+  color: var(--glass-on-hero);
   font-size: clamp(1.65rem, 5vw, 2.6rem);
 }
 
@@ -56,7 +58,15 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #172438;
+  min-height: 44px;
+  border: 1px solid var(--glass-field-border);
+  background: var(--glass-control);
+  color: var(--navy);
+}
+
+.compound-scan-button:hover {
+  background: var(--glass-control-hover);
+  transform: none;
 }
 
 .compound-scan-button[hidden],
@@ -73,9 +83,10 @@
 .compound-wallet {
   margin-block: 18px 24px;
   padding: 14px 18px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--card);
+  border: 1px solid var(--glass-rim);
+  border-radius: 16px;
+  background: var(--glass-panel);
+  box-shadow: var(--glass-elevation);
 }
 
 .compound-wallet strong {
