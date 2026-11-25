@@ -304,7 +304,7 @@
     refreshController?.abort(); const sequence = ++refreshSequence; refreshController = new AbortController();
     setRefreshing(table); table.notice.hidden = true;
     try {
-      const response = await fetch('api/operations.php', { credentials: 'same-origin', cache: 'no-store', signal: refreshController.signal });
+      const response = await fetch('api/dashboard.php', { credentials: 'same-origin', cache: 'no-store', signal: refreshController.signal });
       const result = await readResponse(response); if (sequence === refreshSequence) applySnapshot(result.data);
     } catch (error) {
       if (sequence === refreshSequence && error.name !== 'AbortError') {
@@ -322,7 +322,7 @@
     refreshController?.abort(); ++refreshSequence; setRefreshing(); pending.add(key); table.notice.hidden = true; table.render();
     const payload = new FormData(); Object.entries({ action, id: record.id, status, expected_status: record.status, csrf: data.csrf }).forEach(([k, v]) => payload.set(k, String(v)));
     try {
-      const result = await readResponse(await fetch('api/operations.php', { method: 'POST', body: payload, credentials: 'same-origin' })); applySnapshot(result.data); toast(result.message, 'success');
+      const result = await readResponse(await fetch('api/dashboard.php', { method: 'POST', body: payload, credentials: 'same-origin' })); applySnapshot(result.data); toast(result.message, 'success');
     } catch (error) { table.error('Update failed. ' + error.message + ' Refresh records before retrying the action.', () => refresh(table)); toast(error.message, 'error'); }
     finally {
       pending.delete(key); table.render();

@@ -58,7 +58,7 @@ function staff_foot(bool $showChatbot = true): void {
     <div id="toast-alert" class="pe-toast-announcer" role="alert" aria-live="assertive" aria-atomic="true"></div>
     <?php locale_client_scripts(); ?>
     <script src="assets/js/toasts.js"></script><script src="assets/js/app.js"></script>
-    <script src="assets/js/operations-table.js"></script><script src="assets/js/staff.js"></script>
+    <script src="assets/js/dashboard-table.js"></script><script src="assets/js/staff.js"></script>
     <?php if ($showChatbot): ?>
       <script src="https://cdn.botpress.cloud/webchat/v5.0/inject.js"></script>
       <script src="https://files.bpcontent.cloud/2026/11/13/14/20261113143638-NZ5LEIAP.js" defer></script>

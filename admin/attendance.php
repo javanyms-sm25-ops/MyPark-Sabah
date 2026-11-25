@@ -1,7 +1,7 @@
 <?php
 const MYPARK_ADMIN_PAGE = true;
 require dirname(__DIR__) . '/includes/bootstrap.php';
-require dirname(__DIR__) . '/includes/operations-data.php';
+require dirname(__DIR__) . '/includes/dashboard-data.php';
 
 header('Cache-Control: private, no-store');
 try {
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 head('Attendance');
 ?>
-<link rel="stylesheet" href="assets/css/operations.css">
+<link rel="stylesheet" href="assets/css/dashboard.css">
 <link rel="stylesheet" href="assets/css/attendance.css">
 <div class="operations-page attendance-page">
   <h1><?= te('Attendance') ?></h1>

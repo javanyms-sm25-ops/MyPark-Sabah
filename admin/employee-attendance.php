@@ -76,7 +76,7 @@ try {
 
 head('Employee Attendance');
 ?>
-<link rel="stylesheet" href="assets/css/operations.css">
+<link rel="stylesheet" href="assets/css/dashboard.css">
 <link rel="stylesheet" href="assets/css/employee-attendance.css">
 <div class="operations-page employee-attendance" id="employee-attendance">
   <div class="attendance-heading">

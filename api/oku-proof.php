@@ -1,6 +1,6 @@
 <?php
 require dirname(__DIR__) . '/includes/bootstrap.php';
-require dirname(__DIR__) . '/includes/operations-data.php';
+require dirname(__DIR__) . '/includes/dashboard-data.php';
 
 header('Cache-Control: private, no-store');
 header('X-Content-Type-Options: nosniff');

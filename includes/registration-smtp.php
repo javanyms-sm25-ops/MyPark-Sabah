@@ -46,6 +46,18 @@ function account_email_message(string $sender, string $recipient, string $detail
     $detail = htmlspecialchars($detail, ENT_QUOTES, 'UTF-8');
     $footer = htmlspecialchars($notice, ENT_QUOTES, 'UTF-8');
     $guidance = htmlspecialchars($guidance, ENT_QUOTES, 'UTF-8');
+
+    $logo = @file_get_contents(dirname(__DIR__) . '/assets/images/mypark-email-logo.png') ?: null;
+    $brand = 'MyPark Sabah';
+    $brandPadding = 29;
+    $headingPadding = 18;
+    if ($logo !== null) {
+        $logoId = 'mypark-logo-' . bin2hex(random_bytes(12)) . '@mypark-sabah.local';
+        $brand = '<img src="cid:' . $logoId . '" alt="MyPark Sabah" width="220" style="display:block;width:220px;max-width:100%;height:auto;margin:0 auto;border:0">';
+        $brandPadding = 8;
+        $headingPadding = 6;
+    }
+
     if ($useLink) {
         $address = htmlspecialchars($recipient, ENT_QUOTES, 'UTF-8');
         $description = str_replace('{email}', '<strong style="color:#172d49">' . $address . '</strong>', $description);
@@ -71,8 +83,8 @@ HTML;
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7fb">
     <tr><td align="center" style="padding:28px 12px">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:480px;background:#fff;border:1px solid #dbe5f1;border-radius:14px">
-        <tr><td align="center" style="padding:29px 24px 0;font-size:17px;font-weight:bold;color:#163d68">MyPark Sabah</td></tr>
-        <tr><td align="center" style="padding:18px 24px 0">
+        <tr><td align="center" style="padding:{$brandPadding}px 24px 0;font-size:17px;font-weight:bold;color:#163d68">{$brand}</td></tr>
+        <tr><td align="center" style="padding:{$headingPadding}px 24px 0">
           <h1 style="margin:0 0 10px;color:#172d49;font-size:23px;line-height:1.25">{$heading}</h1>
           <p style="margin:0;color:#52677f;font-size:15px;line-height:1.6">{$description}</p>
         </td></tr>
@@ -89,6 +101,29 @@ HTML;
 HTML;
     $boundary = 'mypark-' . bin2hex(random_bytes(12));
     $encode = static fn(string $body): string => rtrim(chunk_split(base64_encode($body), 76, "\r\n"), "\r\n");
+    $htmlPart = [
+        'Content-Type: text/html; charset=UTF-8',
+        'Content-Transfer-Encoding: base64',
+        '',
+        $encode($html),
+    ];
+    if ($logo !== null) {
+        $relatedBoundary = 'mypark-related-' . bin2hex(random_bytes(12));
+        $htmlPart = [
+            'Content-Type: multipart/related; type="text/html"; boundary="' . $relatedBoundary . '"',
+            '',
+            '--' . $relatedBoundary,
+            ...$htmlPart,
+            '--' . $relatedBoundary,
+            'Content-Type: image/png',
+            'Content-Transfer-Encoding: base64',
+            'Content-ID: <' . $logoId . '>',
+            'Content-Disposition: inline; filename="mypark-logo.png"',
+            '',
+            $encode($logo),
+            '--' . $relatedBoundary . '--',
+        ];
+    }
     return implode("\r\n", [
         'Date: ' . date(DATE_RFC2822),
         'From: MyPark Sabah <' . $sender . '>',
@@ -103,10 +138,7 @@ HTML;
         '',
         $encode($plain),
         '--' . $boundary,
-        'Content-Type: text/html; charset=UTF-8',
-        'Content-Transfer-Encoding: base64',
-        '',
-        $encode($html),
+        ...$htmlPart,
         '--' . $boundary . '--',
         '',
     ]);

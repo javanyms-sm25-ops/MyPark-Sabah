@@ -1,4 +1,4 @@
-/* Operations only: native table layout, with scrolling on the wrapper. */
+/* Dashboard tables use native layout and scroll within the table wrapper. */
 .operations-page { min-width: 0; max-width: 100%; color: #172b4d; }
 .ops-page-heading {
   display: flex;

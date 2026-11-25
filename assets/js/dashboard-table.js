@@ -1,4 +1,4 @@
-/* Pure table pipeline, shared by both Operations tables and development tests. */
+/* Table filtering, sorting, and paging for the Dashboard and staff portal. */
 (function (root) {
   'use strict';
   const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });

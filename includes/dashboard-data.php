@@ -3,7 +3,7 @@ require_once __DIR__ . '/oku-verification.php';
 require_once __DIR__ . '/parking-capacity.php';
 require_once __DIR__ . '/staff-leave.php';
 
-// Operations uses the existing session store. No database or SQL is introduced.
+// The Dashboard reads from the existing session store.
 const OPS_ROLES = ['superadmin' => 'Super Admin', 'admin' => 'Admin', 'staff' => 'Staff', 'user' => 'Member'];
 const OPS_TRANSITIONS = ['active' => ['completed', 'cancelled'], 'completed' => [], 'cancelled' => []];
 

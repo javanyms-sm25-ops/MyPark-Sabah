@@ -55,7 +55,7 @@ function attendance_report(PDO $db, array $actor, array $locations, array $staff
 }
 
 function attendance_export(array $rows, array $staff, int $now): void {
-    require_once __DIR__ . '/operations-data.php';
+    require_once __DIR__ . '/dashboard-data.php';
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="mypark-attendance.csv"');
     header('X-Content-Type-Options: nosniff');

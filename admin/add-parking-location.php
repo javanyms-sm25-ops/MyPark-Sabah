@@ -1,7 +1,7 @@
 <?php
 const MYPARK_ADMIN_PAGE = true;
 require dirname(__DIR__) . '/includes/bootstrap.php';
-require dirname(__DIR__) . '/includes/operations-data.php';
+require dirname(__DIR__) . '/includes/dashboard-data.php';
 
 header('Cache-Control: private, no-store');
 try {
@@ -37,7 +37,7 @@ $mapsPath = dirname(__DIR__) . '/config/maps.local.php';
 $mapsConfig = is_file($mapsPath) ? require $mapsPath : [];
 head('Add parking location');
 ?>
-<link rel="stylesheet" href="assets/css/operations.css">
+<link rel="stylesheet" href="assets/css/dashboard.css">
 <div class="operations-page">
   <a class="btn btn-secondary" href="admin/dashboard.php#parking-locations"><?= te('Back to Dashboard') ?></a>
   <h1><?= te('Add parking location') ?></h1>

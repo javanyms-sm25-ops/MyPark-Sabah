@@ -1,7 +1,7 @@
 <?php
 const MYPARK_ADMIN_PAGE = true;
 require dirname(__DIR__) . '/includes/bootstrap.php';
-require dirname(__DIR__) . '/includes/operations-data.php';
+require dirname(__DIR__) . '/includes/dashboard-data.php';
 $isJson = defined('MYPARK_JSON_REQUEST') || ($_GET['format'] ?? '') === 'json';
 $okuReviewAction = in_array($_POST['action'] ?? '', ['oku_decide', 'oku_reviewer_access'], true);
 $okuCapacityAction = ($_POST['action'] ?? '') === 'set_oku_capacity';
@@ -52,11 +52,11 @@ if ($availability !== null) {
 }
 head('Dashboard');
 ?>
-<link rel="stylesheet" href="assets/css/operations.css">
+<link rel="stylesheet" href="assets/css/dashboard.css">
 <div class="operations-page">
   <div class="ops-page-heading">
     <div class="ops-page-intro">
-      <p class="eyebrow">SABAH PARKING OPERATIONS · <?= te(OPS_ROLES[$actor['role']]) ?></p>
+      <p class="eyebrow"><?= te('SABAH PARKING') ?> · <?= te(OPS_ROLES[$actor['role']]) ?></p>
       <h1><?= te('Dashboard') ?></h1>
       <p class="ops-subtitle"><?= te('Manage reservations and member access.') ?></p>
       <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
@@ -164,7 +164,7 @@ head('Dashboard');
 <dialog class="ops-dialog" id="ops-dialog" aria-labelledby="ops-dialog-title"><h2 id="ops-dialog-title"></h2><div data-dialog-body></div><div class="ops-dialog-actions"><button type="button" data-dialog-cancel><?= te('Close') ?></button><button type="button" data-dialog-confirm hidden><?= te('Confirm') ?></button></div></dialog>
 <script type="application/json" id="operations-data"><?= json_encode($snapshot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>
 <?php require dirname(__DIR__) . '/includes/date-range-dialog.php'; ?>
-<script src="assets/js/operations-table.js" defer></script>
+<script src="assets/js/dashboard-table.js" defer></script>
 <?php if ($availability !== null): ?><script src="assets/js/parking-availability-map.js" defer></script><?php endif; ?>
-<script src="assets/js/operations.js" defer></script>
+<script src="assets/js/dashboard.js" defer></script>
 <?php foot(showChatbot: !$canReviewOku); ?>
