@@ -10,6 +10,8 @@ const ATTENDANCE_LABELS = [
     'scheduled' => 'Scheduled', 'rest' => 'Rest Day', 'leave' => 'On Approved Leave',
     'on_time' => 'On Time', 'late' => 'Late', 'checked_out' => 'Checked Out',
     'missing' => 'Missing Check-In', 'pending' => 'Pending Review', 'rejected' => 'Review Rejected',
+    'clarification' => 'Clarification requested', 'unverified' => 'Unverified Check-In',
+    'holiday' => 'Public Holiday', 'missing_checkout' => 'Missing Check-Out',
     'within' => 'Within Zone', 'outside' => 'Outside Zone', 'uncertain' => 'Location Uncertain',
 ];
 const ATTENDANCE_CAPTURE = [
@@ -34,10 +36,16 @@ function attendance_db(): PDO {
         $connection->exec('PRAGMA foreign_keys = ON');
         $connection->exec('PRAGMA busy_timeout = 5000');
         $connection->exec('PRAGMA secure_delete = ON');
-        if ((int)$connection->query('PRAGMA user_version')->fetchColumn() < 1) {
+        if ((int)$connection->query('PRAGMA user_version')->fetchColumn() < 2) {
             attendance_transaction($connection, function () use ($connection) {
-                $connection->exec(file_get_contents(__DIR__ . '/attendance-schema.sql'));
-                $connection->exec('PRAGMA user_version = 1');
+                $version = (int)$connection->query('PRAGMA user_version')->fetchColumn();
+                foreach ([1 => 'attendance-schema.sql', 2 => 'attendance-analytics-schema.sql'] as $target => $file) {
+                    if ($version >= $target) continue;
+                    $sql = file_get_contents(__DIR__ . '/' . $file);
+                    if ($sql === false) throw new RuntimeException('Attendance migration is unavailable.', 503);
+                    $connection->exec($sql);
+                    $connection->exec('PRAGMA user_version = ' . $target);
+                }
             });
         }
         $cutoff = time() - ATTENDANCE_EVIDENCE_DAYS * 86400;
@@ -98,7 +106,8 @@ function attendance_staff_id(int $id): string {
 }
 
 function attendance_date(mixed $value): bool {
-    return is_string($value) && staff_leave_date_is_valid($value);
+    return is_string($value) && preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/', $value) === 1
+        && staff_leave_date_is_valid($value);
 }
 
 function attendance_time(mixed $value): bool {
@@ -190,15 +199,24 @@ function attendance_visibility(array $actor): array {
     return [$where, $params];
 }
 
-function attendance_rows(PDO $db, array $actor, string $where, array $params): array {
+function attendance_rows(PDO $db, array $actor, string $where, array $params, bool $evidence = true, int $limit = 0): array {
     [$access, $owner] = attendance_visibility($actor);
-    return attendance_query($db, "SELECT s.*, r.checked_in, r.checked_out, r.corrected_in, r.corrected_out,
-        r.in_zone, r.out_zone, r.in_capture, r.out_capture, r.in_lat, r.in_lng, r.out_lat, r.out_lng,
-        r.in_accuracy, r.out_accuracy, r.in_distance, r.out_distance, r.radius_m, r.accuracy_m, r.grace_minutes,
-        (SELECT q.status FROM attendance_requests q WHERE q.shift_id = s.id ORDER BY q.id DESC LIMIT 1) AS review_status,
-        EXISTS (SELECT 1 FROM attendance_photos p WHERE p.shift_id = s.id) AS photo_available
+    $rowLimit = $limit > 0 ? ' LIMIT ' . $limit : '';
+    $private = $evidence ? 's.lot_lat, s.lot_lng, r.in_lat, r.in_lng, r.out_lat, r.out_lng,
+        r.in_accuracy, r.out_accuracy, r.in_distance, r.out_distance,
+        EXISTS (SELECT 1 FROM attendance_photos p WHERE p.shift_id = s.id) AS photo_available,' : '';
+    return attendance_query($db, "SELECT s.id, s.staff_id, s.lot_id, s.lot_name, s.shift_date, s.starts_at, s.ends_at, $private
+        r.checked_in, r.checked_out, r.corrected_in, r.corrected_out, r.in_zone, r.out_zone, r.in_capture, r.out_capture,
+        r.radius_m, r.accuracy_m, r.grace_minutes, q.status AS review_status, q.kind AS review_kind,
+        CASE WHEN q.status = 'pending' AND q.clarified_at IS NOT NULL AND q.replied_at IS NULL THEN 1 ELSE 0 END AS awaiting_reply,
+        EXISTS (SELECT 1 FROM attendance_requests c WHERE c.shift_id = s.id AND c.kind = 'correction') AS has_correction,
+        EXISTS (SELECT 1 FROM attendance_requests c WHERE c.shift_id = s.id AND c.kind = 'exception') AS has_camera_exception,
+        (SELECT c.status FROM attendance_requests c WHERE c.shift_id = s.id
+            AND (c.kind = 'exception' OR (c.kind = 'evidence' AND c.created_at = r.checked_in))
+            ORDER BY c.id DESC LIMIT 1) AS checkin_review
         FROM attendance_shifts s LEFT JOIN attendance_records r ON r.shift_id = s.id
-        WHERE $access AND ($where) ORDER BY s.starts_at DESC, s.staff_id", [...$owner, ...$params])->fetchAll();
+        LEFT JOIN attendance_requests q ON q.id = (SELECT id FROM attendance_requests WHERE shift_id = s.id ORDER BY id DESC LIMIT 1)
+        WHERE $access AND ($where) ORDER BY s.starts_at DESC, s.staff_id, s.id$rowLimit", [...$owner, ...$params])->fetchAll();
 }
 
 function attendance_row(PDO $db, array $actor, int $id): array {

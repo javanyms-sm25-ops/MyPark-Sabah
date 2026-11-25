@@ -1,23 +1,78 @@
 <?php
 
-const ATTENDANCE_REPORT_STATUSES = ['scheduled', 'leave', 'on_time', 'late', 'checked_out', 'missing', 'pending', 'rejected'];
+require_once __DIR__ . '/attendance-analytics.php';
 
-function attendance_report(PDO $db, array $actor, array $locations, array $staff, array $query, int $now): array {
-    $today = date('Y-m-d', $now);
+const ATTENDANCE_REPORT_TYPES = [
+    'daily' => 'Daily Attendance Report', 'weekly' => 'Weekly Attendance Report',
+    'monthly' => 'Monthly Attendance Summary', 'individual' => 'Individual Employee Attendance Report',
+    'full' => 'Full Attendance Report', 'exceptions' => 'Late Attendance & Exception Report',
+    'location' => 'Attendance by Parking Location', 'custom' => 'Custom Date Range Attendance Report',
+];
+const ATTENDANCE_REPORT_STATUSES = [
+    'scheduled', 'on_time', 'late', 'checked_out', 'missing', 'missing_checkout', 'leave', 'holiday',
+    'pending', 'clarification', 'unverified', 'rejected',
+];
+const ATTENDANCE_REPORT_FORMATS = ['pdf' => 'PDF', 'xlsx' => 'Excel (.xlsx)', 'csv' => 'CSV'];
+const ATTENDANCE_REPORT_MAX_ROWS = 10000;
+
+function attendance_report_choice(mixed $value, array $choices, string $message): string {
+    if (!is_string($value) || !array_key_exists($value, $choices)) throw new RuntimeException($message, 422);
+    return $value;
+}
+
+function attendance_report_filters(array $query, array $locations, array $staff, int $now, string $type): array {
     $filters = [];
-    foreach (['from', 'to', 'employee', 'location', 'status', 'search'] as $field) {
+    foreach (['from', 'to', 'employee', 'location', 'status', 'search', 'exception'] as $field) {
         $value = $query[$field] ?? '';
-        if (!is_string($value) || strlen($value) > 320) throw new RuntimeException('Invalid attendance filter.', 422);
+        if (!is_string($value) || strlen($value) > 320 || !mb_check_encoding($value, 'UTF-8') || str_contains($value, "\0")) {
+            throw new RuntimeException('Invalid attendance filter.', 422);
+        }
         $filters[$field] = trim($value);
     }
-    ['from' => $from, 'to' => $to, 'employee' => $employee, 'location' => $location, 'status' => $status, 'search' => $search] = $filters;
-    if ($from === '' && $to === '') $from = $to = $today;
-    if (!attendance_date($from) || !attendance_date($to) || $from > $to) {
+    ['from' => $from, 'to' => $to, 'employee' => $employee, 'location' => $location, 'status' => $status,
+        'exception' => $exception] = $filters;
+    if ($from === '' && $to === '') $from = $to = date('Y-m-d', $now);
+    if (!attendance_date($from) || $from < '1900-01-01' || $from > '9998-12-31') {
         throw new RuntimeException('Choose a valid start date and end date.', 422);
     }
+    $anchor = new DateTimeImmutable($from);
+    [$from, $to] = match ($type) {
+        'daily' => [$from, $from],
+        'weekly' => [$anchor->modify('monday this week')->format('Y-m-d'), $anchor->modify('sunday this week')->format('Y-m-d')],
+        'monthly' => [$anchor->format('Y-m-01'), $anchor->format('Y-m-t')],
+        default => [$from, $to],
+    };
+    if (!attendance_date($to) || $from > $to || $from < '1900-01-01' || $to > '9998-12-31') {
+        throw new RuntimeException('Choose a valid start date and end date.', 422);
+    }
+    if (strtotime($to) > strtotime($from . ' +365 days')) {
+        throw new RuntimeException('Choose a reporting period of up to 366 calendar days.', 422);
+    }
     if ($location !== '' && !isset($locations[$location])) throw new RuntimeException('You do not have access to that parking location.', 403);
-    if ($employee !== '' && !isset($staff[$employee])) throw new RuntimeException('Choose a valid employee.', 422);
+    if (($employee !== '' && !isset($staff[$employee])) || ($type === 'individual' && $employee === '')) {
+        throw new RuntimeException('Choose an employee available in your attendance scope.', 422);
+    }
     if ($status !== '' && !in_array($status, ATTENDANCE_REPORT_STATUSES, true)) throw new RuntimeException('Choose a valid attendance status.', 422);
+    if ($exception !== '' && !isset(ATTENDANCE_EXCEPTION_LABELS[$exception])) throw new RuntimeException('Choose a valid exception type.', 422);
+    return array_replace($filters, ['from' => $from, 'to' => $to]);
+}
+
+function attendance_report_matches(array $row, string $status): bool {
+    return match ($status) {
+        '' => true,
+        'pending' => $row['open'],
+        'rejected' => $row['review_status'] === 'rejected',
+        'checked_out' => $row['out'] !== null,
+        'missing_checkout' => $row['checkout_missing'],
+        default => $row['state'] === $status,
+    };
+}
+
+function attendance_report(PDO $db, array $actor, array $locations, array $staff, array $query, int $now, string $type = 'custom'): array {
+    $filters = attendance_report_filters($query, $locations, $staff, $now, $type);
+    ['from' => $from, 'to' => $to, 'employee' => $employee, 'location' => $location, 'status' => $status,
+        'search' => $search, 'exception' => $exception] = $filters;
+
     $where = 's.shift_date BETWEEN ? AND ?';
     $params = [$from, $to];
     if ($location !== '') {
@@ -28,53 +83,92 @@ function attendance_report(PDO $db, array $actor, array $locations, array $staff
         $where .= ' AND s.staff_id = ?';
         $params[] = (int)$employee;
     }
-
-    $scheduled = [];
-    $checkedIn = [];
-    $counts = ['On-Time Check-Ins' => 0, 'Late Check-Ins' => 0, 'Missing Check-Ins' => 0, 'Outside-Zone Check-Ins' => 0, 'Pending Attendance Reviews' => 0];
-    $visible = [];
-    foreach (attendance_rows($db, $actor, $where, $params) as $record) {
-        $id = $record['staff_id'];
+    $policy = attendance_report_policy($db);
+    $holidays = attendance_report_holidays($db, $from, $to);
+    $periodClosed = $now >= strtotime($to . ' +1 day');
+    $records = attendance_rows($db, $actor, $where, $params, false, ATTENDANCE_REPORT_MAX_ROWS + 1);
+    if (count($records) > ATTENDANCE_REPORT_MAX_ROWS) {
+        throw new RuntimeException('This report has too many shifts. Narrow the dates, employee, or location.', 422);
+    }
+    $facts = [];
+    foreach ($records as $row) {
+        $id = $row['staff_id'];
         $name = $staff[$id]['name'] ?? '';
         if ($search !== '' && mb_stripos($name . ' ' . attendance_staff_id($id), $search, 0, 'UTF-8') === false) continue;
-        $actualStatus = attendance_status($record, $now);
-        $punctuality = attendance_punctuality($record);
-        if ($status !== '' && $status !== $actualStatus && $status !== $punctuality) continue;
-        $visible[] = $record;
-        if (!attendance_leave($record)) $scheduled[$id] = true;
-        if (attendance_times($record)[0] !== null) $checkedIn[$id] = true;
-        if ($punctuality === 'on_time') $counts['On-Time Check-Ins']++;
-        if ($punctuality === 'late') $counts['Late Check-Ins']++;
-        if ($actualStatus === 'missing') $counts['Missing Check-Ins']++;
-        if ($record['in_zone'] === 'outside') $counts['Outside-Zone Check-Ins']++;
-        if ($actualStatus === 'pending') $counts['Pending Attendance Reviews']++;
+        $facts[] = attendance_report_fact($row, $holidays, $policy, $now);
     }
-    return ['filters' => $filters, 'rows' => $visible, 'summary' => [
-        'Total Scheduled Employees' => count($scheduled), 'Employees Checked In' => count($checkedIn),
-    ] + $counts];
+
+    // Assess eligibility across the whole scoped period, even when the visible
+    // status filter hides an absence or a pending review.
+    $eligibility = [];
+    foreach (attendance_employee_days($facts) as $id => $days) {
+        $eligibility[$id] = attendance_employee_performance($days, $policy, $periodClosed)['full'];
+    }
+    $rows = array_values(array_filter($facts, static function (array $row) use ($status, $type, $exception, $eligibility): bool {
+        if (!attendance_report_matches($row, $status)) return false;
+        return match ($type) {
+            'full' => $eligibility[$row['staff_id']] === 'full',
+            'exceptions' => $row['exceptions'] !== [] && ($exception === '' || in_array($exception, $row['exceptions'], true)),
+            default => true,
+        };
+    }));
+    $metrics = attendance_report_metrics($rows, $policy, $periodClosed, $eligibility);
+    return ['type' => $type, 'filters' => $filters, 'rows' => $rows, 'policy' => $policy, 'holidays' => $holidays,
+        'period_closed' => $periodClosed, 'generated_at' => $now] + $metrics;
 }
 
-function attendance_export(array $rows, array $staff, int $now): void {
-    require_once __DIR__ . '/dashboard-data.php';
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="mypark-attendance.csv"');
-    header('X-Content-Type-Options: nosniff');
-    $out = fopen('php://output', 'w');
-    fputcsv($out, ['Staff ID', 'Employee', 'Assigned Location', 'Shift Date (MYT)', 'Actual Check In (MYT)', 'Actual Check Out (MYT)',
-        'Effective Check In (MYT)', 'Effective Check Out (MYT)', 'Duration', 'Attendance Status', 'Punctuality',
-        'Check-In Location Status', 'Check-In Distance (m)', 'Check-In Accuracy (m)', 'Check-Out Location Status',
-        'Check-Out Distance (m)', 'Check-Out Accuracy (m)'], ',', '"', '');
-    foreach ($rows as $row) {
-        [$in, $outTime] = attendance_times($row);
-        fputcsv($out, array_map('ops_csv_cell', [
-            attendance_staff_id($row['staff_id']), $staff[$row['staff_id']]['name'] ?? '', $row['lot_name'], $row['shift_date'],
-            attendance_clock($row['checked_in']), attendance_clock($row['checked_out']), attendance_clock($in), attendance_clock($outTime),
-            attendance_duration($row), ATTENDANCE_LABELS[attendance_status($row, $now)], ATTENDANCE_LABELS[attendance_punctuality($row)] ?? '',
-            ATTENDANCE_LABELS[$row['in_zone']] ?? '', $row['in_distance'], $row['in_accuracy'], ATTENDANCE_LABELS[$row['out_zone']] ?? '',
-            $row['out_distance'], $row['out_accuracy'],
-        ]), ',', '"', '');
+function attendance_report_month(mixed $value, int $now): string {
+    if ($value === null || $value === '') return date('Y-m', $now);
+    if (!is_string($value) || !attendance_date($value . '-01') || $value < '1900-01' || $value > '9998-12') {
+        throw new RuntimeException('Choose a valid calendar month.', 422);
     }
-    fclose($out);
+    return $value;
+}
+
+function attendance_calendar(PDO $db, array $actor, array $locations, array $staff, string $employee, string $month, int $now, string $location = '', string $workday = ''): array {
+    $first = $month . '-01';
+    $last = date('Y-m-t', strtotime($first));
+    $report = attendance_report($db, $actor, $locations, $staff,
+        ['from' => $first, 'to' => $last, 'employee' => $employee, 'location' => $location], $now);
+    $byDate = [];
+    foreach (array_reverse($report['rows']) as $row) $byDate[$row['shift_date']][] = $row;
+    $days = [];
+    for ($date = new DateTimeImmutable($first); $date->format('Y-m') === $month; $date = $date->modify('+1 day')) {
+        $key = $date->format('Y-m-d');
+        $shifts = $byDate[$key] ?? [];
+        if ($key === $workday) {
+            foreach ($shifts as &$shift) {
+                $shift['calendar_photo'] = (bool)attendance_query($db, 'SELECT 1 FROM attendance_photos WHERE shift_id = ?',
+                    [$shift['id']])->fetchColumn();
+            }
+            unset($shift);
+        }
+        $holiday = $report['holidays'][$key] ?? null;
+        $state = attendance_report_day($shifts)['state'];
+        if (!$shifts) {
+            $leave = $actor['role'] !== 'admin' && attendance_leave([
+                'staff_id' => (int)$employee, 'starts_at' => $date->getTimestamp(), 'ends_at' => $date->modify('+1 day')->getTimestamp(),
+            ]);
+            $state = match (true) {
+                $leave => 'leave',
+                $holiday !== null => 'holiday',
+                default => 'rest',
+            };
+        }
+        $days[$key] = ['shifts' => $shifts, 'state' => $state, 'holiday' => $holiday];
+    }
+    return [
+        'month' => $month, 'days' => $days,
+        'performance' => $report['people'][(int)$employee]
+            ?? attendance_employee_performance([], $report['policy'], $report['period_closed']),
+    ];
+}
+
+function attendance_report_page(array $rows, mixed $page): array {
+    $size = 25;
+    $pages = max(1, (int)ceil(count($rows) / $size));
+    $current = min($pages, filter_var($page, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 1);
+    return ['current' => $current, 'pages' => $pages, 'rows' => array_slice($rows, ($current - 1) * $size, $size)];
 }
 
 function attendance_audit_values(string $json): string {
@@ -83,13 +177,15 @@ function attendance_audit_values(string $json): string {
         'lot_id' => 'Location ID', 'starts_at' => 'Start time', 'ends_at' => 'End time', 'id' => 'Shift ID',
         'radius_m' => 'Allowed distance (m)', 'accuracy_m' => 'Maximum GPS error (m)', 'grace_minutes' => 'Late grace period (minutes)',
         'admin_id' => 'Admin ID', 'granted' => 'Access granted',
+        'require_checkout' => 'Check-out required', 'excuse_holidays' => 'Excuse public holidays',
+        'holiday_date' => 'Holiday date', 'holiday_name' => 'Holiday name',
     ];
     $parts = [];
     foreach (json_decode($json, true, 512, JSON_THROW_ON_ERROR) as $key => $value) {
         if (!isset($labels[$key])) continue;
         $formatted = match ($key) {
             'check_in', 'check_out', 'starts_at', 'ends_at' => e(attendance_clock($value)),
-            'granted' => te($value ? 'Yes' : 'No'),
+            'granted', 'require_checkout', 'excuse_holidays' => te($value ? 'Yes' : 'No'),
             'status' => attendance_badge($value),
             default => e($value),
         };

@@ -3,6 +3,8 @@ require __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/includes/attendance-actions.php';
 
 require_once __DIR__ . '/includes/attendance-view.php';
+require_once __DIR__ . '/includes/attendance-report.php';
+require_once __DIR__ . '/includes/attendance-report-view.php';
 
 require_login();
 $actor = me();
@@ -17,6 +19,11 @@ $today = date('Y-m-d', $now);
 $error = '';
 $selected = null;
 $history = [];
+$calendar = null;
+$calendarView = ($_GET['view'] ?? '') === 'calendar';
+$month = date('Y-m', $now);
+$workday = '';
+$page = 'staff-attendance.php';
 try {
     $db = attendance_db();
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -27,10 +34,12 @@ try {
             $message = match ($action) {
                 'check_in', 'check_out', 'exception' => attendance_capture($db, $actor, $shiftId, $action, $_POST, time()),
                 'correction' => attendance_correct($db, $actor, $shiftId, $_POST, time()),
+                'reply' => attendance_reply($db, $actor, $shiftId, $_POST, time()),
                 default => throw new RuntimeException('Invalid attendance action.', 400),
             };
             flash($message);
-            header('Location: staff-attendance.php?shift=' . $shiftId . '#shift-attendance', true, 303);
+            $back = $calendarView ? array_filter(array_intersect_key($_GET, array_flip(['view', 'month', 'workday'])), 'is_string') : [];
+            header('Location: ' . attendance_report_links($back, $page, ['shift' => $shiftId]) . '#shift-attendance', true, 303);
             exit;
         } catch (RuntimeException $failure) {
             $error = attendance_error($failure);
@@ -49,6 +58,14 @@ try {
             }
         }
     }
+    if ($calendarView) {
+        $month = attendance_report_month($_GET['month'] ?? null, $now);
+        $workday = $_GET['workday'] ?? '';
+        if ($workday !== '' && (!attendance_date($workday) || !str_starts_with($workday, $month . '-'))) {
+            throw new RuntimeException('Choose a date in the selected calendar month.', 422);
+        }
+        $calendar = attendance_calendar($db, $actor, [], [$actor['id'] => $actor], (string)$actor['id'], $month, $now, '', $workday);
+    }
 } catch (RuntimeException $failure) {
     if ($error === '') $error = attendance_error($failure);
 }
@@ -59,7 +76,10 @@ head('My Attendance');
 <div class="employee-attendance">
   <div class="staff-page-heading">
     <div><h1><?= te('My Attendance') ?></h1><p><?= te('Record your shift and review your attendance in Malaysia time.') ?></p></div>
-    <a class="btn btn-secondary" href="#attendance-history"><?= te('View Attendance History') ?></a>
+    <div class="attendance-actions">
+      <a class="btn btn-secondary" href="#attendance-history"><?= te('View Attendance History') ?></a>
+      <a class="btn btn-secondary" href="staff-attendance.php?view=calendar#attendance-calendar"><?= te('Monthly Calendar') ?></a>
+    </div>
   </div>
   <?php if ($error !== ''): ?><p class="attendance-notice" role="alert"><?= te($error) ?></p><?php endif; ?>
   <section class="staff-card" id="shift-attendance" aria-labelledby="shift-attendance-heading">
@@ -132,6 +152,24 @@ head('My Attendance');
       <p><?= e(date('d M Y', $now)) ?> · <?= attendance_badge('rest') ?></p><p><?= te('You have no scheduled shift today.') ?></p>
     <?php endif; ?>
   </section>
+
+  <?php if ($calendarView): ?>
+    <section class="staff-card" id="attendance-calendar" aria-labelledby="attendance-calendar-heading">
+      <h2 id="attendance-calendar-heading"><?= te('Monthly Calendar') ?></h2>
+      <form method="get" action="staff-attendance.php#attendance-calendar" class="attendance-controls">
+        <input type="hidden" name="view" value="calendar">
+        <div class="attendance-fields">
+          <label><?= te('Month') ?><input type="month" name="month" value="<?= e($month) ?>" min="1900-01" max="9998-12" required></label>
+        </div>
+        <button class="staff-button"><?= te('View month') ?></button>
+      </form>
+      <?php if ($calendar):
+          $calendarQuery = ['view' => 'calendar', 'month' => $month];
+          $subject = $actor['name'] . ' · ' . attendance_staff_id($actor['id']);
+          require __DIR__ . '/includes/attendance-calendar-view.php';
+      endif; ?>
+    </section>
+  <?php endif; ?>
 
   <section class="staff-card" id="attendance-history" aria-labelledby="attendance-history-heading">
     <h2 id="attendance-history-heading"><?= te('Attendance History') ?></h2>
