@@ -187,6 +187,31 @@
   box-shadow: inset 3px 0 var(--blue), var(--shadow);
 }
 
+.find-parking-location-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.find-parking-favourite {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--glass-field-border);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--navy);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.find-parking-favourite[aria-pressed="true"] { background: var(--glass-tab-surface); }
+.find-parking-favourite:hover { background: var(--glass-control-hover); }
+
 .find-parking-location h3 { margin: 0; font-size: 1.08rem; line-height: 1.35; }
 .find-parking-address { color: var(--muted-text); font-size: .9rem; }
 .find-parking-address:empty { display: none; }
@@ -234,6 +259,7 @@
 
 .find-parking-empty { margin: 0; padding: 20px; }
 .find-parking-empty h3 { margin: 0 0 4px; }
+.find-parking-empty .btn { margin-top: 12px; }
 
 .find-parking-map-panel {
   align-self: start;

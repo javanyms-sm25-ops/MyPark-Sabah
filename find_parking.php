@@ -17,6 +17,7 @@ $query = $_GET['q'] ?? '';
 $query = is_string($query) && mb_check_encoding($query, 'UTF-8') ? mb_substr(trim($query), 0, 120, 'UTF-8') : '';
 $availableOnly = ($_GET['available'] ?? '') === '1';
 $okuOnly = ($_GET['oku'] ?? '') === '1';
+$favouritesOnly = $canBook && ($_GET['favourites'] ?? '') === '1';
 $bayType = $okuOnly ? 'oku' : 'regular';
 $searchTerm = trim(mb_convert_kana($query, 'as', 'UTF-8'));
 
@@ -68,6 +69,12 @@ head('Find parking');
               <input type="checkbox" name="oku" value="1" aria-controls="find-parking-list" <?= $okuOnly ? 'checked' : '' ?>>
               <?= te('OKU bays') ?>
             </label>
+            <?php if ($canBook): ?>
+              <label data-favourites-filter hidden>
+                <input type="checkbox" name="favourites" value="1" aria-controls="find-parking-list" disabled <?= $favouritesOnly ? 'checked' : '' ?>>
+                <?= te('Favourites') ?>
+              </label>
+            <?php endif; ?>
           </div>
         </fieldset>
       </div>
@@ -109,8 +116,21 @@ head('Find parking');
 
     <div class="find-parking-list-wrap">
       <div class="card find-parking-empty" data-parking-empty <?= $visibleCount ? 'hidden' : '' ?>>
-        <h3><?= te($lots ? 'No matching parking locations.' : 'No parking locations yet.') ?></h3>
-        <?php if ($lots): ?><p class="find-parking-note"><?= te('Try a different search or clear your filters.') ?></p><?php endif; ?>
+        <div data-parking-empty-default>
+          <h3><?= te($lots ? 'No matching parking locations.' : 'No parking locations yet.') ?></h3>
+          <?php if ($lots): ?><p class="find-parking-note"><?= te('Try a different search or clear your filters.') ?></p><?php endif; ?>
+        </div>
+        <?php if ($canBook): ?>
+          <div data-favourites-empty hidden>
+            <h3><?= te('No favourites yet') ?></h3>
+            <p class="find-parking-note"><?= te('Tap the heart on a parking location to save it in this browser.') ?></p>
+            <button class="btn btn-secondary" type="button" data-show-all-parking><?= te('Show all locations') ?></button>
+          </div>
+          <div data-favourites-no-match hidden>
+            <h3><?= te('No favourites match your filters.') ?></h3>
+            <p class="find-parking-note"><?= te('Try a different search or clear your filters.') ?></p>
+          </div>
+        <?php endif; ?>
       </div>
       <ul class="find-parking-list" id="find-parking-list">
         <?php foreach ($locations as $location): ?>
@@ -125,7 +145,13 @@ head('Find parking');
               data-oku-capacity="<?= e($bays['oku']['capacity']) ?>" data-oku-available="<?= e($bays['oku']['available']) ?>"
               <?php if ($hasPosition): ?>data-lat="<?= e($lat) ?>" data-lng="<?= e($lng) ?>"<?php endif; ?>
               <?= $matches ? '' : 'hidden' ?>>
-            <h3><?= e($lot['name']) ?></h3>
+            <div class="find-parking-location-heading">
+              <h3><?= e($lot['name']) ?></h3>
+              <?php if ($canBook): ?>
+                <button type="button" class="find-parking-favourite" data-wish="<?= e($lot['id']) ?>" aria-pressed="false"
+                        aria-label="<?= te('Favourite {location}', ['location' => $lot['name']]) ?>" hidden>♡</button>
+              <?php endif; ?>
+            </div>
             <p class="find-parking-address"><?= e(implode(' · ', array_filter([$lot['address'] ?? '', $lot['city'] ?? '']))) ?></p>
             <?php if ($hasPosition): ?><p class="find-parking-distance" data-parking-distance hidden></p><?php endif; ?>
             <dl class="find-parking-availability">
@@ -177,5 +203,6 @@ head('Find parking');
     <div class="find-parking-map" id="find-parking-map"></div>
   </section>
 </div>
+<?php if ($canBook): ?><script src="assets/js/parking-favourites.js" defer></script><?php endif; ?>
 <script src="assets/js/find-parking.js" defer></script>
 <?php foot(); ?>

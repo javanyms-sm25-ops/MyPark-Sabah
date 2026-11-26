@@ -88,9 +88,6 @@
   const translate = window.MyParkLocale?.text ?? (message => message);
 
 
-  function readStorage(key) { try { return localStorage.getItem(key); } catch (_) { return null; } }
-  function writeStorage(key, value) { try { localStorage.setItem(key, value); } catch (_) { /* Page controls remain usable without storage. */ } }
-
   // Responsive navigation and current-page indicator
   const navigation = document.getElementById('site-navigation');
   const logo = document.querySelector('.site-header .logo');
@@ -354,39 +351,6 @@
 
   if (operationsSearch) operationsSearch.addEventListener('input', filterOperations);
   if (operationsStatus) operationsStatus.addEventListener('change', filterOperations);
-
-  // Wishlist (browser-local prototype)
-  function readWishlist(key) {
-    try {
-      const items = JSON.parse(readStorage(key) || '[]');
-      return Array.isArray(items) ? items.filter(item => typeof item === 'string') : [];
-    } catch (_) { return []; }
-  }
-  document.querySelectorAll('[data-wish]').forEach(function (button) {
-    const key = 'park-wishlist';
-    let savedItems = readWishlist(key);
-    function renderFavourite() {
-      const saved = savedItems.includes(button.dataset.wish);
-      button.textContent = saved ? '♥' : '♡';
-      button.setAttribute('aria-pressed', String(saved));
-    }
-    renderFavourite();
-
-    button.addEventListener('click', function () {
-      if (readStorage(key) !== null) savedItems = readWishlist(key);
-      const id = button.dataset.wish;
-      if (savedItems.includes(id)) {
-        savedItems = savedItems.filter(function (item) { return item !== id; });
-      } else {
-        savedItems.push(id);
-      }
-      writeStorage(key, JSON.stringify(savedItems));
-      renderFavourite();
-      if (window.MyParkToast) {
-        window.MyParkToast.show(savedItems.includes(id) ? 'Parking location added to favourites.' : 'Parking location removed from favourites.', savedItems.includes(id) ? 'success' : 'info');
-      }
-    });
-  });
 
   const topupAmount = document.getElementById('topupAmount');
   if (topupAmount) {

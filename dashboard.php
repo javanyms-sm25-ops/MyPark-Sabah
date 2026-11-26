@@ -132,7 +132,10 @@ head('Sabah Parking');
   </select>
 </section>
 
-<h2 id="locations"><?= te('Popular parking locations') ?></h2>
+<div class="dashboard-location-heading">
+  <h2 id="locations"><?= te('Popular parking locations') ?></h2>
+  <a class="btn btn-secondary" href="find_parking.php?favourites=1" data-view-favourites hidden><?= te('View favourites') ?></a>
+</div>
 <section class="lot-grid dashboard-location-grid" aria-labelledby="locations">
   <?php foreach ($lots as $lot): ?>
     <?php
@@ -150,7 +153,7 @@ head('Sabah Parking');
           <img class="lot-photo" src="assets/images/<?= e($photo) ?>" alt="" loading="lazy" decoding="async">
         <?php endif; ?>
         <span class="lot-region"><?= te('Sabah, Malaysia') ?></span>
-        <button type="button" class="heart" data-wish="<?= e($lot['id']) ?>" aria-pressed="false"
+        <button type="button" class="heart" data-wish="<?= e($lot['id']) ?>" aria-pressed="false" hidden
                 aria-label="<?= te('Favourite {location}', ['location' => $lot['name']]) ?>">♡</button>
       </div>
       <h3><?= e($lot['name']) ?></h3>
@@ -176,4 +179,5 @@ head('Sabah Parking');
 <h2><?= te('Sabah parking map') ?></h2>
 <iframe class="map" loading="lazy" src="https://maps.google.com/maps?q=Sabah%20Malaysia&amp;t=&amp;z=7&amp;ie=UTF8&amp;iwloc=&amp;output=embed" title="Map of Sabah"></iframe>
 
+<script src="assets/js/parking-favourites.js" defer></script>
 <?php foot(); ?>
