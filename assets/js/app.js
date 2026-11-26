@@ -229,6 +229,66 @@
   const hasNotificationCenter = Boolean(document.querySelector('[data-notification-menu]'));
 
   // Parking countdown timers
+  const activeParking = document.querySelector('[data-active-parking]');
+  const dashboardSessions = Array.from(activeParking?.querySelectorAll('[data-dashboard-parking-session]') ?? []);
+  const dashboardLoadedAt = performance.getEntriesByType('navigation')[0]?.responseStart ?? performance.now();
+  const dashboardServerTime = Number(activeParking?.dataset.serverTime);
+  const dashboardReminder = Number(activeParking?.dataset.reminderSeconds);
+  const dashboardEmpty = activeParking?.querySelector('[data-parking-empty]');
+  const dashboardMore = activeParking?.querySelector('[data-parking-session-list]');
+  const dashboardCount = dashboardMore?.querySelector('[data-parking-session-count]');
+  const dashboardAnnouncement = activeParking?.querySelector('[data-parking-announcement]');
+  let shownSession = dashboardSessions[0];
+
+  function formatDashboardCountdown(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    if (minutes === 0) return translate('Less than 1 min');
+    if (minutes < 60) return translate('{minutes} min left', { minutes });
+    return translate('{hours} hr {minutes} min left', { hours: Math.floor(minutes / 60), minutes: minutes % 60 });
+  }
+
+  function updateDashboardParking() {
+    if (!dashboardSessions.length) return;
+
+    // Align with the server's clock even if the driver's device time is wrong.
+    const now = dashboardServerTime + Math.floor((performance.now() - dashboardLoadedAt) / 1000);
+    const available = dashboardSessions.filter(session => !session.dataset.expires || Number(session.dataset.expires) > now);
+    const next = available[0];
+    const remaining = next?.dataset.expires ? Number(next.dataset.expires) - now : null;
+    if (shownSession !== next) {
+      const moveFocus = shownSession?.contains(document.activeElement);
+      if (shownSession) shownSession.hidden = true;
+      if (next) next.hidden = false;
+      shownSession = next;
+      dashboardEmpty.hidden = Boolean(next);
+      dashboardAnnouncement.textContent = translate('Parking time expired');
+      if (moveFocus) (next ?? dashboardEmpty).querySelector('.btn').focus();
+    }
+
+    if (available.length < 2 && dashboardMore.contains(document.activeElement)) {
+      (next ?? dashboardEmpty).querySelector('.btn').focus();
+    }
+    dashboardMore.hidden = available.length < 2;
+    if (!dashboardMore.hidden) {
+      dashboardCount.textContent = translate('{count} active sessions', { count: available.length });
+    }
+    if (remaining === null) return;
+
+    const soon = remaining <= dashboardReminder;
+    if (soon !== next.hasAttribute('data-ending-soon')) {
+      next.toggleAttribute('data-ending-soon', soon);
+      const label = translate(soon ? 'Parking ends soon' : 'Time remaining');
+      next.querySelector('[data-parking-time-label]').textContent = label;
+      if (soon) dashboardAnnouncement.textContent = label;
+    }
+    const countdown = next.querySelector('[data-parking-countdown]');
+    const timeText = formatDashboardCountdown(remaining);
+    if (countdown.textContent !== timeText) countdown.textContent = timeText;
+    countdown.hidden = false;
+    const progress = next.querySelector('progress');
+    if (progress) progress.value = Math.min(remaining, progress.max);
+  }
+
   function formatRemainingTime(seconds) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -239,6 +299,7 @@
   }
 
   function updateParkingTimers() {
+    updateDashboardParking();
     const now = Math.floor(Date.now() / 1000);
     let statusChanged = false;
     document.querySelectorAll('.parking-timer').forEach(function (timer) {
@@ -294,9 +355,14 @@
     if (statusChanged) filterParkingSessions(false);
   }
 
-  if (document.querySelector('.parking-timer')) {
+  if (dashboardSessions.length || document.querySelector('.parking-timer')) {
     updateParkingTimers();
     window.setInterval(updateParkingTimers, 1000);
+  }
+  if (activeParking) {
+    window.addEventListener('pageshow', event => {
+      if (event.persisted) window.location.reload();
+    });
   }
 
   // Generic client-side pagination: show 10 table rows per page.

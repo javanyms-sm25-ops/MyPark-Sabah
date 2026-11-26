@@ -987,5 +987,14 @@
   "No employees are available in your attendance scope.": {"zh-Hans":"您的考勤权限范围内没有员工。","ms":"Tiada pekerja dalam skop kehadiran anda."},
   "You have no assigned parking locations for attendance. Ask a Super Admin to grant access.": {"zh-Hans":"您没有分配到考勤地点。请向超级管理员申请权限。","ms":"Anda belum diberikan lokasi parkir untuk kehadiran. Minta Super Admin memberikan akses."},
   "Choose an employee available in your attendance scope.": {"zh-Hans":"请选择您权限范围内的员工。","ms":"Pilih pekerja yang tersedia dalam skop kehadiran anda."},
-  "Choose a reporting period of up to 366 calendar days.": {"zh-Hans":"请选择最长 366 天的报告期间。","ms":"Pilih tempoh laporan sehingga 366 hari kalendar."}
+  "Choose a reporting period of up to 366 calendar days.": {"zh-Hans":"请选择最长 366 天的报告期间。","ms":"Pilih tempoh laporan sehingga 366 hari kalendar."},
+  "Ends at": {"zh-Hans":"结束时间","ms":"Tamat pada"},
+  "End time unavailable": {"zh-Hans":"无法显示结束时间","ms":"Waktu tamat tidak tersedia"},
+  "View ticket": {"zh-Hans":"查看停车票","ms":"Lihat tiket"},
+  "No active parking": {"zh-Hans":"没有正在进行的停车","ms":"Tiada sesi parkir aktif"},
+  "Choose a location to start parking.": {"zh-Hans":"选择地点以开始停车。","ms":"Pilih lokasi untuk mula parkir."},
+  "{count} active sessions": {"zh-Hans":"{count} 个进行中的停车时段","ms":"{count} sesi aktif"},
+  "Less than 1 min": {"zh-Hans":"剩余不到 1 分钟","ms":"Kurang daripada 1 min"},
+  "{minutes} min left": {"zh-Hans":"剩余 {minutes} 分钟","ms":"Baki {minutes} min"},
+  "{hours} hr {minutes} min left": {"zh-Hans":"剩余 {hours} 小时 {minutes} 分钟","ms":"Baki {hours} jam {minutes} min"}
 }

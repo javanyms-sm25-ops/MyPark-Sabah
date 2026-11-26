@@ -55,7 +55,6 @@ $wallet = demo_wallet();
 $lots = $_SESSION['demo_lots'];
 $occupiedByLot = parking_occupancy_by_lot($_SESSION['demo_bookings']);
 $bookings = array_values(array_filter($_SESSION['demo_bookings'], fn($booking) => $booking['user_id'] === $userId));
-$activeBookings = array_filter($bookings, fn($booking) => $booking['status'] === 'active');
 $completedBookings = array_filter($bookings, fn($booking) => $booking['status'] === 'completed');
 $vehicleState = ['vehicles' => [], 'selected_id' => null, 'default_id' => null];
 if (me()['role'] === 'user') {
@@ -70,6 +69,8 @@ if (me()['role'] === 'user') {
 
 head('Sabah Parking');
 ?>
+
+<?php require __DIR__ . '/includes/active-parking-card.php'; ?>
 
 <section class="hero fade-in dashboard-hero">
   <div class="dashboard-hero__content">
@@ -103,7 +104,6 @@ head('Sabah Parking');
 </section>
 
 <section class="stats">
-  <div class="card"><small><?= te('Active parking') ?></small><b><?= count($activeBookings) ?></b></div>
   <div class="card"><small><?= te('Completed visits') ?></small><b><?= count($completedBookings) ?></b></div>
   <div class="card"><small><?= te('Reward points') ?></small><b><?= count($bookings) * 25 ?></b></div>
 </section>
