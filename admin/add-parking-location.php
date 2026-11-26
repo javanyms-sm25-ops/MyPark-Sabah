@@ -65,6 +65,8 @@ if ($editing) $fields = array_replace($fields, array_intersect_key($selected, $f
 if ($isPost && ($action === 'add_lot' || $editing)) {
     $fields = array_replace($fields, array_intersect_key($_POST, $fields));
 }
+$capacityMessage = t(OPS_PARKING_SPACES_ERROR, ['max' => number_format(OPS_MAX_PARKING_SPACES)]);
+$capacityError = $errorMessage === $capacityMessage;
 $title = $editing ? 'Edit parking location' : 'Add parking location';
 $mapsPath = dirname(__DIR__) . '/config/maps.local.php';
 $mapsConfig = is_file($mapsPath) ? require $mapsPath : [];
@@ -77,7 +79,7 @@ head($title);
     <a class="btn btn-secondary" href="<?= e($page) ?>#location-list"><?= te('Parking locations') ?></a>
   </div>
   <h1><?= te($title) ?></h1>
-  <?php if ($errorMessage !== '' && !$confirming): ?><p class="error" role="alert"><?= te($errorMessage) ?></p><?php endif; ?>
+  <?php if ($errorMessage !== '' && !$confirming && !$capacityError): ?><p class="error" role="alert"><?= te($errorMessage) ?></p><?php endif; ?>
   <form class="card ops-location-form" id="location-form" method="post" action="<?= e($page) ?>"
         data-maps-key="<?= e(trim((string)($mapsConfig['api_key'] ?? ''))) ?>"
         data-map-id="<?= e(trim((string)($mapsConfig['map_id'] ?? '')) ?: 'DEMO_MAP_ID') ?>">
@@ -90,7 +92,14 @@ head($title);
       <label><?= te('Name') ?><input name="name" value="<?= e($fields['name']) ?>" required></label>
       <label><?= te('City') ?><input name="city" value="<?= e($fields['city']) ?>" required></label>
       <label><?= te('Address') ?><input name="address" value="<?= e($fields['address']) ?>" required></label>
-      <label><?= te('Spaces') ?><input name="capacity" type="number" min="1" value="<?= e($fields['capacity']) ?>" required></label>
+      <div>
+        <label for="location-capacity"><?= te('Spaces') ?></label>
+        <input id="location-capacity" name="capacity" type="number" min="1" max="<?= OPS_MAX_PARKING_SPACES ?>" step="1"
+               value="<?= e($fields['capacity']) ?>" required aria-describedby="location-capacity-feedback"
+               <?= $capacityError ? 'aria-invalid="true"' : '' ?>>
+        <p class="field-feedback" id="location-capacity-feedback" aria-live="polite"
+           data-message="<?= e($capacityMessage) ?>"><?= $capacityError ? e($capacityMessage) : '' ?></p>
+      </div>
     </div>
     <section aria-labelledby="location-position-heading">
       <h2 id="location-position-heading"><?= te('Map position') ?></h2>

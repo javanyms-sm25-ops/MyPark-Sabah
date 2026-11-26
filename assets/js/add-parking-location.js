@@ -67,9 +67,32 @@
   const name = form.elements.name;
   const city = form.elements.city;
   const address = form.elements.address;
+  const capacity = form.elements.capacity;
+  const capacityFeedback = document.getElementById('location-capacity-feedback');
   const latitude = form.elements.lat;
   const longitude = form.elements.lng;
   const submit = form.querySelector('button[type="submit"]');
+
+  function validateCapacity(showError = true) {
+    capacity.setCustomValidity('');
+    const valid = capacity.validity.valid && /^[1-9][0-9]*$/.test(capacity.value);
+    const message = valid ? '' : capacityFeedback.dataset.message;
+    capacity.setCustomValidity(message);
+    const feedback = showError ? message : '';
+    capacity.setAttribute('aria-invalid', String(feedback !== ''));
+    if (capacityFeedback.textContent !== feedback) capacityFeedback.textContent = feedback;
+    return valid;
+  }
+
+  capacity.addEventListener('input', () => validateCapacity());
+  capacity.addEventListener('invalid', () => validateCapacity());
+  form.addEventListener('submit', event => {
+    if (validateCapacity()) return;
+    event.preventDefault();
+    capacity.focus();
+  });
+  validateCapacity(capacity.value !== '' || capacity.hasAttribute('aria-invalid'));
+
   function readPosition() {
     if (!latitude.value.trim() || !longitude.value.trim()) return null;
     const lat = Number(latitude.value);

@@ -567,6 +567,8 @@
   "Address": {"zh-Hans":"地址","ms":"Alamat"},
   "RM / hour": {"zh-Hans":"RM／小时","ms":"RM / jam"},
   "Spaces": {"zh-Hans":"车位数","ms":"Bilangan petak"},
+  "Enter a whole number from 1 to {max}.": {"zh-Hans":"请输入 1 到 {max} 之间的整数。","ms":"Masukkan nombor bulat antara 1 dan {max}."},
+  "Enter a location name, city and address.": {"zh-Hans":"请输入地点名称、城市和地址。","ms":"Masukkan nama lokasi, bandar dan alamat."},
   "Add location": {"zh-Hans":"添加地点","ms":"Tambah lokasi"},
   "Reservation reports": {"zh-Hans":"停车报表","ms":"Laporan tempahan"},
   "Export all reservations (CSV)": {"zh-Hans":"导出全部停车记录（CSV）","ms":"Eksport semua tempahan (CSV)"},

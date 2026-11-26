@@ -179,6 +179,8 @@
 }
 .ops-location-fields { display: grid; gap: 14px; }
 .ops-location-form label { margin: 0; }
+.ops-location-fields input[aria-invalid="true"] { border-color: var(--red); }
+.ops-location-fields .field-feedback:empty { margin: 0; }
 .ops-place-search {
   position: relative;
   z-index: 1;

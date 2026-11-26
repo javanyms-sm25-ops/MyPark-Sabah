@@ -6,6 +6,8 @@ require_once __DIR__ . '/staff-leave.php';
 // The Dashboard reads from the current database workspace.
 const OPS_ROLES = ['superadmin' => 'Super Admin', 'admin' => 'Admin', 'staff' => 'Staff', 'user' => 'Member'];
 const OPS_TRANSITIONS = ['active' => ['completed', 'cancelled'], 'completed' => [], 'cancelled' => []];
+const OPS_MAX_PARKING_SPACES = 2500;
+const OPS_PARKING_SPACES_ERROR = 'Enter a whole number from 1 to {max}.';
 
 function ops_actor(): array {
     if (!me()) throw new RuntimeException('Please sign in again.', 401);
@@ -101,9 +103,14 @@ function ops_parking_location_fields(array $input): array {
     $name = trim($input['name'] ?? '');
     $city = trim($input['city'] ?? '');
     $address = trim($input['address'] ?? '');
-    $capacity = filter_var($input['capacity'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-    if ($name === '' || $city === '' || $address === '' || $capacity === false) {
-        throw new RuntimeException('Enter a location name, city, address and valid capacity.', 422);
+    $capacity = filter_var($input['capacity'] ?? null, FILTER_VALIDATE_INT, [
+        'options' => ['min_range' => 1, 'max_range' => OPS_MAX_PARKING_SPACES],
+    ]);
+    if ($capacity === false) {
+        throw new RuntimeException(t(OPS_PARKING_SPACES_ERROR, ['max' => number_format(OPS_MAX_PARKING_SPACES)]), 422);
+    }
+    if ($name === '' || $city === '' || $address === '') {
+        throw new RuntimeException('Enter a location name, city and address.', 422);
     }
     $lat = filter_var($input['lat'] ?? null, FILTER_VALIDATE_FLOAT);
     $lng = filter_var($input['lng'] ?? null, FILTER_VALIDATE_FLOAT);
