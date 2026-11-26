@@ -1,6 +1,61 @@
 (() => {
   'use strict';
 
+  const dialog = document.getElementById('location-delete');
+  if (typeof dialog?.showModal !== 'function') return;
+
+  const form = dialog.querySelector('form');
+  const locationId = form.elements.id;
+  const message = document.getElementById('location-delete-message');
+  const error = dialog.querySelector('[data-location-delete-error]');
+  const cancel = form.querySelector('[data-location-delete-cancel]');
+  const confirm = form.querySelector('button[type="submit"]');
+  const list = document.getElementById('location-list');
+  let trigger;
+
+  list.addEventListener('click', event => {
+    const button = event.target.closest('[data-delete-location]');
+    if (!button) return;
+    trigger = button;
+    locationId.value = button.dataset.deleteLocation;
+    message.textContent = button.dataset.deletePrompt;
+    if (error) error.hidden = true;
+    dialog.showModal();
+  });
+
+  cancel.addEventListener('click', () => dialog.close());
+  dialog.addEventListener('close', () => {
+    (trigger?.isConnected ? trigger : list.querySelector('[data-table-search]'))?.focus();
+    trigger = null;
+  });
+  dialog.addEventListener('cancel', event => {
+    if (confirm.disabled) event.preventDefault();
+  });
+  form.addEventListener('submit', event => {
+    if (confirm.disabled || !locationId.value) {
+      event.preventDefault();
+      return;
+    }
+    confirm.disabled = true;
+    cancel.disabled = true;
+  });
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted) return;
+    confirm.disabled = false;
+    cancel.disabled = false;
+    if (dialog.open) dialog.close();
+  });
+
+  if (dialog.hasAttribute('data-reopen')) {
+    trigger = Array.from(list.querySelectorAll('[data-delete-location]'))
+      .find(button => button.dataset.deleteLocation === locationId.value);
+    dialog.showModal();
+  }
+})();
+
+(() => {
+  'use strict';
+
   const form = document.querySelector('.ops-location-form');
   if (!form) return;
 

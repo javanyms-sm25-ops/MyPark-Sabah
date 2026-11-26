@@ -8,7 +8,7 @@ $transactions = array_reverse($wallet['transactions']);
 $userId = me()['id'];
 $bookings = array_column(MyParkData::$records['demo_bookings'], null, 'id');
 $invalidAmount = $_SESSION['wallet_topup_invalid_amount'][$userId] ?? null;
-unset($_SESSION['wallet_topup_invalid_amount'][$userId]);
+if (ajax_table_fragment() === null) unset($_SESSION['wallet_topup_invalid_amount'][$userId]);
 $amountError = te('Enter an amount from RM 1.00 to RM 500.00, with up to two decimal places.');
 head('Wallet');
 ?>
@@ -48,11 +48,32 @@ head('Wallet');
 
 <h2><?= te('Wallet activity') ?></h2>
 <p><a class="btn" href="receipts.php?type=topup"><?= te('View wallet top-up receipts') ?></a></p>
+<?php
+$transactionTypes = ['topup' => 'Top up', 'parking' => 'Parking booking', 'compound' => 'Compounds'];
+$view = ajax_table_view('wallet-activity', $transactions, [
+    'created_at' => 'Date', 'transaction' => 'Transaction', 'amount' => 'Amount', 'status' => 'Status',
+], [
+    'values' => static function (array $transaction) use ($transactionTypes): array {
+        $type = $transaction['type'] ?? 'topup';
+        return [
+            'created_at' => $transaction['created_at'],
+            'transaction' => t($transactionTypes[$type] ?? 'Top up') . ' ' . ($transaction['location'] ?? '')
+                . ' ' . ($transaction['compound'] ?? '') . ' ' . ($transaction['reference'] ?? '') . ' ' . ($transaction['booking_id'] ?? ''),
+            'type' => $type,
+            'amount' => in_array($type, ['parking', 'compound'], true) ? -(float)$transaction['amount'] : (float)$transaction['amount'],
+            'status' => t('Paid'),
+        ];
+    },
+    'filter' => ['label' => 'Transaction', 'field' => 'type', 'choices' => ['' => 'All transactions'] + $transactionTypes],
+    'empty' => 'No wallet activity yet.', 'numeric' => ['amount'],
+]);
+ajax_table_begin($view);
+?>
 <div class="table-wrap">
   <table>
-    <thead><tr><th><?= te('Date') ?></th><th><?= te('Transaction') ?></th><th><?= te('Amount') ?></th><th><?= te('Status') ?></th></tr></thead>
+    <?php ajax_table_head($view); ?>
     <tbody>
-      <?php foreach ($transactions as $transaction): ?>
+      <?php foreach ($view['rows'] as $transaction): ?>
         <?php $type = $transaction['type'] ?? 'topup'; ?>
         <tr>
           <td><?= e($transaction['created_at']) ?></td>
@@ -68,13 +89,13 @@ head('Wallet');
               <br><small><?= e($transaction['location']) ?></small>
             <?php else: ?><?= te('Top up') ?><?php endif; ?>
           </td>
-          <td><?= in_array($type, ['compound', 'parking'], true) ? '−' : '+' ?> RM <?= number_format($transaction['amount'], 2) ?></td>
+          <td class="ajax-table-number"><?= in_array($type, ['compound', 'parking'], true) ? '−' : '+' ?> RM <?= number_format($transaction['amount'], 2) ?></td>
           <td><span class="tag paid"><?= te('Paid') ?></span></td>
         </tr>
       <?php endforeach; ?>
-      <?php if (!$transactions): ?><tr><td colspan="4"><?= te('No wallet activity yet.') ?></td></tr><?php endif; ?>
+      <?php ajax_table_empty($view); ?>
     </tbody>
   </table>
 </div>
 
-<?php foot(); ?>
+<?php ajax_table_end($view); foot(); ?>

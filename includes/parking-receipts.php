@@ -7,24 +7,35 @@
     </p>
   <?php endif; ?>
 
-  <?php if ($parkingRows): ?>
-    <div class="row card parking-session-filters">
-      <label class="validation-sr-only" for="parkingSessionSearch"><?= te('Search plate, location or status') ?></label>
-      <input type="search" id="parkingSessionSearch" placeholder="<?= te('Search plate, location or status') ?>">
-      <label class="validation-sr-only" for="parkingSessionStatus"><?= te('Status') ?></label>
-      <select id="parkingSessionStatus">
-        <option value=""><?= te('All statuses') ?></option>
-        <option value="active"><?= te('Active') ?></option>
-        <option value="completed"><?= te('Completed') ?></option>
-        <option value="cancelled"><?= te('Cancelled') ?></option>
-      </select>
-    </div>
-
+  <?php
+  $view = ajax_table_view('parking-sessions', $parkingRows, [
+      'location' => 'Location', 'plate' => 'Plate', 'duration' => 'Duration', 'fee' => 'Fee', 'status' => 'Status',
+      'created_at' => 'Created', 'actions' => 'Actions',
+  ], [
+      'values' => static function (array $row): array {
+          $booking = $row['booking'];
+          $item = $row['receipt'];
+          return [
+              'location' => $booking['lot'] ?? $item['details']['Location'],
+              'plate' => $booking['plate'] ?? $item['details']['Vehicle plate'],
+              'duration' => (float)($booking['hours'] ?? $item['details']['Duration'] ?? 0),
+              'fee' => $booking ? (int)round($booking['fee'] * 100) : $item['amount_cents'],
+              'status' => $booking['status'] ?? '',
+              'created_at' => $row['at'],
+          ];
+      },
+      'filter' => ['label' => 'Status', 'field' => 'status', 'choices' => ['' => 'All statuses',
+          'active' => 'Active', 'completed' => 'Completed', 'cancelled' => 'Cancelled']],
+      'search_label' => 'Search plate, location or status', 'numeric' => ['duration', 'fee'],
+      'order' => 'created_at:desc', 'empty' => $datesApplied ? 'No parking sessions for these dates.' : 'No parking history yet.',
+  ]);
+  ajax_table_begin($view);
+  ?>
     <div class="table-wrap">
-      <table id="parkingSessionsTable" data-paginated="true">
-        <thead><tr><th><?= te('Location') ?></th><th><?= te('Plate') ?></th><th><?= te('Duration') ?></th><th><?= te('Fee') ?></th><th><?= te('Status') ?></th><th><?= te('Created') ?></th><th><?= te('Actions') ?></th></tr></thead>
+      <table id="parkingSessionsTable">
+        <?php ajax_table_head($view); ?>
         <tbody>
-          <?php foreach ($parkingRows as $row):
+          <?php foreach ($view['rows'] as $row):
               $booking = $row['booking'];
               $item = $row['receipt'];
               $location = $booking['lot'] ?? $item['details']['Location'];
@@ -35,11 +46,11 @@
               $duration = $booking ? $booking['hours'] . 'h' : $item['details']['Duration'];
               $fee = $booking ? (int) round($booking['fee'] * 100) : $item['amount_cents'];
           ?>
-            <tr data-parking-session data-status="<?= e($status) ?>" data-plate="<?= e($plate) ?>" data-search="<?= e($plate . ' ' . $location) ?>">
+            <tr data-parking-session data-status="<?= e($status) ?>" data-plate="<?= e($plate) ?>">
               <td><?= e($location) ?><?php if ($bayType !== null): ?><br><small><?= te(PARKING_BAY_TYPES[$bayType]) ?></small><?php endif; ?></td>
               <td><?= e($plate) ?></td>
-              <td><?= e($duration) ?></td>
-              <td><?= e(receipt_money($fee)) ?></td>
+              <td class="ajax-table-number"><?= e($duration) ?></td>
+              <td class="ajax-table-number"><?= e(receipt_money($fee)) ?></td>
               <td>
                 <?php if ($booking): ?><span class="tag <?= e($status) ?>"><?= te($status) ?></span><?php else: ?>—<?php endif; ?>
                 <?php if ($expiry !== null): ?><span class="parking-timer" data-expires="<?= e($expiry) ?>">--:--:--</span><small class="timer-label"><?= te('Time remaining') ?></small><?php endif; ?>
@@ -53,11 +64,9 @@
               </td>
             </tr>
           <?php endforeach; ?>
-          <tr data-no-parking-matches hidden><td colspan="7"><?= te('No matching records') ?></td></tr>
+          <?php ajax_table_empty($view); ?>
         </tbody>
       </table>
     </div>
-  <?php else: ?>
-    <p class="card"><?= te($datesApplied ? 'No parking sessions for these dates.' : 'No parking history yet.') ?></p>
-  <?php endif; ?>
+  <?php ajax_table_end($view); ?>
 </section>

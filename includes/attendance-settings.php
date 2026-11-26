@@ -44,16 +44,25 @@
 <details class="ops-panel attendance-panel" id="audit">
   <summary><?= te('Attendance Audit Trail') ?></summary>
   <p><?= te('The 50 most recent administrative changes, newest first.') ?></p>
-  <?php if ($audit): ?>
+  <?php
+  $view = ajax_table_view('attendance-audit', $audit, [
+      'created_at' => 'Date and time', 'admin' => 'Admin', 'action' => 'Action', 'shift_id' => 'Shift ID',
+      'before_value' => 'Previous value', 'after_value' => 'Updated value', 'reason' => 'Reason',
+  ], [
+      'values' => static fn(array $change) => $change + ['admin' => ($accounts[$change['admin_id']]['name'] ?? '') . ' #' . $change['admin_id']],
+      'order' => 'created_at:desc', 'empty' => 'No administrative changes recorded yet.',
+  ]);
+  ajax_table_begin($view);
+  ?>
     <div class="attendance-table" tabindex="0" role="region" aria-label="<?= te('Attendance Audit Trail') ?>"><table>
-      <thead><tr><?php foreach (['Date and time', 'Admin', 'Action', 'Shift ID', 'Previous value', 'Updated value', 'Reason'] as $heading): ?><th scope="col"><?= te($heading) ?></th><?php endforeach; ?></tr></thead>
-      <tbody><?php foreach ($audit as $change): ?>
+      <?php ajax_table_head($view); ?>
+      <tbody><?php foreach ($view['rows'] as $change): ?>
         <tr><td><?= e(attendance_clock($change['created_at'])) ?> MYT</td>
           <td><?= e(($accounts[$change['admin_id']]['name'] ?? '—') . ' · #' . $change['admin_id']) ?></td>
           <td><?= te($change['action']) ?></td>
           <td><?php if ($change['shift_id']): ?><a class="btn btn-secondary" href="admin/employee-attendance.php?shift=<?= $change['shift_id'] ?>#record">#<?= $change['shift_id'] ?></a><?php else: ?>—<?php endif; ?></td>
           <td><?= attendance_audit_values($change['before_value']) ?></td><td><?= attendance_audit_values($change['after_value']) ?></td><td><?= e($change['reason']) ?></td></tr>
-      <?php endforeach; ?></tbody>
+      <?php endforeach; ajax_table_empty($view); ?></tbody>
     </table></div>
-  <?php else: ?><p><?= te('No administrative changes recorded yet.') ?></p><?php endif; ?>
+  <?php ajax_table_end($view); ?>
 </details>

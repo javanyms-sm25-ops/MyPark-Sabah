@@ -6,7 +6,7 @@ function attendance_save_shift(PDO $db, array $actor, array $fields): string {
     $staffId = attendance_int($fields['staff_id'] ?? null);
     $employee = attendance_accounts()[$staffId] ?? null;
     $lot = attendance_locations($db, $actor)[attendance_int($fields['lot_id'] ?? null)] ?? null;
-    if (!$lot || ($employee['role'] ?? null) !== 'staff' || $employee['blocked']) {
+    if (!$lot || isset($lot['deleted_at']) || ($employee['role'] ?? null) !== 'staff' || $employee['blocked']) {
         throw new RuntimeException('Choose an active employee and a workplace you manage.', 422);
     }
     $lat = attendance_number($lot['lat'] ?? null, -90, 90);

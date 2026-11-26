@@ -25,6 +25,7 @@ try {
         }
     }
     $snapshot = staff_snapshot($actor);
+    if ($json && isset($_GET['table'])) staff_json(['table' => staff_table_page($snapshot, $page, ajax_table_query())]);
     if ($json) staff_json(['data' => $snapshot]);
 } catch (RuntimeException $error) {
     $status = in_array($error->getCode(), [400, 401, 403, 404, 409, 422], true) ? $error->getCode() : 500;

@@ -4,7 +4,7 @@ require_login('../pages/login.php');
 header('Content-Type: application/json');
 
 $out = [];
-foreach (MyParkData::$records['demo_lots'] as $lot) {
+foreach (active_parking_locations() as $lot) {
     $out[] = [
         'id' => $lot['id'],
         'name' => $lot['name'],

@@ -49,7 +49,7 @@ function validate_parking_draft(array $actor, array $draft): array {
     complete_expired_bookings();
     $errors = [];
     $lotId = filter_var($draft['lot_id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-    $lots = array_column(MyParkData::$records['demo_lots'], null, 'id');
+    $lots = array_column(active_parking_locations(), null, 'id');
     $lot = $lots[$lotId] ?? null;
     $bayType = $draft['bay_type'] ?? 'regular';
     if ($lot === null) {

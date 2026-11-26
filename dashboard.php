@@ -52,7 +52,7 @@ if ($resume) {
 }
 
 $wallet = demo_wallet();
-$lots = MyParkData::$records['demo_lots'];
+$lots = active_parking_locations();
 $occupiedByLot = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);
 $bookings = array_values(array_filter(MyParkData::$records['demo_bookings'], fn($booking) => $booking['user_id'] === $userId));
 $activeBookings = array_filter($bookings, fn($booking) => $booking['status'] === 'active');

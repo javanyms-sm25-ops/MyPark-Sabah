@@ -183,7 +183,9 @@ head('Employee Attendance');
               <?php foreach ($employees as $account): if ($account['blocked']) continue; ?><option value="<?= $account['id'] ?>"><?= e($account['name'] . ' · ' . attendance_staff_id($account['id'])) ?></option><?php endforeach; ?>
             </select></label>
             <label><?= te('Parking location') ?><select name="lot_id" required><option value=""><?= te('Choose a parking location') ?></option>
-              <?php foreach ($locations as $lot): ?><option value="<?= $lot['id'] ?>"><?= e($lot['name']) ?></option><?php endforeach; ?>
+              <?php foreach ($locations as $lot): if (isset($lot['deleted_at'])) continue; ?>
+                <option value="<?= $lot['id'] ?>"><?= e($lot['name']) ?></option>
+              <?php endforeach; ?>
             </select></label>
             <label><?= te('Date') ?><input type="date" name="shift_date" value="<?= e($today) ?>" required></label>
             <label><?= te('Start time') ?><input type="time" name="start_time" required></label>

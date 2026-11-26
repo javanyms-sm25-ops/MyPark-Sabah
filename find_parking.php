@@ -9,7 +9,7 @@ if ($role === 'superadmin' || $role === 'staff') {
 }
 
 require_once __DIR__ . '/includes/parking-capacity.php';
-$lots = MyParkData::$records['demo_lots'];
+$lots = active_parking_locations();
 $occupiedByLot = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);
 $mapsConfigPath = __DIR__ . '/config/maps.local.php';
 $mapsConfig = is_file($mapsConfigPath) ? require $mapsConfigPath : [];

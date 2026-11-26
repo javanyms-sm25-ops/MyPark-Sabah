@@ -32,7 +32,7 @@ function parking_notification_items(int $userId): array {
 
 function parking_alert_zones(): array {
     $zones = [];
-    foreach (MyParkData::$records['demo_lots'] as $lot) {
+    foreach (active_parking_locations() as $lot) {
         $id = (int)$lot['id'];
         $radius = PARKING_ALERT_RADII[$id] ?? null;
         $lat = filter_var($lot['lat'] ?? null, FILTER_VALIDATE_FLOAT);

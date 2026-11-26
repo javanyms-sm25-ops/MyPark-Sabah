@@ -25,6 +25,7 @@ function staff_head(string $title): void {
     <script src="assets/js/theme.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/glass.css">
+    <link rel="stylesheet" href="assets/css/ajax-tables.css">
     <link rel="stylesheet" href="assets/css/staff.css"></head>
     <body class="staff-portal<?= $profile ? ' staff-profile-page' : '' ?>">
     <a class="staff-skip" href="#staff-main"><?= te('Skip to content') ?></a>
@@ -60,6 +61,7 @@ function staff_foot(bool $showChatbot = true): void {
     <div id="toast-status" class="pe-toast-announcer" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="toast-alert" class="pe-toast-announcer" role="alert" aria-live="assertive" aria-atomic="true"></div>
     <?php locale_client_scripts(); ?>
+    <script src="assets/js/ajax-tables.js"></script>
     <script src="assets/js/toasts.js"></script><script src="assets/js/app.js"></script>
     <script src="assets/js/dashboard-table.js"></script><script src="assets/js/staff.js"></script>
     <?php if ($showChatbot): ?>

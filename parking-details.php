@@ -159,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$lots = MyParkData::$records['demo_lots'];
+$lots = active_parking_locations();
 head('Parking details');
 ?>
 
