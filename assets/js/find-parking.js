@@ -5,7 +5,13 @@
   if (!finder) return;
 
   const translate = window.MyParkLocale?.text ?? (message => message);
+  const filters = finder.querySelector('[data-parking-filters]');
   const search = finder.querySelector('#find-parking-query');
+  const availableOnly = filters.elements.namedItem('available');
+  const okuOnly = filters.elements.namedItem('oku');
+  const okuHelp = finder.querySelector('[data-parking-oku-help]');
+  const countLabel = finder.querySelector('[data-parking-result-count]');
+  const clear = finder.querySelector('[data-parking-clear]');
   const list = finder.querySelector('.find-parking-list-wrap');
   const locationList = finder.querySelector('#find-parking-list');
   const locationsHeading = finder.querySelector('#find-parking-heading');
@@ -13,20 +19,27 @@
   const locationStatus = finder.querySelector('[data-location-status]');
   const empty = finder.querySelector('[data-parking-empty]');
   const canvas = finder.querySelector('#find-parking-map');
+  const mapPanel = canvas.closest('.find-parking-map-panel');
   const message = finder.querySelector('[data-map-message]');
-  const normalize = value => value.normalize('NFKC').toLocaleLowerCase().trim();
+  // Match the full-width letters, numbers and punctuation supported by the server search.
+  const normalize = value => value.replace(/[\uFF01\uFF03-\uFF06\uFF08-\uFF3B\uFF3D-\uFF5D]/g, character =>
+    String.fromCharCode(character.charCodeAt(0) - 0xFEE0)).replace(/\u3000/g, ' ').toLowerCase().trim();
   const locations = Array.from(finder.querySelectorAll('[data-parking-location]'), card => ({
     card,
     searchText: normalize(card.dataset.search),
     title: card.querySelector('h3').textContent,
     button: card.querySelector('[data-show-on-map]'),
+    bookingLink: card.querySelector('[data-select-parking]'),
+    hasOku: Number(card.dataset.okuCapacity) > 0,
+    regularAvailable: Number(card.dataset.regularAvailable) > 0,
+    okuAvailable: Number(card.dataset.okuAvailable) > 0,
     distanceLabel: card.querySelector('[data-parking-distance]'),
     position: card.hasAttribute('data-lat')
       ? { lat: Number(card.dataset.lat), lng: Number(card.dataset.lng) }
       : null,
   }));
 
-  let map, infoWindow, selected, timeout;
+  let map, infoWindow, selected, timeout, searchTimeout;
   let userPosition, userMarker;
   let mapFailed = false;
   const mapped = locations.filter(location => location.position);
@@ -77,7 +90,8 @@
     list.scrollTop = 0;
   }
 
-  locate.hidden = false;
+  locate.hidden = !mapped.length;
+  finder.querySelector('[data-refresh-parking]').textContent = translate('Refresh availability');
   locate.addEventListener('click', () => {
     if (!window.isSecureContext || !navigator.geolocation) {
       locationStatus.textContent = translate('Location access requires HTTPS or localhost. You can still search for parking.');
@@ -118,21 +132,24 @@
     content.className = 'find-parking-map-info';
     const title = document.createElement('strong');
     title.textContent = location.title;
+    const availability = location.card.querySelector('.find-parking-availability').cloneNode(true);
     const rate = location.card.querySelector('.find-parking-rate').cloneNode(true);
-    const link = location.card.querySelector('a')?.cloneNode(true);
-    content.append(title, rate);
+    const link = location.bookingLink?.cloneNode(true);
+    content.append(title, availability, rate);
     if (link) {
       link.removeAttribute('class');
       content.append(link);
     }
     infoWindow.setOptions({ ariaLabel: location.title });
     infoWindow.setContent(content);
-    infoWindow.open({ map, anchor: location.marker, shouldFocus: false });
+    infoWindow.open({ map, anchor: location.marker });
   }
 
   function updateMarkers() {
     if (!map || mapFailed) return;
     const visible = locations.filter(location => location.marker && !location.card.hidden);
+    mapPanel.hidden = !visible.length;
+    finder.classList.toggle('has-parking-map', !mapPanel.hidden);
     for (const location of locations) {
       if (location.marker) location.marker.map = location.card.hidden ? null : map;
     }
@@ -153,29 +170,79 @@
     map.fitBounds(bounds, 42);
   }
 
-  search.disabled = false;
-  search.addEventListener('input', () => {
+  function applyFilters() {
+    clearTimeout(searchTimeout);
     const query = normalize(search.value);
+    let count = 0;
     for (const location of locations) {
-      location.card.hidden = !location.searchText.includes(query);
+      const baysAvailable = okuOnly.checked ? location.okuAvailable : location.regularAvailable;
+      const matches = location.searchText.includes(query) && (!okuOnly.checked || location.hasOku)
+        && (!availableOnly.checked || baysAvailable);
+      location.card.hidden = !matches;
+      if (matches) count++;
+      if (location.bookingLink) {
+        const bookingUrl = new URL(location.bookingLink.href);
+        if (okuOnly.checked) bookingUrl.searchParams.set('bay_type', 'oku');
+        else bookingUrl.searchParams.delete('bay_type');
+        location.bookingLink.href = bookingUrl.href;
+      }
     }
-    empty.hidden = locations.some(location => !location.card.hidden);
-    updateMarkers();
-  });
+    const countKey = count === 1 ? '{count} location found' : '{count} locations found';
+    const countText = translate(countKey, { count });
+    if (countLabel.textContent.trim() !== countText) countLabel.textContent = countText;
+    empty.hidden = count > 0;
+    clear.hidden = !query && !availableOnly.checked && !okuOnly.checked;
+    if (okuHelp) okuHelp.hidden = !okuOnly.checked;
+    finder.classList.toggle('is-oku-search', okuOnly.checked);
+    list.scrollTop = 0;
 
-  if (!finder.dataset.mapsKey) {
-    message.textContent = translate('Google Maps is unavailable. Select a location from the list.');
-    return;
+    const url = new URL(window.location.href);
+    const values = { q: search.value.trim(), available: availableOnly.checked ? '1' : '', oku: okuOnly.checked ? '1' : '' };
+    Object.entries(values).forEach(([key, value]) => {
+      if (value) url.searchParams.set(key, value);
+      else url.searchParams.delete(key);
+    });
+    if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url);
+
+    updateMarkers();
+    if (selected) {
+      const popupLink = infoWindow.getContent()?.querySelector('a');
+      if (popupLink) popupLink.href = selected.bookingLink.href;
+    }
   }
+
+  search.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(applyFilters, 160);
+  });
+  [availableOnly, okuOnly].forEach(input => input.addEventListener('change', applyFilters));
+  clear.addEventListener('click', event => {
+    if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+    event.preventDefault();
+    search.value = '';
+    availableOnly.checked = false;
+    okuOnly.checked = false;
+    applyFilters();
+    search.focus();
+  });
+  applyFilters();
+
+  if (!mapped.length) return;
 
   function failMap() {
     clearTimeout(timeout);
     mapFailed = true;
     infoWindow?.close();
     selectLocation(null);
-    canvas.hidden = true;
+    mapPanel.hidden = true;
+    finder.classList.remove('has-parking-map');
     mapped.forEach(location => { location.button.hidden = true; });
     message.textContent = translate('Google Maps is unavailable. Select a location from the list.');
+  }
+
+  if (!finder.dataset.mapsKey) {
+    failMap();
+    return;
   }
 
   message.textContent = translate('Loading Google Maps…');
@@ -183,7 +250,8 @@
   window.myParkInitFindParking = () => {
     if (mapFailed) return;
     try {
-      canvas.hidden = false;
+      mapPanel.hidden = false;
+      finder.classList.add('has-parking-map');
       map = new google.maps.Map(canvas, {
         center: mapped[0]?.position ?? { lat: 5.4, lng: 117 },
         zoom: 8,
@@ -200,12 +268,12 @@
         });
         location.marker.addEventListener('gmp-click', () => {
           selectLocation(location);
-          list.scrollTop = location.card.offsetTop;
+          if (list.scrollHeight > list.clientHeight) list.scrollTop = location.card.offsetTop;
         });
         location.button.addEventListener('click', () => {
           selectLocation(location);
-          if (window.matchMedia('(max-width: 760px)').matches) {
-            canvas.parentElement.scrollIntoView({ block: 'start' });
+          if (window.matchMedia('(max-width: 860px)').matches) {
+            mapPanel.scrollIntoView({ block: 'start' });
           }
         });
         location.button.hidden = false;

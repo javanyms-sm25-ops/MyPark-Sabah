@@ -1,199 +1,302 @@
 .find-parking {
   display: grid;
-  grid-template-columns: minmax(290px, 360px) minmax(0, 1fr);
-  grid-template-areas: "results map";
-  gap: 18px;
-  min-height: 0;
-  margin: 20px 0 36px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+  margin: 18px 0 36px;
 }
 
-.find-parking-results,
+.find-parking-search,
 .find-parking-map-panel {
   min-width: 0;
-  height: clamp(460px, 72vh, 720px);
-  overflow: hidden;
-  background: var(--card);
-  border: 1px solid var(--glass-rim);
-  border-radius: 18px;
-  box-shadow: var(--glass-elevation);
-}
-
-.find-parking-results {
-  grid-area: results;
-  display: flex;
-  flex-direction: column;
-}
-
-.find-parking-search {
-  padding: 16px;
-  background: var(--glass-panel);
-  border-bottom: 1px solid var(--border);
-}
-
-.find-parking-search h2 {
   margin: 0;
-  font-size: 1.1rem;
+  padding: clamp(14px, 2.3vw, 24px);
 }
 
-.find-parking-search label {
-  margin: 12px 0 0;
-  color: var(--muted-text);
+.find-parking-search { grid-column: 1 / -1; }
+
+.find-parking-filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px 24px;
 }
 
-.find-parking-list-wrap {
-  position: relative;
+.find-parking-query { min-width: 0; }
+
+.find-parking-query label,
+.find-parking-filters legend {
+  margin: 0 0 6px;
+  padding: 0;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+}
+
+.find-parking-query input {
+  min-height: 48px;
+  margin: 0;
+  border-color: var(--glass-field-border);
+}
+
+.find-parking-filters {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.find-parking-filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.find-parking-filter-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  margin: 0;
+  padding: 8px 13px;
+  border: 1px solid var(--glass-field-border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  font-size: .95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.find-parking-filter-options label:hover { background: var(--glass-control); }
+.find-parking-filter-options label:has(input:checked) {
+  border-color: var(--navy);
+  background: var(--glass-tab-surface);
+  box-shadow: inset 0 -2px var(--navy);
+}
+
+.find-parking-filter-options input {
+  flex: 0 0 auto;
+  width: 1.13rem;
+  height: 1.13rem;
   min-height: 0;
-  overflow-y: auto;
+  margin: 0;
+  padding: 0;
 }
 
-.find-parking-list-wrap > p {
-  padding: 16px;
+.find-parking p { margin: 0; }
+.find-parking .find-parking-note { color: var(--muted-text); font-size: .9rem; }
+.find-parking #find-parking-filter-help { margin-top: 9px; }
+
+.find-parking .find-parking-oku-help {
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-inline-start: 3px solid var(--blue);
+  border-radius: 6px;
+  background: var(--light-blue);
+  color: var(--text);
 }
+
+.find-parking-oku-help a {
+  display: inline-block;
+  margin-inline-start: 4px;
+  padding-block: 5px;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.find-parking-tools,
+.find-parking-tool-actions,
+.find-parking-result-heading,
+.find-parking-actions,
+.find-parking-map-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.find-parking-tools,
+.find-parking-result-heading,
+.find-parking-map-heading { justify-content: space-between; }
+
+.find-parking-tools {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--glass-rim);
+}
+
+.find-parking-tools time {
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.find-parking-tools .find-parking-note span { display: block; }
+.find-parking [data-location-status]:not(:empty) { margin-top: 8px; }
+
+.find-parking-results { min-width: 0; }
+.find-parking-result-heading { margin-bottom: 12px; }
+.find-parking-result-heading h2,
+.find-parking-map-panel h2 { margin: 0; font-size: clamp(1.18rem, 2vw, 1.42rem); }
+#find-parking-heading { scroll-margin-top: 95px; }
+
+.find-parking .find-parking-map-message { margin-bottom: 12px; }
+
+.find-parking-map-message:empty,
+.find-parking [data-location-status]:empty,
+.find-parking [hidden] {
+  display: none;
+}
+
+.find-parking-list-wrap { position: relative; }
 
 .find-parking-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .find-parking-location {
-  padding: 15px 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.find-parking-location.is-selected {
-  background: var(--light-blue);
-  box-shadow: inset 3px 0 var(--blue);
-}
-
-.find-parking-location p {
-  margin: 0 0 7px;
-  font-size: 0.84rem;
-}
-
-.find-parking-address {
-  color: var(--muted-text);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: clamp(14px, 2vw, 20px);
+  background: var(--card);
+  background: var(--glass-panel);
+  border: 1px solid var(--glass-rim);
+  border-radius: 16px;
+  box-shadow: var(--glass-elevation);
   overflow-wrap: anywhere;
 }
 
-.find-parking-distance {
-  color: var(--navy);
-  font-weight: 600;
+.find-parking-location.is-selected {
+  border-color: var(--blue);
+  box-shadow: inset 3px 0 var(--blue), var(--shadow);
 }
 
-.find-parking-rate {
-  font-weight: 600;
+.find-parking-location h3 { margin: 0; font-size: 1.08rem; line-height: 1.35; }
+.find-parking-address { color: var(--muted-text); font-size: .9rem; }
+.find-parking-address:empty { display: none; }
+.find-parking-distance { color: var(--navy); font-size: .87rem; font-weight: 600; }
+.find-parking-rate { color: var(--text); font-size: .87rem; font-weight: 500; }
+
+.find-parking-availability {
+  display: grid;
+  gap: 7px;
+  margin: 2px 0 0;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--card);
+  font-size: .88rem;
 }
 
-.find-parking-actions {
+.find-parking-availability > div {
   display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-top: 11px;
+  gap: 5px 8px;
 }
 
-.find-parking-actions :is(button, .btn) {
-  min-height: 44px;
-  padding: 7px 10px;
-  font-size: 0.84rem;
+.find-parking-availability dt { color: var(--text); font-weight: 500; }
+.find-parking.is-oku-search [data-parking-bay="oku"] dt { font-weight: 700; }
+
+.find-parking-status {
+  margin: 0;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: var(--glass-control);
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
+
+.find-parking-status[data-bay-status="available"] { background: var(--glass-success-bg); color: var(--green); }
+.find-parking-status[data-bay-status="full"] { background: var(--glass-error-bg); color: var(--red); }
+.find-parking-actions { margin-top: auto; padding-top: 4px; }
+.find-parking-actions .btn,
+.find-parking-tools .btn,
+.find-parking-result-heading .btn { min-height: 44px; padding-inline: 11px; }
+
+.find-parking-empty { margin: 0; padding: 20px; }
+.find-parking-empty h3 { margin: 0 0 4px; }
 
 .find-parking-map-panel {
-  grid-area: map;
-  position: relative;
-  display: grid;
-  place-items: center;
-  background: var(--glass-panel);
-  scroll-margin-top: 96px;
+  align-self: start;
+  padding: 14px;
+  scroll-margin-top: 95px;
 }
+
+.find-parking-map-heading { margin-bottom: 10px; }
+.find-parking-map-back { display: none; }
 
 .find-parking-map {
-  position: absolute;
-  inset: 0;
-  color: #16243a;
-  color-scheme: light;
-}
-
-.find-parking-locate {
-  position: absolute;
-  z-index: 1;
-  top: 12px;
-  left: 12px;
-  max-width: calc(100% - 74px);
-}
-
-.find-parking-locate button {
-  min-height: 44px;
-  color: var(--text);
-  background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-}
-
-.find-parking-locate button:hover {
+  min-width: 0;
+  height: clamp(380px, 59vh, 590px);
+  border-radius: 12px;
+  overflow: hidden;
   background: var(--light-blue);
-  transform: none;
-}
-
-.find-parking-location-status:not(:empty) {
-  max-width: 270px;
-  margin: 8px 0 0;
-  padding: 8px 10px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.8rem;
+  color: var(--text);
 }
 
 .find-parking-location-dot {
   display: block;
   width: 21px;
   height: 21px;
-  background: #1874eb;
-  border: 3px solid #fff;
+  background: var(--brand-ocean);
+  border: 3px solid white;
   border-radius: 50%;
-  box-shadow: 0 0 0 5px rgb(24 116 235 / 25%);
+  box-shadow: 0 0 0 5px var(--glass-page-glow);
 }
 
-.find-parking-map-message {
-  margin: 0;
-  padding: 18px;
-  text-align: center;
-  color: var(--muted-text);
+.find-parking-map-info {
+  max-width: min(260px, calc(100vw - 108px));
+  padding: 3px 2px;
+  border-radius: 5px;
+  background: white;
+  color: var(--brand-navy);
+  overflow-wrap: anywhere;
 }
 
-.find-parking-map-message:empty {
-  display: none;
+.find-parking-map-info .find-parking-availability {
+  margin-block: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
-.find-parking-map-info p {
-  margin: 5px 0;
-}
+.find-parking-map-info :is(dt, p, a) { color: inherit; }
+.find-parking-map-info dd { padding: 0; background: transparent; color: inherit; }
+.find-parking-map-info a { display: inline-block; padding-block: 8px; text-decoration: underline; }
 
-.find-parking-map-info a {
-  color: #123b6d;
-}
-
-.find-parking [hidden] {
-  display: none;
-}
-
-@media (max-width: 760px) {
-  .find-parking {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "results" "map";
+@media (min-width: 861px) {
+  .find-parking.has-parking-map {
+    grid-template-columns: minmax(335px, .8fr) minmax(0, 1.2fr);
   }
 
-  .find-parking-results {
-    height: auto;
+  .find-parking.has-parking-map .find-parking-list { grid-template-columns: minmax(0, 1fr); }
+  .find-parking.has-parking-map .find-parking-list-wrap {
+    max-height: calc(clamp(380px, 59vh, 590px) + 8px);
+    padding: 4px;
+    margin: -4px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
   }
+}
 
-  .find-parking-list-wrap {
-    max-height: 340px;
-  }
+@media (max-width: 860px) {
+  .find-parking-map { height: clamp(300px, 55vh, 430px); }
+  .find-parking-map-back { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; }
+}
 
-  .find-parking-map-panel {
-    height: clamp(340px, 60vh, 480px);
-  }
+@media (max-width: 580px) {
+  .find-parking-filter-row { grid-template-columns: minmax(0, 1fr); }
+  .find-parking-filter-options label { flex-grow: 1; }
+  .find-parking-actions .btn { flex: 1 1 auto; text-align: center; }
+  .find-parking-tools .find-parking-note > span { margin-top: 2px; }
 }

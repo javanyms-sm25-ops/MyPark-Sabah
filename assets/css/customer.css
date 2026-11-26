@@ -56,6 +56,137 @@
 
 .dashboard-wallet__toggle:hover { background: var(--glass-hero-panel); }
 
+.active-parking {
+  margin: 0 0 18px;
+  padding: clamp(16px, 3vw, 27px);
+  border-radius: 22px;
+}
+
+.active-parking [hidden] { display: none; }
+
+.active-parking__heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  color: var(--navy);
+}
+
+.active-parking__heading h2 { margin: 0; font-size: 1.05rem; }
+
+.active-parking__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: var(--glass-tab-surface);
+}
+
+.active-parking__icon svg { width: 19px; height: 19px; }
+
+.active-parking__session {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  grid-template-areas: "details clock" "actions clock";
+  align-items: center;
+  gap: 14px clamp(18px, 4vw, 42px);
+}
+
+.active-parking__clock {
+  grid-area: clock;
+  align-self: stretch;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: clamp(14px, 3vw, 24px);
+  border: 1px solid var(--glass-rim);
+  border-radius: 16px;
+  background: var(--light-blue);
+  color: var(--navy);
+}
+
+.active-parking__session[data-ending-soon] .active-parking__clock {
+  background: var(--glass-warning-bg);
+  color: var(--glass-warning-text);
+}
+
+.active-parking__label { font-weight: 600; }
+
+.active-parking p { margin: 0; }
+
+.active-parking__countdown {
+  font-size: clamp(1.5rem, 4vw, 2.65rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.active-parking__progress {
+  appearance: none;
+  width: 100%;
+  height: 7px;
+  border: 0;
+  border-radius: 99px;
+  overflow: hidden;
+  background: var(--card);
+  color: inherit;
+}
+
+.active-parking__progress::-webkit-progress-bar { background: var(--card); }
+.active-parking__progress::-webkit-progress-value { background: currentColor; border-radius: 99px; }
+.active-parking__progress::-moz-progress-bar { background: currentColor; border-radius: 99px; }
+
+.active-parking__end {
+  color: var(--muted-text);
+  overflow-wrap: anywhere;
+}
+
+.active-parking__end time { color: var(--text); font-weight: 600; }
+.active-parking__details { grid-area: details; min-width: 0; }
+.active-parking__details h3 { font-size: clamp(1.2rem, 2.6vw, 1.85rem); line-height: 1.2; overflow-wrap: anywhere; }
+.active-parking__details p { display: flex; flex-wrap: wrap; gap: 7px 12px; align-items: center; }
+
+.active-parking__plate {
+  padding: 4px 8px;
+  border: 1px solid var(--glass-rim);
+  border-radius: 7px;
+  background: var(--card);
+  font-size: .88rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+.active-parking__actions { grid-area: actions; align-self: start; }
+.active-parking__actions .btn span,
+.active-parking__empty .btn span { margin-inline-start: 7px; }
+
+.active-parking__empty,
+.active-parking__more {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.active-parking__more {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--glass-rim);
+}
+
+@media (max-width: 620px) {
+  .active-parking__session {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "clock" "details" "actions";
+  }
+
+  .active-parking__actions .btn,
+  .active-parking__empty .btn { width: 100%; }
+}
+
 .lot-cover {
   border: 1px solid var(--glass-rim);
   border-radius: 14px;

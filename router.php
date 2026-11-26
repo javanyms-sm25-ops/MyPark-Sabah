@@ -1,7 +1,7 @@
 <?php
 // Run from the project directory: php -S localhost:8000 router.php
 $path = rawurldecode(explode('?', $_SERVER['REQUEST_URI'] ?? '/', 2)[0]);
-if (preg_match('~(?:^|/)storage(?:/|$)|(?:^|/)\.|[\\\\\x00-\x1f]~i', $path)) {
+if (preg_match('~(?:^|/)(?:config|includes|storage)(?:/|$)|(?:^|/)\.|[\\\\\x00-\x1f]~i', $path)) {
     http_response_code(403);
     exit('Forbidden');
 }

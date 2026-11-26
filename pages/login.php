@@ -69,7 +69,7 @@ head('Login');
 
 <form method="post" action="pages/login.php" class="card narrow login-form" id="login-form" data-recaptcha-site-key="<?= e($recaptchaSiteKey) ?>" novalidate>
   <h2><?= te('Welcome back') ?></h2>
-  <p class="muted"><?= te('Find and reserve parking across Sabah.') ?></p>
+  <p class="muted"><?= te('Find parking across Sabah.') ?></p>
   <input type="hidden" name="csrf" value="<?= csrf() ?>">
   <div class="login-field">
     <label for="login-email"><?= te('Email address') ?></label>

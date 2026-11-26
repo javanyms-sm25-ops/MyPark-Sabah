@@ -151,6 +151,7 @@ $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'
         <input type="hidden" name="action" value="add_booking_vehicle">
         <input type="hidden" name="lot_id" value="<?= e($bookingContext['lot_id'] ?? '') ?>">
         <input type="hidden" name="hours" value="<?= e($bookingContext['hours'] ?? '') ?>">
+        <input type="hidden" name="bay_type" value="<?= e($bookingContext['bay_type'] ?? '') ?>">
         <?php if ($addVehicleError): ?><p class="booking-error" role="alert"><?= te($addVehicleError) ?></p><?php endif; ?>
         <label for="booking-new-plate"><?= te('Vehicle plate') ?></label>
         <input id="booking-new-plate" name="plate" value="<?= e($addVehicleError ? ($_POST['plate'] ?? '') : '') ?>" placeholder="SAB 1234" maxlength="20" required>
