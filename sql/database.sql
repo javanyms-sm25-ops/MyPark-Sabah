@@ -155,3 +155,31 @@ CREATE TABLE IF NOT EXISTS attendance_audit (
     FOREIGN KEY (scope) REFERENCES mypark_workspaces (id),
     FOREIGN KEY (shift_id) REFERENCES attendance_shifts (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Add reporting to both new and existing MariaDB installations.
+ALTER TABLE attendance_requests
+    ADD COLUMN IF NOT EXISTS clarification_reason TEXT,
+    ADD COLUMN IF NOT EXISTS clarifier_id BIGINT UNSIGNED,
+    ADD COLUMN IF NOT EXISTS clarified_at BIGINT,
+    ADD COLUMN IF NOT EXISTS clarification_reply TEXT,
+    ADD COLUMN IF NOT EXISTS replied_at BIGINT;
+
+CREATE INDEX IF NOT EXISTS attendance_shift_location_staff
+    ON attendance_shifts (scope, lot_id, staff_id);
+CREATE INDEX IF NOT EXISTS attendance_request_kind
+    ON attendance_requests (shift_id, kind, id);
+
+CREATE TABLE IF NOT EXISTS attendance_report_policy (
+    scope VARCHAR(48) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+    require_checkout TINYINT UNSIGNED NOT NULL CHECK (require_checkout IN (0, 1)),
+    excuse_holidays TINYINT UNSIGNED NOT NULL CHECK (excuse_holidays IN (0, 1)),
+    FOREIGN KEY (scope) REFERENCES mypark_workspaces (id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS attendance_report_holidays (
+    scope VARCHAR(48) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    holiday_date DATE NOT NULL,
+    name VARCHAR(100) NOT NULL CHECK (CHAR_LENGTH(name) BETWEEN 1 AND 100),
+    PRIMARY KEY (scope, holiday_date),
+    FOREIGN KEY (scope) REFERENCES mypark_workspaces (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

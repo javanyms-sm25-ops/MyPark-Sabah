@@ -32,25 +32,41 @@
 <?php if ($requests): ?>
   <section class="attendance-reviews" aria-label="<?= te('Attendance reviews') ?>">
     <h3><?= te('Attendance reviews') ?></h3>
-    <?php foreach ($requests as $request): ?>
+    <?php foreach ($requests as $request):
+      $waiting = $request['status'] === 'pending' && $request['clarified_at'] !== null && $request['replied_at'] === null;
+    ?>
       <article class="attendance-review">
         <div class="attendance-heading"><strong><?= te(match ($request['kind']) {
           'exception' => 'Camera exception', 'correction' => 'Correction request', default => 'Location review',
-        }) ?></strong><?= attendance_badge($request['status']) ?></div>
+        }) ?></strong><?= attendance_badge($waiting ? 'clarification' : $request['status']) ?></div>
         <p><?= e(attendance_clock($request['created_at'])) ?> MYT · <?= $request['kind'] === 'evidence' ? te($request['reason']) : e($request['reason']) ?></p>
         <?php if ($request['proposed_in']): ?><p><?= te('Proposed check-in') ?> · <?= e(attendance_clock($request['proposed_in'])) ?></p><?php endif; ?>
         <?php if ($request['proposed_out']): ?><p><?= te('Proposed check-out') ?> · <?= e(attendance_clock($request['proposed_out'])) ?></p><?php endif; ?>
+        <?php if ($request['clarified_at'] !== null): ?>
+          <p><strong><?= te('Clarification requested') ?></strong> · <?= e(attendance_clock($request['clarified_at'])) ?> MYT<br><?= e($request['clarification_reason']) ?></p>
+          <?php if ($request['replied_at'] !== null): ?>
+            <p><strong><?= te('Employee reply') ?></strong> · <?= e(attendance_clock($request['replied_at'])) ?> MYT<br><?= e($request['clarification_reply']) ?></p>
+          <?php elseif ($waiting && $actor['role'] === 'staff'): ?>
+            <form method="post" class="attendance-controls">
+              <?= attendance_fields('reply', $row['id']) ?>
+              <input type="hidden" name="request_id" value="<?= $request['id'] ?>">
+              <label><?= te('Your reply') ?><textarea name="reason" maxlength="500" required></textarea></label>
+              <button class="staff-button"><?= te('Send reply') ?></button>
+            </form>
+          <?php endif; ?>
+        <?php endif; ?>
         <?php if ($request['reviewed_at']): ?>
           <p><strong><?= te('Reviewer’s reason') ?></strong> · <?= e($request['decision_reason']) ?><br><?= e(attendance_clock($request['reviewed_at'])) ?> MYT
           <?php if ($actor['role'] !== 'staff'): ?> · <?= e($accounts[$request['reviewer_id']]['name'] ?? '#' . $request['reviewer_id']) ?><?php endif; ?></p>
         <?php elseif ($actor['role'] !== 'staff'): ?>
-          <form method="post" action="admin/employee-attendance.php?shift=<?= $row['id'] ?>" class="attendance-controls">
+          <form method="post" action="<?= e($reviewAction ?? 'admin/employee-attendance.php?shift=' . $row['id']) ?>" class="attendance-controls">
             <?= attendance_fields('review', $row['id']) ?>
             <input type="hidden" name="request_id" value="<?= $request['id'] ?>">
             <label><?= te('Reason for decision') ?><textarea name="reason" maxlength="500" required></textarea></label>
             <div class="attendance-actions">
               <button class="btn" name="decision" value="approved"><?= te('Approve') ?></button>
               <button class="btn attendance-secondary" name="decision" value="rejected"><?= te('Reject') ?></button>
+              <?php if ($request['clarified_at'] === null): ?><button class="btn btn-secondary" name="decision" value="clarification"><?= te('Request clarification') ?></button><?php endif; ?>
             </div>
           </form>
         <?php endif; ?>

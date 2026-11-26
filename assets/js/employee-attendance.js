@@ -1,7 +1,20 @@
 (() => {
-  document.getElementById('attendance-clear-filters')?.addEventListener('submit', () => {
-    document.querySelector('#attendance-report form[data-date-range]').reset();
-  });
+  const builder = document.querySelector('[data-report-builder]');
+  if (builder) {
+    const type = builder.elements.report_type;
+    const employee = builder.elements.employee;
+    const exception = builder.elements.exception;
+    const end = builder.elements.to;
+    const update = () => {
+      employee.required = type.value === 'individual';
+      exception.disabled = type.value !== 'exceptions';
+      exception.closest('label').hidden = exception.disabled;
+      end.disabled = ['daily', 'weekly', 'monthly'].includes(type.value);
+      end.closest('label').hidden = end.disabled;
+    };
+    type.addEventListener('change', update);
+    update();
+  }
 
   const getLocation = () => new Promise((resolve) => {
     let finished = false;

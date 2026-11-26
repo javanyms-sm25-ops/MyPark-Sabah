@@ -75,7 +75,9 @@ function mypark_import_session_vehicles(PDO $database, int $memberId, array $row
 
 function mypark_import_attendance(PDO $database, PDO $source, string $oldScope, string $workspace): void {
     require_once __DIR__ . '/employee-attendance.php';
-    foreach (['attendance_settings', 'attendance_admin_locations'] as $table) {
+    $tables = $source->query("SELECT name FROM sqlite_master WHERE type = 'table'")->fetchAll(PDO::FETCH_COLUMN);
+    foreach (['attendance_settings', 'attendance_admin_locations', 'attendance_report_policy', 'attendance_report_holidays'] as $table) {
+        if (!in_array($table, $tables, true)) continue;
         foreach (mypark_legacy_rows($source, 'SELECT * FROM ' . $table . ' WHERE scope = ?', $oldScope) as $row) {
             $row['scope'] = $workspace;
             mypark_copy_legacy_row($database, $table, $row);

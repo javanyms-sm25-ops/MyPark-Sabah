@@ -132,8 +132,8 @@
 }
 
 .attendance-panel .ops-badge--pending {
-  background: #fff2dc;
-  color: #815319;
+  background: var(--glass-warning-bg);
+  color: var(--glass-warning-text);
 }
 
 .attendance-panel .attendance-approve {

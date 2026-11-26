@@ -231,14 +231,53 @@ in up to 30 minutes before work begins and before the shift ends. Missing
 check-ins are flagged after that shift ends. Any approved full-day leave that
 overlaps a shift excludes it from missing-attendance counts, including overnight
 shifts. Staff can request corrections when outside the normal recording window.
-Super Admin summary cards use the current report filters. The first two count
-distinct employees, and the other cards count shifts. Check-in counts include
-submissions marked for review. Approved time corrections affect those counts
-and durations, while the captured timestamps and review history remain visible.
-
 Photos and raw reported coordinates are available to the employee, scoped Admins,
 and Super Admin for up to 90 days, then purged on the next attendance request.
-Keep the database and its backups private. CSV reports omit photos, raw GPS
-coordinates, and review notes. They retain zone, distance, accuracy and timestamps.
+Keep the database and its backups private. General reports omit photos, raw GPS
+coordinates, and private review notes. They retain GPS statuses and timestamps.
 Browser GPS and camera capture are reported evidence. They cannot establish true
 physical presence or image authenticity. Failed verification triggers human review.
+
+Attendance analytics and reports
+Employee Attendance has Overview, Attendance Records, Monthly Calendar, Attendance
+Exceptions, and Reports & Export. Use the report preview to confirm the same rows
+that will be exported. Daily, weekly and monthly reports use the start date.
+Weeks start on Monday. The other report types use both dates. Limit each report
+to 366 calendar days and 10,000 shifts. Use filters to split larger reports.
+Employees can open Monthly Calendar and their summary from My Attendance.
+
+Shifts are attributed to their start date in MYT, including overnight shifts.
+The scheduled employee count includes each employee with a shift once.
+The attendance rate is present employee-days divided by present plus absent
+employee-days. A present day needs a verified check-in for each required shift.
+Absence means a completed required shift with no check-in and no open review.
+Approved leave, excused holidays, unfinished shifts and unresolved verification
+are excluded from settled attendance rates. Punctuality is on-time days divided
+by present days. Working hours use paired effective timestamps, including
+approved corrections. A blank rate means no eligible days were observed.
+
+Full attendance is assessed after the reporting period and its shifts end. It
+requires at least one required day, verified check-ins, no unresolved reviews,
+and by default a check-out on every required shift. It considers the whole
+employee and location scope for the period, even when a status filter hides
+some records. Super Admin can change the check-out rule and enter the holidays
+observed by the company under Reports & Export > Reporting settings. There is
+one scheduled shift per employee per start date in the existing scheduler.
+
+Admins can request clarification once per pending attendance review. The
+employee can reply from the shift details. The request stays pending until an
+authorized reviewer decides it. Clarification and review decisions are audited.
+
+Reimport sql/database.sql to install the reporting policy, holidays, clarification
+fields, and report indexes in an existing XAMPP database. The upgrade preserves
+existing shifts, leave and evidence. Legacy SQLite migration also imports any
+saved reporting policies, holidays and clarification history. Reports use bundled
+tFPDF 1.34 and SimpleXLSXGen 1.5.17 (with licenses in includes/report-libraries).
+Exports need PHP mbstring and zlib, which are enabled in the current XAMPP.
+Excel reports have typed dates and numbers, filtered and frozen headers, and
+conditional status colours.
+
+For the reporting tests, load sql/database.sql with a disposable database name
+starting with mypark_test_ and set MYPARK_DB_NAME to that name. Run
+php -d extension=zip tests/attendance-reporting.php on Windows/XAMPP.
+ZipArchive is used by the test to inspect XLSX files. Report generation uses zlib.

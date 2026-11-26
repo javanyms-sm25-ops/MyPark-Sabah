@@ -13,9 +13,9 @@
   height: clamp(460px, 72vh, 720px);
   overflow: hidden;
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--glass-rim);
+  border-radius: 18px;
+  box-shadow: var(--glass-elevation);
 }
 
 .find-parking-results {
@@ -26,6 +26,7 @@
 
 .find-parking-search {
   padding: 16px;
+  background: var(--glass-panel);
   border-bottom: 1px solid var(--border);
 }
 
@@ -93,7 +94,7 @@
 }
 
 .find-parking-actions :is(button, .btn) {
-  min-height: 36px;
+  min-height: 44px;
   padding: 7px 10px;
   font-size: 0.84rem;
 }
@@ -103,6 +104,7 @@
   position: relative;
   display: grid;
   place-items: center;
+  background: var(--glass-panel);
   scroll-margin-top: 96px;
 }
 
@@ -180,7 +182,7 @@
 @media (max-width: 760px) {
   .find-parking {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "map" "results";
+    grid-template-areas: "results" "map";
   }
 
   .find-parking-results {

@@ -183,7 +183,7 @@ function attendance_correct(PDO $db, array $actor, int $id, array $fields, int $
     if ($actor['role'] !== 'staff') throw new RuntimeException('Only employees can request a correction.', 403);
     return mypark_database_action($db, function () use ($db, $actor, $id, $fields, $now) {
         $row = attendance_row($db, $actor, $id);
-        if ($now < $row['starts_at'] - 1800 || attendance_status($row, $now) === 'leave') {
+        if ($now < $row['starts_at'] - 1800 || attendance_leave($row)) {
             throw new RuntimeException('This shift does not need an attendance correction.', 409);
         }
         $in = attendance_proposed_time($fields['proposed_in'] ?? null, $row, $now);
@@ -203,7 +203,7 @@ function attendance_decide(PDO $db, array $actor, int $id, array $fields): strin
     if (!in_array($actor['role'], ['admin', 'superadmin'], true)) throw new RuntimeException('You cannot review attendance.', 403);
     $requestId = attendance_int($fields['request_id'] ?? null);
     $decision = $fields['decision'] ?? '';
-    if (!in_array($decision, ['approved', 'rejected'], true)) throw new RuntimeException('Choose Approve or Reject.', 422);
+    if (!in_array($decision, ['approved', 'rejected', 'clarification'], true)) throw new RuntimeException('Choose a review action.', 422);
     $reason = attendance_reason($fields['reason'] ?? null);
     return mypark_database_action($db, function () use ($db, $actor, $id, $requestId, $decision, $reason) {
         $row = attendance_row($db, $actor, $id);
@@ -211,7 +211,15 @@ function attendance_decide(PDO $db, array $actor, int $id, array $fields): strin
         if (!$request || $request['status'] !== 'pending') throw new RuntimeException('This request is no longer pending.', 409);
         [$in, $out] = attendance_times($row);
         $now = time();
-        $before = ['status' => 'pending', 'request_id' => $requestId, 'check_in' => $in, 'check_out' => $out];
+        $before = ['status' => $row['awaiting_reply'] ? 'clarification' : 'pending', 'request_id' => $requestId,
+            'check_in' => $in, 'check_out' => $out];
+        if ($decision === 'clarification') {
+            if ($request['clarified_at'] !== null) throw new RuntimeException('Clarification has already been requested.', 409);
+            attendance_query($db, 'UPDATE attendance_requests SET clarification_reason = ?, clarifier_id = ?, clarified_at = ? WHERE id = ?',
+                [$reason, $actor['id'], $now, $requestId]);
+            attendance_audit($db, $actor, $id, 'Attendance review', $before, array_replace($before, ['status' => 'clarification']), $reason);
+            return 'Clarification requested from the employee.';
+        }
         if ($decision === 'approved' && $request['kind'] === 'correction') {
             attendance_validate_correction($row, $request['proposed_in'], $request['proposed_out']);
             $in = $request['proposed_in'] ?? $in;
@@ -224,5 +232,19 @@ function attendance_decide(PDO $db, array $actor, int $id, array $fields): strin
         attendance_audit($db, $actor, $id, 'Attendance review', $before,
             ['status' => $decision, 'request_id' => $requestId, 'check_in' => $in, 'check_out' => $out], $reason);
         return $decision === 'approved' ? 'Attendance review approved.' : 'Attendance review rejected.';
+    });
+}
+
+function attendance_reply(PDO $db, array $actor, int $shiftId, array $fields, int $now): string {
+    if ($actor['role'] !== 'staff') throw new RuntimeException('Only the employee can reply to this review.', 403);
+    $id = attendance_int($fields['request_id'] ?? null);
+    $message = attendance_reason($fields['reason'] ?? null);
+    return mypark_database_action($db, function () use ($db, $actor, $shiftId, $id, $message, $now) {
+        attendance_row($db, $actor, $shiftId);
+        $updated = attendance_query($db, "UPDATE attendance_requests SET clarification_reply = ?, replied_at = ?
+            WHERE id = ? AND shift_id = ? AND status = 'pending' AND clarified_at IS NOT NULL AND replied_at IS NULL",
+            [$message, $now, $id, $shiftId]);
+        if (!$updated->rowCount()) throw new RuntimeException('This review is no longer waiting for a reply.', 409);
+        return 'Your reply was sent for review.';
     });
 }

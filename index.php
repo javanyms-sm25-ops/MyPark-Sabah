@@ -34,14 +34,14 @@ head('Home');
     </ul>
   </div>
 
-  <div class="home-hero__visual" aria-label="Parking overview card">
+  <div class="home-hero__visual">
     <div class="home-hero__panel home-hero__panel--primary">
-      <div class="home-hero__chip"><?= te('Live availability') ?></div>
+      <div class="home-hero__chip"><?= te('Parking preview') ?></div>
       <div class="home-hero__location">
-        <span class="home-hero__pin">📍</span>
+        <span class="home-hero__pin" aria-hidden="true">📍</span>
         <div>
           <strong>Kota Kinabalu Waterfront</strong>
-          <small><?= te('12 spaces left') ?></small>
+          <small><?= te('12 spaces left (example)') ?></small>
         </div>
       </div>
       <div class="home-hero__price-row">
