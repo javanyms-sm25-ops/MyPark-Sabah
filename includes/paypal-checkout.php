@@ -1,5 +1,7 @@
 <?php
 
+const PAYPAL_TOPUP_MIN_CENTS = 100;
+
 function paypal_config(): array {
     $path = dirname(__DIR__) . '/config/paypal.local.php';
     $config = is_file($path) ? require $path : [];
@@ -10,7 +12,7 @@ function paypal_amount_cents(mixed $raw): ?int {
     if (!is_string($raw) || !preg_match('/\A(?:[1-9]\d{0,2}|[1-4]\d{3}|500)(?:\.\d{1,2})?\z/', $raw)) return null;
     $parts = explode('.', $raw, 2);
     $cents = ((int)$parts[0] * 100) + (int)str_pad($parts[1] ?? '', 2, '0');
-    return $cents >= 100 && $cents <= 50000 ? $cents : null;
+    return $cents >= PAYPAL_TOPUP_MIN_CENTS && $cents <= 50000 ? $cents : null;
 }
 
 function paypal_request(string $method, string $path, array|stdClass|null $body = null, ?string $accessToken = null, ?string $requestId = null): array {

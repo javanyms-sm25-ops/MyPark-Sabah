@@ -17,6 +17,9 @@ $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'
     <li<?= !$review ? ' aria-current="step"' : '' ?>><b>2</b> <?= te('Choose a vehicle and duration') ?></li>
     <li<?= $review ? ' aria-current="step"' : '' ?>><b>3</b> <?= te('Review and start parking') ?></li>
   </ol>
+  <?php if ($topupCredited && !$review): ?>
+    <p class="muted" role="status"><?= te('Your top-up is in your wallet.') ?></p>
+  <?php endif; ?>
   <p id="bookingError" class="booking-error" role="alert" tabindex="-1" <?= !$bookingError && !$errors ? 'hidden' : '' ?>>
     <?= te($bookingError ?: ($errors ? 'Check the highlighted booking details.' : '')) ?>
     <?php if ($bookingError === PARKING_WALLET_INSUFFICIENT): ?><a href="wallet.php"><?= te('Top up wallet') ?></a><?php endif; ?>
@@ -170,7 +173,8 @@ $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'
 
 <?php if ($review):
     $walletBalance = demo_wallet()['balance'];
-    $canPay = (int) round($walletBalance * 100) >= (int) round($review['fee'] * 100);
+    $shortfall = parking_wallet_shortfall($review['fee'], $walletBalance);
+    $canPay = $shortfall === 0;
 ?>
   <dialog class="parking-review-dialog" id="parkingReview" aria-labelledby="parking-review-heading" open>
     <h2 id="parking-review-heading" tabindex="-1"><?= te('Review your parking session') ?></h2>
@@ -178,6 +182,15 @@ $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'
       ? 'The parking fee is deducted from your MyPark wallet when you confirm. The times below are estimates in Malaysia time.'
       : 'OKU parking is free. The times below are estimates in Malaysia time.') ?></p>
     <p class="hint"><?= te(PARKING_CANCELLATION_POLICY) ?></p>
+    <?php if ($topupCredited): ?>
+      <p class="booking-wallet-notice" role="status"><?= te('Your top-up is in your wallet.') ?></p>
+    <?php endif; ?>
+    <?php if (!$canPay): ?>
+      <div class="booking-wallet-notice booking-wallet-notice--shortfall">
+        <strong><?= te('You need RM {amount} more', ['amount' => number_format($shortfall / 100, 2)]) ?></strong>
+        <p><?= te('After topping up, you’ll return here to review your parking details.') ?></p>
+      </div>
+    <?php endif; ?>
     <dl class="parking-summary">
       <div><dt><?= te('Location') ?></dt><dd><?= e($review['lot']['name']) ?> · <?= e($review['lot']['city']) ?></dd></div>
       <div><dt><?= te('Parking bay type') ?></dt><dd><?= te(PARKING_BAY_TYPES[$review['bay_type']]) ?></dd></div>
@@ -188,7 +201,6 @@ $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'
       <div><dt><?= te('Fee') ?></dt><dd><strong>RM <?= e(number_format($review['fee'], 2)) ?></strong></dd></div>
       <div><dt><?= te('Wallet balance') ?></dt><dd>RM <?= e(number_format($walletBalance, 2)) ?></dd></div>
     </dl>
-    <?php if (!$canPay): ?><p class="booking-error"><?= te(PARKING_WALLET_INSUFFICIENT) ?></p><?php endif; ?>
     <?php if ($review['save_vehicle']): ?><p class="hint"><?= te('This vehicle will also be saved to your account when you start parking.') ?></p><?php endif; ?>
     <div class="parking-actions">
       <form method="post" action="parking-details.php" id="editParkingForm">
@@ -206,7 +218,12 @@ $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'
           <button><?= te($review['fee'] > 0 ? 'Pay and start parking' : 'Start parking now') ?></button>
         </form>
       <?php else: ?>
-        <a class="btn" href="wallet.php"><?= te('Top up wallet') ?></a>
+        <form method="post" action="parking-details.php" id="parkingTopupForm">
+          <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
+          <input type="hidden" name="action" value="top_up_parking">
+          <input type="hidden" name="review_token" value="<?= e($review['token']) ?>">
+          <button><?= te('Top up wallet') ?></button>
+        </form>
       <?php endif; ?>
     </div>
   </dialog>

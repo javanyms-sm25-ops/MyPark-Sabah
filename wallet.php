@@ -1,6 +1,8 @@
 <?php
 require __DIR__ . '/includes/bootstrap.php';
 require_customer_wallet();
+require_once __DIR__ . '/includes/parking-topup.php';
+require_once __DIR__ . '/includes/paypal-checkout.php';
 header('Cache-Control: private, no-store');
 
 $wallet =& demo_wallet();
@@ -9,6 +11,10 @@ $userId = me()['id'];
 $bookings = array_column(MyParkData::$records['demo_bookings'], null, 'id');
 $invalidAmount = $_SESSION['wallet_topup_invalid_amount'][$userId] ?? null;
 if (ajax_table_fragment() === null) unset($_SESSION['wallet_topup_invalid_amount'][$userId]);
+$parking = parking_topup_context($userId, $_GET['parking'] ?? null);
+$parkingReview = $parking['review'] ?? null;
+$shortfall = $parkingReview ? parking_wallet_shortfall($parkingReview['fee'], $wallet['balance']) : 0;
+$suggested = $shortfall > 0 ? number_format(max(PAYPAL_TOPUP_MIN_CENTS, $shortfall) / 100, 2, '.', '') : '';
 $amountError = te('Enter an amount from RM 1.00 to RM 500.00, with up to two decimal places.');
 head('Wallet');
 ?>
@@ -23,11 +29,29 @@ head('Wallet');
     <span><?= te('Use demo credit to') ?> <a href="compound.php"><?= te('pay compounds') ?></a>.</span>
   </section>
 
-  <section class="card wallet-topup">
-    <h2><?= te('Top up wallet') ?></h2>
-    <p class="muted">Pay securely with PayPal Sandbox at checkout.</p>
+  <section class="card wallet-topup" id="bookingTopup" aria-labelledby="wallet-topup-title">
+    <h2 id="wallet-topup-title"><?= te('Top up wallet') ?></h2>
+    <?php if ($parkingReview): ?>
+      <div class="booking-wallet-notice<?= $shortfall > 0 ? ' booking-wallet-notice--shortfall' : '' ?>">
+        <strong><?= e($parkingReview['lot']['name']) ?></strong>
+        <p><?= e($parkingReview['plate']) ?> · <?= te($parkingReview['hours'] === 1 ? '{count} hour' : '{count} hours', ['count' => $parkingReview['hours']]) ?></p>
+        <p><?= $shortfall > 0
+          ? te('You need RM {amount} more', ['amount' => number_format($shortfall / 100, 2)])
+          : te('Your wallet has enough for this booking.') ?></p>
+        <?php if ($shortfall > 0 && $shortfall < PAYPAL_TOPUP_MIN_CENTS): ?>
+          <p><?= te('The minimum top-up is RM 1.00.') ?></p>
+        <?php endif; ?>
+        <a class="btn btn-secondary" href="<?= e(parking_topup_review_url($parking['topup'])) ?>"><?= te('Back to booking review') ?></a>
+      </div>
+    <?php elseif (isset($_GET['parking'])): ?>
+      <p class="muted"><?= te('This booking is no longer saved. Choose your parking details again.') ?></p>
+      <a class="btn btn-secondary" href="find_parking.php"><?= te('Find parking') ?></a>
+    <?php endif; ?>
+    <?php if (!$parkingReview || $shortfall > 0): ?>
+    <p class="muted"><?= te('Pay with PayPal Sandbox at checkout.') ?></p>
     <form method="post" action="checkout.php">
-      <input type="hidden" name="csrf" value="<?= csrf() ?>">
+      <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
+      <?php if ($parking): ?><input type="hidden" name="parking" value="<?= e($parking['topup']) ?>"><?php endif; ?>
       <div class="topup-options">
         <?php foreach ([10, 30, 50, 100] as $amount): ?>
           <button type="button" class="topup-choice" data-topup="<?= $amount ?>">RM <?= $amount ?></button>
@@ -36,13 +60,14 @@ head('Wallet');
       <div class="wallet-topup-amount">
         <label for="topupAmount"><?= te('Custom amount (RM)') ?></label>
         <input id="topupAmount" type="number" name="amount" min="1" max="500" step="0.01" placeholder="1.00"
-          value="<?= e($invalidAmount ?? '') ?>" aria-describedby="topupAmountFeedback"
+          value="<?= e($invalidAmount ?? $suggested) ?>" aria-describedby="topupAmountFeedback"
           <?= $invalidAmount !== null ? 'aria-invalid="true"' : '' ?> required>
         <p class="field-feedback" id="topupAmountFeedback" aria-live="polite" aria-atomic="true"
           data-message="<?= $amountError ?>"><?= $invalidAmount !== null ? $amountError : '' ?></p>
       </div>
       <button><?= te('Top up now') ?></button>
     </form>
+    <?php endif; ?>
   </section>
 </div>
 

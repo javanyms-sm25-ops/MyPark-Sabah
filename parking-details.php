@@ -3,6 +3,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 require_customer_wallet();
 
 require_once __DIR__ . '/includes/parking-booking.php';
+require_once __DIR__ . '/includes/parking-topup.php';
 
 $userId = me()['id'];
 $customer = me()['role'] === 'user';
@@ -37,11 +38,15 @@ header('Cache-Control: private, no-store');
 $errors = [];
 $bookingError = $vehicleStorageError;
 $review = null;
+$topupCredited = false;
 $addVehicleError = '';
 $pending = $_SESSION['parking_reviews'][$userId] ?? null;
 $pendingReview = $pending['review'] ?? null;
 // Old sessions stored the review metadata directly beside the draft.
 $confirmation = $pendingReview ?? $pending;
+$checkout = $_SESSION['paypal_checkout'] ?? null;
+$topupCredited = isset($pending['topup']) && ($checkout['user_id'] ?? null) === $userId
+    && ($checkout['parking'] ?? null) === $pending['topup'] && !empty($checkout['credited']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
@@ -82,6 +87,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: parking-details.php?step=review#parkingReview', true, 303);
                 exit;
             }
+        } elseif ($action === 'top_up_parking') {
+            if (!isset($pendingReview['token']) || !hash_equals($pendingReview['token'], $_POST['review_token'] ?? '')) {
+                throw new RuntimeException('This review is no longer valid. Check your parking details again.', 409);
+            }
+            $draft = $pending['draft'];
+            $checked = validate_parking_draft(me(), $draft);
+            $errors = $checked['errors'];
+            if ($errors) {
+                http_response_code(409);
+            } else {
+                $pending['review'] = $checked['details'] + ['token' => bin2hex(random_bytes(32)), 'reviewed_at' => time()];
+                $pending['topup'] ??= bin2hex(random_bytes(16));
+                $_SESSION['parking_reviews'][$userId] = $pending;
+                $wallet = demo_wallet();
+                $returnTo = parking_wallet_shortfall($checked['details']['fee'], $wallet['balance']) > 0
+                    ? parking_topup_wallet_url($pending['topup'])
+                    : 'parking-details.php?step=review#parkingReview';
+                header('Location: ' . $returnTo, true, 303);
+                exit;
+            }
         } elseif ($action === 'start_parking' || $action === 'edit_parking') {
             if (!isset($confirmation['token']) || !hash_equals($confirmation['token'], $_POST['review_token'] ?? '')) {
                 http_response_code(409);
@@ -118,6 +143,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     header('Location: ticket.php?id=' . $bookingId, true, 303);
                                     exit;
                                 } catch (RuntimeException $error) {
+                                    if ($error->getMessage() === PARKING_WALLET_INSUFFICIENT) {
+                                        $pending['review'] = $details + ['token' => bin2hex(random_bytes(32)), 'reviewed_at' => time()];
+                                        $_SESSION['parking_reviews'][$userId] = $pending;
+                                        header('Location: parking-details.php?step=review#parkingReview', true, 303);
+                                        exit;
+                                    }
                                     $bookingError = $error->getMessage();
                                 }
                             }
@@ -133,6 +164,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (InvalidArgumentException | RuntimeException $error) {
         $bookingError = $error->getMessage();
         http_response_code($error->getCode() ?: 503);
+    }
+} elseif (($_GET['step'] ?? '') === 'resume' && $vehicleStorageError === '') {
+    $saved = parking_topup_context($userId, $_GET['parking'] ?? null);
+    if ($saved === null) {
+        http_response_code(409);
+        $bookingError = 'This booking is no longer saved. Choose your parking details again.';
+        $topupCredited = false;
+    } else {
+        $draft = $saved['draft'];
+        $checked = validate_parking_draft(me(), $draft);
+        $errors = $checked['errors'];
+        if ($errors) {
+            http_response_code(409);
+            $bookingError = 'Your saved booking needs attention. Check the highlighted details.';
+        } else {
+            // A top-up can outlast the old quote. Use a fresh review and confirmation token.
+            $saved['review'] = $checked['details'] + ['token' => bin2hex(random_bytes(32)), 'reviewed_at' => time()];
+            $_SESSION['parking_reviews'][$userId] = $saved;
+            header('Location: parking-details.php?step=review#parkingReview', true, 303);
+            exit;
+        }
     }
 } elseif (($_GET['step'] ?? '') === 'edit' && isset($pending['draft']) && !isset($confirmation['token'])) {
     $draft = $pending['draft'];

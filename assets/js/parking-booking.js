@@ -31,11 +31,13 @@
   if (reviewDialog) {
     const reviewForm = document.getElementById('startParkingForm');
     const editForm = document.getElementById('editParkingForm');
+    const topupForm = document.getElementById('parkingTopupForm');
     guardSubmission(reviewForm, translate('Starting parking…'));
+    guardSubmission(topupForm, translate('Opening wallet…'));
     if (typeof reviewDialog.showModal === 'function') {
       reviewDialog.addEventListener('cancel', event => {
         event.preventDefault();
-        if (!reviewForm?.hasAttribute('aria-busy')) editForm.requestSubmit();
+        if (!reviewForm?.hasAttribute('aria-busy') && !topupForm?.hasAttribute('aria-busy')) editForm.requestSubmit();
       });
       reviewDialog.close();
       reviewDialog.showModal();

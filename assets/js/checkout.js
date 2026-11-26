@@ -7,14 +7,17 @@
   const button = document.getElementById('paypal-button');
   const cardContainer = document.getElementById('paypal-card');
   const cardButton = document.getElementById('paypal-card-button');
+  const translate = window.MyParkLocale?.text ?? (message => message);
+  const successUrl = checkout.dataset.successUrl || 'wallet.php';
   let busy = false;
 
   function showStatus(message) {
-    status.textContent = message;
+    status.textContent = translate(message);
   }
 
   async function request(action, orderId = '') {
     const data = new URLSearchParams({ action, csrf: checkout.dataset.csrf, order_id: orderId });
+    if (checkout.dataset.checkoutNonce) data.set('checkout_nonce', checkout.dataset.checkoutNonce);
     const response = await fetch('api/paypal.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -26,12 +29,12 @@
     return result;
   }
 
-  async function confirmPayment(orderId, returnToWallet = true) {
+  async function confirmPayment(orderId, redirectOnSuccess = true) {
     showStatus('Confirming your payment…');
     try {
       const result = await request('capture', orderId);
       if (result.success !== true) throw new Error('PayPal could not confirm the payment.');
-      if (returnToWallet) window.location.assign('wallet.php');
+      if (redirectOnSuccess) window.location.assign(successUrl);
       return true;
     } catch (error) {
       showStatus(error.message);
@@ -46,7 +49,7 @@
         showStatus('Checking your payment status…');
         const result = await request('verify', checkout.dataset.orderId);
         if (result.success === true) {
-          window.location.assign('wallet.php');
+          window.location.assign(successUrl);
           return;
         }
       }
@@ -115,7 +118,7 @@
             return cardConfirmation;
           },
           async onComplete() {
-            if (await cardConfirmation) window.location.assign('wallet.php');
+            if (await cardConfirmation) window.location.assign(successUrl);
           },
         });
         attachPayment(cardButton, cardSession, cardContainer);

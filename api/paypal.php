@@ -20,6 +20,11 @@ try {
     if (!is_array($checkout) || ($checkout['user_id'] ?? null) !== me()['id']) {
         paypal_reply(['error' => 'Checkout has expired. Choose an amount again.'], 409);
     }
+    $checkoutNonce = $_POST['checkout_nonce'] ?? null;
+    if (($checkoutNonce !== null || isset($checkout['parking']))
+        && !hash_equals($checkout['nonce'], $checkoutNonce ?? '')) {
+        paypal_reply(['error' => t('This checkout has changed. Refresh the page and review the amount.')], 409);
+    }
     $action = $_POST['action'] ?? '';
     if ($action === 'create') {
         if (!empty($checkout['order_id'])) paypal_reply(['orderId' => $checkout['order_id']]);
