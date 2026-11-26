@@ -188,6 +188,19 @@
   .active-parking__empty .btn { width: 100%; }
 }
 
+.dashboard-location-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 22px 0 14px;
+}
+
+.dashboard-location-heading h2 { margin: 0; }
+.dashboard-location-heading [hidden],
+.lot-cover .heart[hidden] { display: none; }
+
 .dashboard-location-grid {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
 }

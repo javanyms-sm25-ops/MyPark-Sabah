@@ -9,6 +9,8 @@
   const search = finder.querySelector('#find-parking-query');
   const availableOnly = filters.elements.namedItem('available');
   const okuOnly = filters.elements.namedItem('oku');
+  const favourites = window.MyParkFavourites;
+  const favouritesOnly = favourites ? filters.elements.namedItem('favourites') : null;
   const okuHelp = finder.querySelector('[data-parking-oku-help]');
   const countLabel = finder.querySelector('[data-parking-result-count]');
   const clear = finder.querySelector('[data-parking-clear]');
@@ -18,6 +20,9 @@
   const locate = finder.querySelector('[data-use-location]');
   const locationStatus = finder.querySelector('[data-location-status]');
   const empty = finder.querySelector('[data-parking-empty]');
+  const emptyDefault = finder.querySelector('[data-parking-empty-default]');
+  const favouritesEmpty = finder.querySelector('[data-favourites-empty]');
+  const favouritesNoMatch = finder.querySelector('[data-favourites-no-match]');
   const canvas = finder.querySelector('#find-parking-map');
   const mapPanel = canvas.closest('.find-parking-map-panel');
   const message = finder.querySelector('[data-map-message]');
@@ -190,8 +195,9 @@
     for (const location of locations) {
       const baysAvailable = okuOnly.checked ? location.okuAvailable : location.regularAvailable;
       const matches = location.searchText.includes(query) && (!okuOnly.checked || location.hasOku)
-        && (!availableOnly.checked || baysAvailable);
-      if (!matches && refreshingCounts && location.card.contains(document.activeElement)) {
+        && (!availableOnly.checked || baysAvailable)
+        && (!favouritesOnly?.checked || favourites.has(location.id));
+      if (!matches && location.card.contains(document.activeElement)) {
         locationsHeading.focus({ preventScroll: true });
       }
       location.card.hidden = !matches;
@@ -207,7 +213,14 @@
     const countText = translate(countKey, { count });
     if (countLabel.textContent.trim() !== countText) countLabel.textContent = countText;
     empty.hidden = count > 0;
-    clear.hidden = !query && !availableOnly.checked && !okuOnly.checked;
+    clear.hidden = !query && !availableOnly.checked && !okuOnly.checked && !favouritesOnly?.checked;
+    if (favouritesOnly) {
+      const showingFavourites = favouritesOnly.checked;
+      const hasSavedLocations = showingFavourites && locations.some(location => favourites.has(location.id));
+      emptyDefault.hidden = showingFavourites;
+      favouritesEmpty.hidden = !showingFavourites || hasSavedLocations;
+      favouritesNoMatch.hidden = !hasSavedLocations;
+    }
     if (okuHelp) okuHelp.hidden = !okuOnly.checked;
   }
 
@@ -218,7 +231,12 @@
     list.scrollTop = 0;
 
     const url = new URL(window.location.href);
-    const values = { q: search.value.trim(), available: availableOnly.checked ? '1' : '', oku: okuOnly.checked ? '1' : '' };
+    const values = {
+      q: search.value.trim(),
+      available: availableOnly.checked ? '1' : '',
+      oku: okuOnly.checked ? '1' : '',
+      favourites: favouritesOnly?.checked ? '1' : '',
+    };
     Object.entries(values).forEach(([key, value]) => {
       if (value) url.searchParams.set(key, value);
       else url.searchParams.delete(key);
@@ -344,15 +362,32 @@
     searchTimeout = setTimeout(applyFilters, 160);
   });
   [availableOnly, okuOnly].forEach(input => input.addEventListener('change', applyFilters));
-  clear.addEventListener('click', event => {
-    if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
-    event.preventDefault();
+  function clearFilters() {
     search.value = '';
     availableOnly.checked = false;
     okuOnly.checked = false;
+    if (favouritesOnly) favouritesOnly.checked = false;
     applyFilters();
     search.focus();
+  }
+
+  clear.addEventListener('click', event => {
+    if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+    event.preventDefault();
+    clearFilters();
   });
+
+  if (favouritesOnly) {
+    favouritesOnly.disabled = false;
+    finder.querySelector('[data-favourites-filter]').hidden = false;
+    favouritesOnly.addEventListener('change', applyFilters);
+    finder.querySelector('[data-show-all-parking]').addEventListener('click', clearFilters);
+    favourites.onChange(() => {
+      if (!favouritesOnly.checked) return;
+      renderResults(normalize(search.value));
+      updateMarkers(false);
+    });
+  }
   applyFilters();
 
   if (!mapped.length) return;
