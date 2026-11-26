@@ -78,7 +78,14 @@ $lots = active_parking_locations();
 $locationPhotos = [
     'Kota Kinabalu Waterfront' => 'kota-kinabalu-waterfront.webp',
     'Sandakan Central Parking' => 'sandakan-central-parking.webp',
-    'Tawau Town Centre' => 'tawau-town-centre.webp',
+    'Tawau Tanjung Market' => 'tawau-tanjung-market.webp',
+    'TAR UMT Sabah' => 'tar-umt-sabah.webp',
+];
+$locationMapLinks = [
+    'Kota Kinabalu Waterfront' => 'https://www.google.com/maps/search/?api=1&query=KK%20Waterfront%2C%20Kota%20Kinabalu&query_place_id=ChIJgY6SMZJpOzIR0-2MreF6hDA',
+    'Sandakan Central Parking' => 'https://www.google.com/maps?cid=2288017653792329171',
+    'Tawau Tanjung Market' => 'https://www.google.com/maps/search/?api=1&query=Tawau%20Tanjung%20Market%2C%20Sabah&query_place_id=ChIJ1T2ghWSeFTIRXimi6GGgzxQ',
+    'TAR UMT Sabah' => 'https://www.google.com/maps/search/?api=1&query=TAR%20UMT%20Sabah%2C%20Kota%20Kinabalu&query_place_id=ChIJ8VsyzltmOzIRX7xFwXfPe_w',
 ];
 $occupiedByLot = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);
 $bookings = array_values(array_filter(MyParkData::$records['demo_bookings'], fn($booking) => $booking['user_id'] === $userId));
@@ -153,7 +160,15 @@ head('Sabah Parking');
 </div>
 <section class="lot-grid dashboard-location-grid" aria-labelledby="locations">
   <?php foreach ($lots as $lot): ?>
-    <?php $photo = $locationPhotos[$lot['name']] ?? null; ?>
+    <?php
+    $photo = $locationPhotos[$lot['name']] ?? null;
+    $mapParams = [
+        'api' => 1,
+        'query' => implode(', ', array_filter([$lot['name'], $lot['address'] ?? '', $lot['city'] ?? '', 'Sabah, Malaysia'])),
+    ];
+    $mapUrl = $locationMapLinks[$lot['name']]
+        ?? 'https://www.google.com/maps/search/?' . http_build_query($mapParams, '', '&', PHP_QUERY_RFC3986);
+    ?>
     <article class="card lot-card" data-city="<?= e($lot['city']) ?>" data-name="<?= e(strtolower($lot['name'] . ' ' . $lot['city'])) ?>">
       <div class="lot-cover">
         <?php if ($photo !== null): ?>
@@ -175,7 +190,7 @@ head('Sabah Parking');
         </p>
       <?php endif; ?>
       <div class="lot-actions">
-        <a class="btn btn-secondary" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $lot['lat'] ?>,<?= $lot['lng'] ?>" target="_blank" rel="noopener"><?= te('View map') ?></a>
+        <a class="btn btn-secondary" href="<?= e($mapUrl) ?>" target="_blank" rel="noopener"><?= te('View map') ?></a>
         <a class="btn" href="parking-details.php?lot_id=<?= e($lot['id']) ?>"><?= te('Select location') ?></a>
       </div>
     </article>

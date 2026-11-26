@@ -18,11 +18,29 @@ MyParkData::$records['demo_users'] ??= [
  ['id'=>3,'name'=>'Parking Staff','email'=>'staff@park.com','password'=>password_hash('staff123',PASSWORD_DEFAULT),'role'=>'staff','blocked'=>false],
  ['id'=>4,'name'=>'Demo Member','email'=>'user@park.com','password'=>password_hash('user123',PASSWORD_DEFAULT),'role'=>'user','blocked'=>false]
 ];
+$tawauMarket = [
+    'id' => 3,
+    'name' => 'Tawau Tanjung Market',
+    'city' => 'Tawau',
+    'address' => 'Jalan Dunlop, Bandar Tawau, 91000',
+    'lat' => 4.2434983,
+    'lng' => 117.8847606,
+];
 MyParkData::$records['demo_lots'] ??= [
  ['id'=>1,'name'=>'Kota Kinabalu Waterfront','city'=>'Kota Kinabalu','address'=>'Jalan Tun Fuad Stephens','rate'=>PARKING_HOURLY_CENTS / 100,'capacity'=>36,'oku_capacity'=>1,'lat'=>5.9804,'lng'=>116.0735],
  ['id'=>2,'name'=>'Sandakan Central Parking','city'=>'Sandakan','address'=>'Bandar Sandakan','rate'=>PARKING_HOURLY_CENTS / 100,'capacity'=>24,'lat'=>5.8402,'lng'=>118.1179],
- ['id'=>3,'name'=>'Tawau Town Centre','city'=>'Tawau','address'=>'Jalan Dunlop','rate'=>PARKING_HOURLY_CENTS / 100,'capacity'=>30,'lat'=>4.2498,'lng'=>117.8871]
+ $tawauMarket + ['rate' => PARKING_HOURLY_CENTS / 100, 'capacity' => 30],
 ];
+// Upgrade the old seed in place so existing sessions still reference the same location.
+foreach (MyParkData::$records['demo_lots'] as $key => $lot) {
+    if ($lot['id'] === 3 && $lot['name'] === 'Tawau Town Centre'
+        && $lot['city'] === 'Tawau' && $lot['address'] === 'Jalan Dunlop'
+        && ($lot['lat'] ?? null) === 4.2498 && ($lot['lng'] ?? null) === 117.8871
+        && !isset($lot['deleted_at'])) {
+        MyParkData::$records['demo_lots'][$key] = array_replace($lot, $tawauMarket);
+        break;
+    }
+}
 MyParkData::$records['demo_bookings'] ??= [];
 complete_expired_bookings();
 function e(mixed $value): string {
