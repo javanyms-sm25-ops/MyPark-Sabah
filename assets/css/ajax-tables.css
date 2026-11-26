@@ -1,0 +1,49 @@
+.ajax-table { min-width: 0; }
+.ajax-table [hidden] { display: none; }
+.ajax-table-tools, .ajax-table-footer, .ajax-table-pages, .ajax-table-error {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.ajax-table-tools, .ajax-table-footer, .ajax-table-error { padding: 12px 16px; }
+.ajax-table-tools label { margin: 0; }
+.ajax-table-tools :is(input, select) { min-height: 40px; margin: 0; max-width: 100%; }
+.ajax-table-tools .ajax-table-search { flex: 1 1 210px; max-width: 340px; }
+.ajax-table-tools .ajax-table-search input { width: 100%; }
+.ajax-table-tools .ajax-table-size { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: 13px; }
+.ajax-table-tools .ajax-table-size select { width: auto; }
+.ajax-table-results { min-width: 0; }
+.ajax-table [data-table-results][aria-busy="true"] { cursor: progress; }
+.ajax-table-footer { justify-content: space-between; font-size: 13px; color: var(--muted-text); }
+.ajax-table-pages { gap: 5px; }
+.ajax-table-pages :is(a, span) { padding: 5px 8px; border-radius: 6px; }
+.ajax-table-pages a { color: var(--navy); text-decoration: none; }
+.ajax-table-pages a:hover { background: var(--glass-control-hover); }
+.ajax-table-pages [aria-current="page"] { background: var(--navy); color: var(--button-text); }
+.ajax-table-pages span[aria-disabled] { opacity: .55; }
+.ajax-table .ajax-table-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  max-width: 100%;
+  padding: 3px 5px;
+  border: 0;
+  border-radius: 5px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: inherit;
+  text-decoration: none;
+  transform: none;
+}
+.ajax-table .ajax-table-sort:hover { background: var(--glass-control-hover); transform: none; }
+.ajax-table :is(.ajax-table-sort, .ajax-table-pages a):focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.ajax-table-sort svg { flex: 0 0 16px; color: var(--muted-text); }
+.ajax-table th[aria-sort] .ajax-table-sort { color: var(--navy); }
+.ajax-table th[aria-sort="ascending"] .ajax-sort-up,
+.ajax-table th[aria-sort="descending"] .ajax-sort-down { stroke: var(--navy); stroke-width: 2; }
+.ajax-table .ajax-table-empty { padding: 24px 16px; text-align: center; }
+.ajax-table :is(th, td).ajax-table-number { text-align: right; font-variant-numeric: tabular-nums; }
+.ajax-table-error { font-size: 14px; color: var(--red); }

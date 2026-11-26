@@ -1,3 +1,12 @@
+<?php
+$view = ajax_table_view('leave-review', $leaveRequests, [
+    'staff_name' => 'Staff', 'start_date' => 'Start date', 'end_date' => 'End date', 'reason' => 'Reason',
+    'status' => 'Status', 'actions' => 'Actions',
+], [
+    'filter' => ['label' => 'Status', 'field' => 'status', 'choices' => ['' => 'All statuses'] + STAFF_LEAVE_STATUSES],
+    'empty' => $dateQuery !== '' ? 'No matching leave requests.' : 'No leave requests yet.',
+]);
+?>
 <section class="ops-panel attendance-panel" id="attendance-management" aria-labelledby="attendance-heading">
   <div class="ops-panel-heading attendance-panel-heading">
     <h2 id="attendance-heading"><?= te('Leave requests') ?></h2>
@@ -18,9 +27,7 @@
   </form>
   <?php if ($rangeError !== ''): ?><p class="ops-notice" role="alert"><?= te($rangeError) ?></p><?php endif; ?>
   <?php if ($reviewError !== ''): ?><p class="ops-notice" role="alert"><?= te($reviewError) ?></p><?php endif; ?>
-  <?php if (!$leaveRequests): ?>
-    <p class="attendance-empty"><?= te($dateQuery !== '' ? 'No matching leave requests.' : 'No leave requests yet.') ?></p>
-  <?php else: ?>
+  <?php ajax_table_begin($view); ?>
     <div class="ops-table-scroll" role="region" aria-labelledby="attendance-heading" tabindex="0">
       <table class="ops-table ops-leave-table">
         <colgroup>
@@ -30,16 +37,9 @@
           <col class="attendance-col-status">
           <col class="attendance-col-actions">
         </colgroup>
-        <thead><tr>
-          <th scope="col"><?= te('Staff') ?></th>
-          <th scope="col"><?= te('Start date') ?></th>
-          <th scope="col"><?= te('End date') ?></th>
-          <th scope="col" class="ops-wide"><?= te('Reason') ?></th>
-          <th scope="col"><?= te('Status') ?></th>
-          <th scope="col" data-column="actions"><?= te('Actions') ?></th>
-        </tr></thead>
+        <?php ajax_table_head($view); ?>
         <tbody>
-          <?php foreach ($leaveRequests as $leave): ?>
+          <?php foreach ($view['rows'] as $leave): ?>
             <tr>
               <td><strong class="attendance-name"><?= e($leave['staff_name']) ?></strong>
                 <time class="ops-leave-submitted" datetime="<?= e($leave['submitted_at']) ?>"><?= e(date('d M Y', strtotime($leave['submitted_at']))) ?></time>
@@ -66,8 +66,9 @@
               </td>
             </tr>
           <?php endforeach; ?>
+          <?php ajax_table_empty($view); ?>
         </tbody>
       </table>
     </div>
-  <?php endif; ?>
+  <?php ajax_table_end($view); ?>
 </section>

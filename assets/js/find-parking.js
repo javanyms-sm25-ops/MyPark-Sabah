@@ -273,11 +273,13 @@
       if (!response.ok || response.redirected) throw new Error('Availability unavailable');
       const snapshot = await response.json();
       const time = new Date(snapshot.checkedAt);
-      if (typeof snapshot.checkedAt !== 'string' || Number.isNaN(time.getTime()) || !Array.isArray(snapshot.locations)) {
+      if (typeof snapshot.checkedAt !== 'string' || Number.isNaN(time.getTime())
+          || typeof snapshot.catalogVersion !== 'string' || !Array.isArray(snapshot.locations)) {
         throw new Error('Availability response is invalid');
       }
       const byId = new Map(snapshot.locations.map(location => [String(location.id), location.bays]));
-      catalogChanged = byId.size !== locations.length || locations.some(location => !byId.has(location.id));
+      catalogChanged = snapshot.catalogVersion !== finder.dataset.catalogVersion
+        || byId.size !== locations.length || locations.some(location => !byId.has(location.id));
       if (catalogChanged) {
         if (manualRefresh) window.location.reload();
         else setRefreshStatus('Parking locations changed. Refresh to see the latest list.', true);

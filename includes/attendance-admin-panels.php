@@ -94,40 +94,59 @@
       <?php if ($reportType === 'full' && !$report['period_closed']): ?>
         <p class="attendance-notice"><?= te('Full attendance is assessed after the selected period and its shifts end.') ?></p>
       <?php endif; ?>
-      <?php if ($reportType === 'location' && $report['locations']): ?>
+      <?php if ($reportType === 'location'): ?>
+        <?php
+        $view = ajax_table_view('attendance-locations', $report['locations'], ATTENDANCE_LOCATION_FIELDS,
+            ['empty' => 'No attendance records match these filters.', 'numeric' => ['shifts', 'present', 'missing', 'pending']]);
+        ajax_table_begin($view);
+        ?>
         <div class="attendance-table" tabindex="0" role="region" aria-label="<?= te('Location summary') ?>">
           <table>
-            <thead><tr><?php foreach (ATTENDANCE_LOCATION_FIELDS as $label): ?>
-              <th scope="col"><?= te($label) ?></th>
-            <?php endforeach; ?></tr></thead>
+            <?php ajax_table_head($view); ?>
             <tbody>
-              <?php foreach ($report['locations'] as $locationRow): ?>
-                <tr><th scope="row"><?= e($locationRow['name']) ?></th><td><?= e($locationRow['shifts']) ?></td>
-                  <td><?= e($locationRow['present']) ?></td><td><?= e($locationRow['missing']) ?></td>
-                  <td><?= e($locationRow['pending']) ?></td></tr>
+              <?php foreach ($view['rows'] as $locationRow): ?>
+                <tr><th scope="row"><?= e($locationRow['name']) ?></th><td class="ajax-table-number"><?= e($locationRow['shifts']) ?></td>
+                  <td class="ajax-table-number"><?= e($locationRow['present']) ?></td><td class="ajax-table-number"><?= e($locationRow['missing']) ?></td>
+                  <td class="ajax-table-number"><?= e($locationRow['pending']) ?></td></tr>
               <?php endforeach; ?>
+              <?php ajax_table_empty($view); ?>
             </tbody>
           </table>
         </div>
+        <?php ajax_table_end($view); ?>
       <?php elseif ($filters['employee'] !== '' && isset($report['people'][(int)$filters['employee']])): ?>
         <h3><?= e($staff[$filters['employee']]['name']) ?> · <?= e(attendance_staff_id((int)$filters['employee'])) ?></h3>
         <?php attendance_performance_tiles($report['people'][(int)$filters['employee']]); ?>
-      <?php elseif ($report['people']): ?>
+      <?php elseif ($filters['employee'] === ''): ?>
         <h3><?= te('Employee performance') ?></h3>
+        <?php
+        $people = [];
+        foreach ($report['people'] as $id => $performance) {
+            $people[] = $performance + ['name' => $staff[$id]['name'] ?? attendance_staff_id($id), 'id' => $id];
+        }
+        $metrics = array_diff(array_keys(ATTENDANCE_PERFORMANCE_FIELDS), ['full']);
+        $view = ajax_table_view('attendance-performance', $people, ['name' => 'Employee'] + ATTENDANCE_PERFORMANCE_FIELDS, [
+            'values' => static fn(array $person) => array_replace($person, ['full' => attendance_report_display('full', $person['full'])]),
+            'empty' => 'No attendance records match these filters.', 'numeric' => $metrics,
+        ]);
+        ajax_table_begin($view);
+        ?>
         <div class="attendance-table" tabindex="0" role="region" aria-label="<?= te('Employee performance') ?>">
           <table>
-            <thead><tr><th scope="col"><?= te('Employee') ?></th>
-              <?php foreach (ATTENDANCE_PERFORMANCE_FIELDS as $label): ?><th scope="col"><?= te($label) ?></th><?php endforeach; ?>
-            </tr></thead>
+            <?php ajax_table_head($view); ?>
             <tbody>
-              <?php foreach ($report['people'] as $id => $performance): ?>
-                <tr><th scope="row"><?= e($staff[$id]['name'] ?? attendance_staff_id($id)) ?><br><small><?= e(attendance_staff_id($id)) ?></small></th>
-                  <?php foreach (ATTENDANCE_PERFORMANCE_FIELDS as $key => $label): ?><td><?= e(attendance_report_display($key, $performance[$key])) ?></td><?php endforeach; ?>
+              <?php foreach ($view['rows'] as $performance): ?>
+                <tr><th scope="row"><?= e($performance['name']) ?><br><small><?= e(attendance_staff_id($performance['id'])) ?></small></th>
+                  <?php foreach (ATTENDANCE_PERFORMANCE_FIELDS as $key => $label): ?>
+                    <td<?= in_array($key, $metrics, true) ? ' class="ajax-table-number"' : '' ?>><?= e(attendance_report_display($key, $performance[$key])) ?></td>
+                  <?php endforeach; ?>
                 </tr>
               <?php endforeach; ?>
+              <?php ajax_table_empty($view); ?>
             </tbody>
           </table>
         </div>
+        <?php ajax_table_end($view); ?>
       <?php endif; ?>
       <?php attendance_performance_help(); ?>
     </section>
@@ -139,27 +158,33 @@
   <?php
     $reportQuery = $filters + ['tab' => $tab];
     if ($tab === 'reports') $reportQuery += ['report_type' => $reportType, 'format' => $format];
-    $pagination = attendance_report_page($report['rows'], $_GET['row_page'] ?? null);
     $showExceptions = $tab === 'exceptions' || ($tab === 'reports' && $reportType === 'exceptions');
+    $shiftColumns = ['employee' => 'Employee', 'lot_name' => 'Assigned Location', 'starts_at' => 'Scheduled shift',
+        'in' => 'Check In', 'out' => 'Check Out', 'state' => 'Attendance status', 'gps' => 'GPS verification'];
+    if ($showExceptions) $shiftColumns += ['exception' => 'Exception', 'review' => 'Review status'];
+    $view = ajax_table_view('attendance-shifts', $report['rows'], $shiftColumns + ['actions' => 'Details'], [
+        'values' => static fn(array $entry) => $entry + [
+            'employee' => ($employees[$entry['staff_id']]['name'] ?? '') . ' ' . attendance_staff_id($entry['staff_id']),
+            'gps' => implode(' / ', array_map(static fn($zone) => isset(ATTENDANCE_LABELS[$zone]) ? t(ATTENDANCE_LABELS[$zone]) : '',
+                [$entry['in_zone'], $entry['out_zone']])),
+            'exception' => implode(', ', array_map(static fn($flag) => t(ATTENDANCE_EXCEPTION_LABELS[$flag]), $entry['exceptions'])),
+            'review' => attendance_review_label($entry),
+        ],
+        'filter' => ['label' => 'Attendance status', 'field' => 'state', 'choices' => ['' => 'All statuses']
+            + array_intersect_key(ATTENDANCE_LABELS, array_flip(ATTENDANCE_REPORT_STATUSES))],
+        'empty' => $showExceptions ? 'No attendance exceptions match these filters.' : 'No attendance records match these filters.',
+    ]);
   ?>
   <section class="ops-panel attendance-panel" id="report-rows" aria-labelledby="report-rows-heading">
     <div class="attendance-heading"><h2 id="report-rows-heading"><?= te($showExceptions ? 'Exceptions to review' : 'Shift records') ?></h2>
       <span class="ops-count"><?= te(count($report['rows']) === 1 ? '{count} shift' : '{count} shifts',
         ['count' => count($report['rows'])]) ?></span>
     </div>
-    <?php if (!$pagination['rows']): ?>
-      <p class="attendance-empty"><?= te($showExceptions ? 'No attendance exceptions match these filters.' : 'No attendance records match these filters.') ?></p>
-    <?php else: ?>
+    <?php ajax_table_begin($view); ?>
       <div class="attendance-table" tabindex="0" role="region" aria-label="<?= te('Shift records') ?>">
         <table>
-          <thead><tr>
-            <?php foreach (['Employee', 'Assigned Location', 'Scheduled shift', 'Check In', 'Check Out', 'Attendance status', 'GPS verification'] as $heading): ?>
-              <th scope="col"><?= te($heading) ?></th>
-            <?php endforeach; ?>
-            <?php if ($showExceptions): ?><th scope="col"><?= te('Exception') ?></th><th scope="col"><?= te('Review status') ?></th><?php endif; ?>
-            <th scope="col"><?= te('Details') ?></th>
-          </tr></thead>
-          <tbody><?php foreach ($pagination['rows'] as $entry): ?>
+          <?php ajax_table_head($view); ?>
+          <tbody><?php foreach ($view['rows'] as $entry): ?>
             <tr>
               <th scope="row"><?= e($employees[$entry['staff_id']]['name'] ?? '—') ?><br><small><?= e(attendance_staff_id($entry['staff_id'])) ?></small></th>
               <td><?= e($entry['lot_name']) ?></td><td><?= e($entry['shift_date']) ?><br><small><?= e(date('H:i', $entry['starts_at'])) ?> – <?= e(date('H:i', $entry['ends_at'])) ?><?= date('Y-m-d', $entry['ends_at']) !== $entry['shift_date'] ? ' · ' . te('Next day') : '' ?></small></td>
@@ -176,12 +201,11 @@
                 <td><ul class="attendance-exception-list"><?php foreach ($entry['exceptions'] as $flag): ?><li><?= te(ATTENDANCE_EXCEPTION_LABELS[$flag]) ?></li><?php endforeach; ?></ul></td>
                 <td><?= e(attendance_review_label($entry)) ?></td>
               <?php endif; ?>
-              <td><a class="btn btn-secondary" href="<?= e(attendance_report_links($reportQuery, $page, ['shift' => $entry['id'], 'row_page' => $pagination['current']])) ?>#record"><?= te('View details') ?></a></td>
+              <td><a class="btn btn-secondary" href="<?= e(ajax_table_url($view, $reportQuery + ['shift' => $entry['id'], $view['prefix'] . 'page' => $view['page']])) ?>#record"><?= te('View details') ?></a></td>
             </tr>
-          <?php endforeach; ?></tbody>
+          <?php endforeach; ajax_table_empty($view); ?></tbody>
         </table>
       </div>
-      <?php attendance_report_pager($pagination, $reportQuery, $page); ?>
-    <?php endif; ?>
+    <?php ajax_table_end($view); ?>
   </section>
 <?php endif; ?>

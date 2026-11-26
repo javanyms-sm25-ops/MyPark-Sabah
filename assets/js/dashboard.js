@@ -1,4 +1,4 @@
-/* Dashboard snapshots and background availability share the database workspace. */
+/* Dashboard tables load filtered pages independently of the availability refresh. */
 (function () {
   'use strict';
   const translate = window.MyParkLocale?.text ?? (message => message);
@@ -31,7 +31,8 @@
   const bootstrap = document.getElementById('operations-data');
   if (!bootstrap) return;
   let data = JSON.parse(bootstrap.textContent);
-  const pipeline = window.MyParkTableData, tables = [], pending = new Set();
+  const { create: tableRequest, pageLabel } = window.MyParkTableRequest;
+  const tables = [], pending = new Set();
   let refreshController, refreshSequence = 0;
   let parkingMap, availabilityPending = false;
   const money = v => 'RM ' + Number(v).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -88,17 +89,48 @@
       this.density = prefs.density === 'compact' ? 'compact' : 'comfortable';
       const dated = kind === 'reservations' && data.reservations.some(r => r.created_ts != null);
       this.state = { q: '', status: '', role: '', location: '', from: '', to: '', sort: dated ? 'created_ts' : 'id', dir: kind === 'accounts' ? 'asc' : 'desc', page: 1, size: [10, 25, 50].includes(prefs.size) ? prefs.size : 10 };
-      this.build(); this.updateOptions(); this.render();
+      this.request = tableRequest();
+      this.build(); this.updateOptions(); this.load();
     }
     save() {
       try { localStorage.setItem(this.storageKey, JSON.stringify({ hidden: [...this.hidden], density: this.density, size: this.state.size })); } catch (_) { /* Never store records or tokens. */ }
     }
-    changed() { clearTimeout(this.debounce); this.state.page = 1; this.render(); }
+    changed() { this.state.page = 1; this.load(); }
+    load(focus) {
+      clearTimeout(this.debounce);
+      this.notice.hidden = true;
+      const { page, ...state } = this.state;
+      const params = new URLSearchParams({ table: this.kind, ...state, row_page: page });
+      this.renderTags();
+      if (this.kind === 'reservations') parkingMap?.setSelection(state.location);
+      return this.request.run(async signal => {
+        const response = await fetch('api/dashboard.php?' + params, { credentials: 'same-origin', cache: 'no-store', signal });
+        const result = await readResponse(response);
+        if (!Array.isArray(result.table?.rows)) throw new Error(translate('The table could not be updated.'));
+        return result.table;
+      }, pageData => {
+        this.paged = pageData;
+        this.state.page = pageData.page;
+        this.appliedSort = state.sort;
+        this.appliedDirection = state.dir;
+        const restoreFocus = this.table.contains(document.activeElement) || this.pager.contains(document.activeElement);
+        this.render();
+        if (restoreFocus && focus) {
+          const target = focus === 'page' ? this.pager.querySelector('[aria-current="page"]')
+            : this.thead.querySelector('[data-column="' + focus + '"] button');
+          (target ?? this.search).focus();
+        }
+      }, error => this.error(error.message, () => this.load(focus)), busy => this.loadingState(busy));
+    }
     build() {
       const toolbar = el('div', 'ops-toolbar'), searchWrap = el('div', 'ops-search');
       this.host.replaceChildren(toolbar);
       this.search = el('input'); this.search.type = 'search'; this.search.placeholder = this.kind === 'accounts' ? translate('Search name or email') : translate('Search member, plate or location'); this.search.setAttribute('aria-label', this.search.placeholder);
-      this.search.addEventListener('input', () => { this.state.q = this.search.value; clearTimeout(this.debounce); this.debounce = setTimeout(() => this.changed(), 300); });
+      this.search.addEventListener('input', () => {
+        this.state.q = this.search.value;
+        this.request.cancel(); this.loadingState(false);
+        clearTimeout(this.debounce); this.debounce = setTimeout(() => this.changed(), 300);
+      });
       this.clearSearch = btn(translate('Clear'), () => { this.state.q = ''; this.search.value = ''; this.changed(); this.search.focus(); }, 'ops-search-clear');
       this.clearSearch.setAttribute('aria-label', translate('Clear search')); searchWrap.append(icon(true), this.search, this.clearSearch); toolbar.append(searchWrap);
       this.filters = {};
@@ -196,7 +228,8 @@
       this.tags.hidden = !this.tags.childElementCount; this.clearSearch.hidden = !this.search.value;
     }
     render() {
-      if (this.kind === 'reservations') parkingMap?.setSelection(this.state.location);
+      const page = this.paged;
+      if (!page) return;
       this.panel.dataset.density = this.density;
       const count = data[this.kind].length;
       this.panel.querySelector('[data-total]').textContent = translate('{count} records', { count });
@@ -206,16 +239,14 @@
         const th = el('th', (c.number ? 'ops-number ' : '') + (c.wide ? 'ops-wide' : '')); th.scope = 'col'; th.dataset.column = c.key;
         if (c.key === 'actions') th.textContent = c.label;
         else {
-          th.setAttribute('aria-sort', this.state.sort === c.key ? (this.state.dir === 'asc' ? 'ascending' : 'descending') : 'none');
+          if (this.appliedSort === c.key) th.setAttribute('aria-sort', this.appliedDirection === 'asc' ? 'ascending' : 'descending');
           const nextDirection = this.state.sort === c.key && this.state.dir === 'asc' ? translate('descending') : translate('ascending');
           const sort = btn('', () => {
-            this.state.dir = this.state.sort === c.key && this.state.dir === 'asc' ? 'desc' : 'asc'; this.state.sort = c.key; this.state.page = 1; this.render();
-            this.thead.querySelector('[data-column="' + c.key + '"] button').focus();
+            this.state.dir = this.state.sort === c.key && this.state.dir === 'asc' ? 'desc' : 'asc';
+            this.state.sort = c.key; this.state.page = 1; this.load(c.key);
           }, 'ops-sort'); sort.setAttribute('aria-label', translate('Sort by {label}, {direction}', { label: c.label, direction: nextDirection })); sort.append(el('span', 'ops-sort-label', c.label), icon()); th.append(sort);
         } header.append(th);
       }); this.thead.replaceChildren(header);
-      this.filtered = pipeline.filterSort(data[this.kind], this.kind, this.state);
-      const page = pipeline.paginate(this.filtered, this.state.page, this.state.size); this.state.page = page.page;
       const body = document.createDocumentFragment();
       page.rows.forEach(record => {
         const tr = el('tr'); visible.forEach(c => {
@@ -233,11 +264,11 @@
           : (this.kind === 'reservations' ? translate('No reservations yet') : translate('No accounts yet'));
         td.append(el('strong', '', translate(emptyText)));
         if (data[this.kind].length) td.append(btn(translate('Clear filters'), () => { this.clear(); this.search.focus(); })); tr.append(td); body.append(tr);
-      } this.tbody.replaceChildren(body); this.counter.textContent = page.label; this.pager.replaceChildren();
+      } this.tbody.replaceChildren(body); this.counter.textContent = pageLabel(page); this.pager.replaceChildren();
       if (page.pages > 1) {
-        const change = n => { this.state.page = n; this.render(); this.pager.querySelector('[aria-current="page"]')?.focus(); };
+        const change = n => { this.state.page = n; this.load('page'); };
         const prev = btn(translate('Previous'), () => change(page.page - 1)); prev.disabled = page.page === 1; this.pager.append(prev);
-        pipeline.pageNumbers(page.page, page.pages).forEach(n => {
+        window.MyParkTableData.pageNumbers(page.page, page.pages).forEach(n => {
           if (n === '…') { this.pager.append(el('span', 'ops-ellipsis', '…')); return; }
           const button = btn(String(n), () => change(n)); button.setAttribute('aria-label', 'Page ' + n); if (n === page.page) button.setAttribute('aria-current', 'page'); this.pager.append(button);
         }); const next = btn(translate('Next'), () => change(page.page + 1)); next.disabled = page.page === page.pages; this.pager.append(next);
@@ -271,10 +302,17 @@
       fields.forEach(c => { const value = c.key === 'fee' ? money(record.fee) : c.key === 'created_ts' ? record.created_at : record[c.key]; dl.append(el('dt', '', c.label), el('dd', '', value == null || value === '' ? '—' : value)); });
       openDialog(this.kind === 'accounts' ? translate('Account details') : 'Reservation #' + record.id, dl, null, origin);
     }
-    loadingState(value) { this.loading.hidden = !value; this.loading.textContent = value ? translate('Refreshing records…') : ''; this.table.setAttribute('aria-busy', String(value)); this.refresh.disabled = value; }
+    loadingState(value) { this.pageBusy = value; this.updateLoading(); }
+    updateLoading() {
+      const busy = Boolean(this.pageBusy || this.snapshotBusy);
+      this.loading.hidden = !busy;
+      this.loading.textContent = busy ? translate('Refreshing records…') : '';
+      this.table.setAttribute('aria-busy', String(busy));
+      this.refresh.disabled = busy;
+    }
     error(message, retry) { this.notice.replaceChildren(el('span', '', message)); if (retry) this.notice.append(btn('Retry', retry)); this.notice.hidden = false; }
     async exportRows() {
-      this.changed(); this.export.disabled = true; this.export.textContent = translate('Exporting…');
+      this.export.disabled = true; this.export.textContent = translate('Exporting…');
       const params = new URLSearchParams({ table: this.kind }); ['q', 'role', 'status', 'location', 'from', 'to', 'sort', 'dir'].forEach(k => params.set(k, this.state[k]));
       try {
         const response = await fetch('api/export.php?' + params, { credentials: 'same-origin', cache: 'no-store' });
@@ -289,7 +327,7 @@
   function applySnapshot(next) {
     if (!next || !Array.isArray(next.accounts) || !Array.isArray(next.reservations) || !next.summary || !Number.isInteger(next.revision)) throw new Error(translate('The server returned incomplete table data. Existing records have been kept.'));
     if (next.revision < data.revision) return;
-    data = next; tables.forEach(t => { t.updateOptions(); t.render(); });
+    data = next; tables.forEach(t => { t.updateOptions(); t.load(); });
     parkingMap?.update(data.parking_availability);
     document.querySelectorAll('[data-ops-stat]').forEach(n => { const key = n.dataset.opsStat; n.textContent = key === 'revenue' ? money(data.summary[key]) : data.summary[key]; });
   }
@@ -349,7 +387,7 @@
   }
 
   function setRefreshing(table = null) {
-    tables.forEach(item => item.loadingState(item === table));
+    tables.forEach(item => { item.snapshotBusy = item === table; item.updateLoading(); });
     parkingMap?.setRefreshing(table !== null);
   }
   async function mutate(table, record, action, status) {

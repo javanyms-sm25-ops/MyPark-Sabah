@@ -11,6 +11,7 @@ function mypark_availability_snapshot(): array {
     if (!isset($session['user'])) throw new RuntimeException('Please sign in again.', 401);
 
     $snapshot = MyParkData::readParkingState($session);
+    $snapshot['lots'] = active_parking_locations($snapshot['lots']);
     $checkedAt = new DateTimeImmutable('now', new DateTimeZone('Asia/Kuala_Lumpur'));
     $now = $checkedAt->getTimestamp();
     $snapshot['bookings'] = array_filter($snapshot['bookings'], static function (array $booking) use ($now): bool {

@@ -61,12 +61,17 @@ function staff_fine_fields(array $input): array {
         'occurred_ts' => $occurred->getTimestamp(), 'notes' => $notes];
 }
 
-function staff_maintenance_fields(array $input): array {
+function staff_maintenance_fields(array $input, ?int $currentLocationId = null): array {
     $errors = [];
     $title = staff_text($input, 'title', 'Issue title', 120, $errors);
     $description = staff_text($input, 'description', 'Description', 2000, $errors);
     $lot = null;
-    foreach (MyParkData::$records['demo_lots'] as $candidate) if ($candidate['id'] === (int)($input['lot_id'] ?? 0)) $lot = $candidate;
+    $requestedId = (int)($input['lot_id'] ?? 0);
+    foreach (MyParkData::$records['demo_lots'] as $candidate) {
+        if ($candidate['id'] !== $requestedId || (isset($candidate['deleted_at']) && $requestedId !== $currentLocationId)) continue;
+        $lot = $candidate;
+        break;
+    }
     if (!$lot) $errors['lot_id'] = 'Select an existing parking location.';
     $status = $input['status'] ?? 'open';
     if (!array_key_exists($status, STAFF_MAINTENANCE_STATUSES)) $errors['status'] = 'Select a valid maintenance status.';
@@ -143,7 +148,7 @@ function staff_change(array $actor, array $input): string {
         // Never delete financial records, erase payment evidence or imply a refund.
         $record = array_replace($record, ['status' => 'void', 'voided_at' => staff_now(), 'void_reason' => $reason]);
     } elseif ($action === 'maintenance_update') {
-        $record = array_replace($record, staff_maintenance_fields($input));
+        $record = array_replace($record, staff_maintenance_fields($input, (int)$record['lot_id']));
     } elseif ($action === 'maintenance_delete') {
         $errors = []; $reason = staff_text($input, 'reason', 'Reason for removal', 500, $errors);
         if ($errors) throw new StaffValidationException($errors);
@@ -169,12 +174,74 @@ function staff_snapshot(array $actor): array {
     $unpaid = array_filter($fines, static fn($r) => $r['status'] === 'unpaid');
     return ['fines' => $withHistory($fines, 'fine'), 'maintenance' => $withHistory($maintenance, 'maintenance'),
         'bookings' => array_values(array_map(static fn($b) => ['id' => $b['id'], 'plate' => $b['plate'], 'plate_key' => staff_plate_key($b['plate']), 'location' => $b['lot'], 'hours' => $b['hours'], 'status' => $b['status'], 'created_at' => $b['created_at']], MyParkData::$records['demo_bookings'])),
-        'locations' => array_values(array_map(static fn($l) => ['id' => $l['id'], 'name' => $l['name']], MyParkData::$records['demo_lots'])),
+        'locations' => array_values(array_map(static fn($l) => [
+            'id' => $l['id'], 'name' => $l['name'], 'archived' => isset($l['deleted_at']),
+        ], MyParkData::$records['demo_lots'])),
         'fine_statuses' => STAFF_FINE_STATUSES, 'maintenance_statuses' => STAFF_MAINTENANCE_STATUSES,
         'csrf' => csrf(), 'revision' => MyParkData::$records['staff_revision'],
         'summary' => ['total_fines' => count($fines), 'unpaid_fines' => count($unpaid),
             'outstanding_cents' => array_sum(array_column($unpaid, 'amount_cents')),
             'open_maintenance' => count(array_filter($maintenance, static fn($r) => $r['status'] !== 'completed'))]];
+}
+
+function staff_table_page(array $snapshot, string $page, array $query): array {
+    $table = $query['table'] ?? '';
+    $allowed = ['dashboard' => ['recent-fines'], 'fines' => ['fines'], 'maintenance' => ['maintenance'],
+        'vehicles' => ['vehicle-fines', 'vehicle-bookings']];
+    if (!in_array($table, $allowed[$page] ?? [], true)) throw new RuntimeException('Table unavailable.', 404);
+    $kind = match ($table) {
+        'maintenance' => 'maintenance', 'vehicle-bookings' => 'bookings', default => 'fines',
+    };
+    $sorts = match ($kind) {
+        'maintenance' => ['code', 'title', 'location', 'status', 'updated_at'],
+        'bookings' => ['id', 'plate', 'location', 'hours', 'created_at', 'status'],
+        default => ['code', 'plate', 'violation', 'occurred_ts', 'amount_cents', 'status', 'created_at'],
+    };
+    $defaultSort = match ($table) {
+        'recent-fines', 'vehicle-bookings' => 'created_at', 'maintenance' => 'updated_at', default => 'occurred_ts',
+    };
+    $sort = in_array($query['sort'] ?? '', $sorts, true) ? $query['sort'] : $defaultSort;
+    $direction = ($query['dir'] ?? '') === 'asc' ? 'asc' : 'desc';
+    $statusLabels = match ($kind) {
+        'maintenance' => STAFF_MAINTENANCE_STATUSES,
+        'bookings' => ['active' => 'Active', 'completed' => 'Completed', 'cancelled' => 'Cancelled'],
+        default => STAFF_FINE_STATUSES,
+    };
+    $plate = '';
+    if ($page === 'vehicles') {
+        $plate = staff_plate_key($query['plate'] ?? '');
+        if (!preg_match('/\A[A-Z0-9]{1,15}\z/', $plate)) throw new RuntimeException('Enter a valid vehicle plate.', 422);
+    }
+    $search = ajax_table_fold(trim($query['q'] ?? ''));
+    $searchKey = staff_plate_key($search);
+    $status = $query['status'] ?? '';
+    $total = 0;
+    $matches = [];
+    foreach ($snapshot[$kind] as $record) {
+        if ($plate !== '' && $record['plate_key'] !== $plate) continue;
+        $total++;
+        if ($status !== '' && $record['status'] !== $status) continue;
+        if ($search !== '') {
+            $searchText = match ($kind) {
+                'maintenance' => $record['code'] . ' ' . $record['title'] . ' ' . $record['location'],
+                'bookings' => '#' . $record['id'] . ' ' . $record['plate'] . ' ' . $record['location'],
+                default => '',
+            };
+            $matchesSearch = $kind === 'fines'
+                ? $searchKey !== '' && (str_contains(staff_plate_key($record['code']), $searchKey) || str_contains($record['plate_key'], $searchKey))
+                : str_contains(ajax_table_fold($searchText), $search);
+            if (!$matchesSearch) continue;
+        }
+        $value = match ($sort) {
+            'status' => $statusLabels[$record['status']] ?? $record['status'],
+            'updated_at', 'created_at' => strtotime($record[$sort] ?? '') ?: null,
+            default => $record[$sort] ?? null,
+        };
+        $matches[] = ['record' => $record, 'value' => $value];
+    }
+    usort($matches, static fn(array $a, array $b): int => ajax_table_compare($a['value'], $b['value'], $direction)
+        ?: ($table === 'recent-fines' && $sort === 'created_at' && $direction === 'desc' ? -1 : 1) * ($a['record']['id'] <=> $b['record']['id']));
+    return ajax_table_page(array_column($matches, 'record'), $query['row_page'] ?? null, $query['size'] ?? null) + ['unfiltered' => $total];
 }
 
 function staff_json(array $data, int $status = 200): never {

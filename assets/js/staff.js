@@ -1,4 +1,4 @@
-/* Staff-only interface. Records and mutations remain in the PHP session store. */
+/* Staff tables request filtered and sorted pages from PHP. */
 (function () {
   'use strict';
   const translate = window.MyParkLocale?.text ?? (message => message);
@@ -46,16 +46,17 @@
   const bootstrap = document.getElementById('staff-data');
   if (!bootstrap) return; // Existing My Profile uses the shared sidebar only.
   let data = JSON.parse(bootstrap.textContent);
+  const { create: tableRequest, pageLabel } = window.MyParkTableRequest;
   const page = document.getElementById('staff-app').dataset.page;
   const money = cents => 'RM ' + (Number(cents) / 100).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const dateFormat = new Intl.DateTimeFormat(document.documentElement.lang, { timeZone: 'Asia/Kuala_Lumpur', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
   const dateText = value => { const date = new Date(value); return Number.isNaN(date.getTime()) ? '—' : dateFormat.format(date); };
   const plateKey = value => value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
   const refreshButton = document.getElementById('staff-refresh');
   const pageError = document.getElementById('staff-page-error');
   const requestStatus = document.getElementById('staff-request-status');
-  let table, lookupPlate = '', refreshController, sequence = 0;
+  const tables = [];
+  let refreshController, sequence = 0;
   const dialog = document.getElementById('staff-dialog');
   const dialogBody = document.getElementById('staff-dialog-body');
   const closeDialog = document.getElementById('staff-dialog-close');
@@ -72,7 +73,7 @@
     dialogBody.replaceChildren(); dialog.showModal(); closeDialog.focus();
   }
   function badge(status, kind = 'fine') {
-    const label = (kind === 'fine' ? data.fine_statuses : data.maintenance_statuses)[status] || status;
+    const label = statuses(kind)[status] || status;
     return el('span', 'staff-badge staff-badge--' + status, translate(label));
   }
   function showPageError(text) {
@@ -95,9 +96,8 @@
     if (!next || !Array.isArray(next.fines) || !Array.isArray(next.maintenance) || !next.summary || !Number.isInteger(next.revision)) throw new Error(translate('Incomplete response. Existing records have been kept.'));
     if (next.revision < data.revision) return;
     data = next;
-    if (table) table.render();
+    tables.forEach(table => table.load());
     if (page === 'dashboard') renderDashboard();
-    if (page === 'vehicles' && lookupPlate) renderLookup();
   }
   async function refresh() {
     refreshController?.abort(); refreshController = new AbortController();
@@ -117,11 +117,27 @@
     ['amount_cents', translate('Amount (RM)'), true], ['status', translate('Status')], ['actions', translate('Actions')]
   ];
   const maintenanceColumns = [['code', translate('Record ID')], ['title', translate('Issue')], ['location', translate('Location')], ['status', translate('Status')], ['updated_at', translate('Updated')], ['actions', translate('Actions')]];
+  const parkingColumns = [['id', translate('Booking ID')], ['plate', translate('Vehicle Plate')], ['location', translate('Location')],
+    ['hours', translate('Hours'), true], ['created_at', translate('Created')], ['status', translate('Status')]];
+  const tabs = {
+    fines: { kind: 'fine', label: 'Fine records', columns: fineColumns, sort: 'occurred_ts', empty: 'No fine records yet.' },
+    'recent-fines': { kind: 'fine', label: 'Recent fine records', columns: fineColumns, sort: 'created_at', empty: 'No fine records yet.' },
+    maintenance: { kind: 'maintenance', label: 'Maintenance records', columns: maintenanceColumns, sort: 'updated_at', empty: 'No maintenance records yet.' },
+    'vehicle-fines': { kind: 'fine', label: 'Related fines', columns: fineColumns, sort: 'occurred_ts', empty: 'No fine records found for this vehicle.' },
+    'vehicle-bookings': { kind: 'booking', label: 'Parking records', columns: parkingColumns, sort: 'created_at', empty: 'No parking records found for this vehicle.' }
+  };
+  function statuses(kind) {
+    if (kind === 'fine') return data.fine_statuses;
+    if (kind === 'maintenance') return data.maintenance_statuses;
+    return { active: 'Active', completed: 'Completed', cancelled: 'Cancelled' };
+  }
   function displayValue(record, key, kind) {
     if (key === 'amount_cents') return money(record.amount_cents);
     if (key === 'occurred_ts') return dateText(record.occurred_ts * 1000);
+    if (kind === 'booking' && key === 'id') return '#' + record.id;
+    if (kind === 'booking' && key === 'created_at') return record.created_at || '—';
     if (key === 'updated_at' || key === 'created_at') return dateText(record[key]);
-    if (key === 'status') return (kind === 'fine' ? data.fine_statuses : data.maintenance_statuses)[record.status];
+    if (key === 'status') return translate(statuses(kind)[record.status] || record.status);
     return record[key] ?? '—';
   }
   function rowActions(record, kind) {
@@ -140,8 +156,8 @@
     }
     return group;
   }
-  function createTable(records, columns, kind, emptyText) {
-    const scroll = el('div', 'staff-table-scroll'); scroll.tabIndex = 0; scroll.setAttribute('role', 'region'); scroll.setAttribute('aria-label', kind === 'fine' ? translate('Fine records') : translate('Maintenance records'));
+  function createTable(records, { columns, kind, label }, emptyText) {
+    const scroll = el('div', 'staff-table-scroll'); scroll.tabIndex = 0; scroll.setAttribute('role', 'region'); scroll.setAttribute('aria-label', translate(label));
     const table = el('table', 'staff-table'); const head = el('thead'), header = el('tr'), tbody = el('tbody');
     columns.forEach(([key, label, number]) => { const th = el('th', number ? 'staff-number' : '', label); th.scope = 'col'; th.dataset.column = key; header.append(th); }); head.append(header);
     records.forEach(record => {
@@ -159,50 +175,85 @@
   }
 
   class RecordTable {
-    constructor(host, kind) {
-      this.host = host; this.kind = kind; this.key = kind === 'fine' ? 'fines' : 'maintenance'; this.columns = kind === 'fine' ? fineColumns : maintenanceColumns;
-      this.state = { query: '', status: '', sort: kind === 'fine' ? 'occurred_ts' : 'updated_at', direction: -1, page: 1, size: 10 };
+    constructor(host, key, plate = '', onUpdate) {
+      this.key = key; this.config = tabs[key]; this.plate = plate; this.onUpdate = onUpdate;
+      const { kind, sort, label: title } = this.config;
+      this.state = { q: '', status: '', sort, dir: 'desc', page: 1, size: 10 };
+      this.request = tableRequest();
       const tools = el('div', 'staff-table-tools');
-      this.search = el('input'); this.search.type = 'search'; this.search.placeholder = kind === 'fine' ? translate('Search Fine ID or Vehicle Plate') : translate('Search ID, issue or location'); this.search.setAttribute('aria-label', this.search.placeholder);
-      this.search.addEventListener('input', () => { this.state.query = this.search.value; clearTimeout(this.timer); this.timer = setTimeout(() => this.resetPage(), 300); });
+      const searchLabel = { fine: 'Search Fine ID or Vehicle Plate', maintenance: 'Search ID, issue or location',
+        booking: 'Search parking records' }[kind];
+      this.search = el('input'); this.search.type = 'search'; this.search.placeholder = translate(searchLabel);
+      this.search.setAttribute('aria-label', this.search.placeholder);
+      this.search.addEventListener('input', () => {
+        this.state.q = this.search.value;
+        this.request.cancel(); this.loadingState(false);
+        clearTimeout(this.timer); this.timer = setTimeout(() => this.resetPage(), 300);
+      });
       this.status = el('select'); this.status.setAttribute('aria-label', translate('Filter by status')); this.status.add(new Option(translate('All statuses'), ''));
-      Object.entries(kind === 'fine' ? data.fine_statuses : data.maintenance_statuses).forEach(([value, label]) => this.status.add(new Option(translate(label), value)));
+      Object.entries(statuses(kind)).forEach(([value, label]) => this.status.add(new Option(translate(label), value)));
       this.status.addEventListener('change', () => { this.state.status = this.status.value; this.resetPage(); });
-      const clear = button(translate('Clear filters'), () => { this.state.query = ''; this.state.status = ''; this.search.value = ''; this.status.value = ''; this.resetPage(); this.search.focus(); });
-      tools.append(this.search, this.status, clear); this.output = el('div');
+      const clear = button(translate('Clear filters'), () => {
+        this.state.q = this.state.status = this.search.value = this.status.value = '';
+        this.resetPage(); this.search.focus();
+      });
+      tools.append(this.search, this.status, clear);
+      this.output = el('div');
+      this.loading = el('p', 'staff-request-status'); this.loading.setAttribute('role', 'status'); this.loading.hidden = true;
+      this.error = el('div', 'staff-error-banner'); this.error.hidden = true; this.error.setAttribute('role', 'alert');
       const footer = el('div', 'staff-table-footer'); this.count = el('span', 'staff-muted'); this.count.setAttribute('role', 'status');
       const label = el('label', 'staff-page-size', translate('Rows per page')), select = el('select');
       [10, 25, 50].forEach(n => select.add(new Option(String(n), String(n)))); select.addEventListener('change', () => { this.state.size = Number(select.value); this.resetPage(); }); label.append(select);
-      this.pages = el('nav', 'staff-pagination'); this.pages.setAttribute('aria-label', this.key + ' pages'); footer.append(this.count, label, this.pages); host.append(tools, this.output, footer); this.render();
+      this.pages = el('nav', 'staff-pagination'); this.pages.setAttribute('aria-label', translate(title) + ' · ' + translate('Pagination'));
+      footer.append(this.count, label, this.pages); host.append(tools, this.loading, this.error, this.output, footer);
+      this.load();
     }
-    resetPage() { clearTimeout(this.timer); this.state.page = 1; this.render(); }
-    render() {
-      const state = this.state, query = state.query.trim();
-      const rows = data[this.key].filter(record => {
-        if (state.status && record.status !== state.status) return false;
-        if (!query) return true;
-        return this.kind === 'fine' ? (record.code.replace(/-/g, '').includes(plateKey(query)) || record.plate_key.includes(plateKey(query))) && !!plateKey(query)
-          : [record.code, record.title, record.location].join(' ').toLowerCase().includes(query.toLowerCase());
-      }).sort((a, b) => {
-        let compare;
-        if (['amount_cents', 'occurred_ts'].includes(state.sort)) compare = a[state.sort] - b[state.sort];
-        else if (state.sort === 'updated_at') compare = Date.parse(a.updated_at) - Date.parse(b.updated_at);
-        else compare = collator.compare(displayValue(a, state.sort, this.kind), displayValue(b, state.sort, this.kind));
-        return compare ? compare * state.direction : a.id - b.id;
-      });
-      const paged = window.MyParkTableData.paginate(rows, state.page, state.size); state.page = paged.page;
-      const empty = data[this.key].length
-        ? translate(this.kind === 'fine' ? 'No matching fine records.' : 'No matching maintenance records.')
-        : translate(this.kind === 'fine' ? 'No fine records yet.' : 'No maintenance records yet.');
-      const rendered = createTable(paged.rows, this.columns, this.kind, empty);
-      this.columns.forEach(([key, label]) => {
+    resetPage() { this.state.page = 1; this.load(); }
+    cancel() { clearTimeout(this.timer); this.request.cancel(); }
+    loadingState(busy) {
+      this.loading.hidden = !busy;
+      this.loading.textContent = busy ? translate('Refreshing records…') : '';
+      this.output.setAttribute('aria-busy', String(busy));
+    }
+    load(focus) {
+      clearTimeout(this.timer);
+      this.error.hidden = true;
+      const { page: rowPage, ...state } = this.state;
+      const params = new URLSearchParams({ page, table: this.key, ...state, row_page: rowPage });
+      if (this.plate) params.set('plate', this.plate);
+      this.request.run(async signal => {
+        const response = await fetch('api/staff.php?' + params, { credentials: 'same-origin', cache: 'no-store', signal });
+        const result = await readResponse(response);
+        if (!Array.isArray(result.table?.rows)) throw new Error(translate('The table could not be updated.'));
+        return result.table;
+      }, paged => {
+        const restore = this.output.contains(document.activeElement) || this.pages.contains(document.activeElement);
+        this.paged = paged;
+        this.state.page = paged.page;
+        this.render(paged, state);
+        this.onUpdate?.();
+        if (restore && focus) {
+          const target = focus === 'page' ? this.pages.querySelector('[aria-current="page"]')
+            : this.output.querySelector('th[data-column="' + focus + '"] button');
+          (target ?? this.search).focus();
+        }
+      }, failure => {
+        this.error.replaceChildren(el('span', '', translate(failure.message)), button(translate('Retry'), () => this.load(focus)));
+        this.error.hidden = false;
+      }, busy => this.loadingState(busy));
+    }
+    render(paged, appliedState) {
+      const state = this.state;
+      const empty = translate(paged.unfiltered ? 'No matching records' : this.config.empty);
+      const rendered = createTable(paged.rows, this.config, empty);
+      this.config.columns.forEach(([key, label]) => {
         if (key === 'actions') return;
         const th = rendered.querySelector('th[data-column="' + key + '"]');
-        th.setAttribute('aria-sort', state.sort === key ? state.direction === 1 ? 'ascending' : 'descending' : 'none');
-        const nextDirection = state.sort === key && state.direction === 1 ? translate('descending') : translate('ascending');
+        if (appliedState.sort === key) th.setAttribute('aria-sort', appliedState.dir === 'asc' ? 'ascending' : 'descending');
+        const nextDirection = state.sort === key && state.dir === 'asc' ? translate('descending') : translate('ascending');
         const sort = button('', () => {
-          state.direction = state.sort === key && state.direction === 1 ? -1 : 1; state.sort = key; state.page = 1; this.render();
-          this.output.querySelector('th[data-column="' + key + '"] button').focus();
+          state.dir = state.sort === key && state.dir === 'asc' ? 'desc' : 'asc';
+          state.sort = key; state.page = 1; this.load(key);
         }); sort.className = 'staff-sort';
         sort.setAttribute('aria-label', translate('Sort by {label}, {direction}', { label, direction: nextDirection }));
         const arrow = el('span', 'staff-sort-mark'); arrow.setAttribute('aria-hidden', 'true');
@@ -210,11 +261,12 @@
         arrow.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path class="staff-sort-up" d="m4 6 4-4 4 4"/><path class="staff-sort-down" d="m4 10 4 4 4-4"/></svg>';
         sort.append(el('span', 'staff-sort-label', label), arrow); th.replaceChildren(sort);
       });
-      this.output.replaceChildren(rendered); this.count.textContent = paged.label;
-      document.getElementById('staff-record-count').textContent = translate('{count} records', { count: data[this.key].length });
+      this.output.replaceChildren(rendered); this.count.textContent = pageLabel(paged);
+      const count = document.getElementById('staff-record-count');
+      if (count) count.textContent = translate('{count} records', { count: paged.unfiltered });
       this.pages.replaceChildren();
       if (paged.pages > 1) {
-        const go = n => { state.page = n; this.render(); this.pages.querySelector('[aria-current="page"]')?.focus(); };
+        const go = n => { state.page = n; this.load('page'); };
         const prev = button(translate('Previous'), () => go(state.page - 1)); prev.disabled = state.page === 1; this.pages.append(prev);
         window.MyParkTableData.pageNumbers(state.page, paged.pages).forEach(n => {
           if (n === '…') { this.pages.append(el('span', '', n)); return; }
@@ -274,8 +326,9 @@
       if (record) field(fields, 'reason', translate('Reason for correction'), { tag: 'textarea', maxLength: 500 });
       form.append(el('p', 'staff-help', translate('Private parking prototype only. This creates an unpaid record; it is not a government-issued fine.')));
     } else {
+      const locations = data.locations.filter(location => !location.archived || location.id === record?.lot_id);
       field(fields, 'title', translate('Issue title'), { value: record?.title, maxLength: 120 });
-      field(fields, 'lot_id', translate('Parking location'), { tag: 'select', options: [['', 'Select a location'], ...data.locations.map(l => [l.id, l.name])], value: record?.lot_id });
+      field(fields, 'lot_id', translate('Parking location'), { tag: 'select', options: [['', 'Select a location'], ...locations.map(l => [l.id, l.name])], value: record?.lot_id });
       field(fields, 'description', translate('Description'), { tag: 'textarea', maxLength: 2000, value: record?.description });
       field(fields, 'status', translate('Status'), { tag: 'select', options: Object.entries(data.maintenance_statuses), value: record?.status || 'open' });
     }
@@ -351,20 +404,27 @@
   }
   function renderDashboard() {
     document.querySelectorAll('[data-summary]').forEach(n => { const key = n.dataset.summary; n.textContent = key === 'outstanding_cents' ? money(data.summary[key]) : data.summary[key]; });
-    const recent = [...data.fines].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at) || b.id - a.id).slice(0, 5);
-    document.getElementById('staff-recent').replaceChildren(createTable(recent, fineColumns, 'fine', translate('No fine records yet.')));
   }
-  function renderLookup() {
+  function renderLookup(plate) {
+    tables.splice(0).forEach(table => table.cancel());
     const host = document.getElementById('staff-lookup-results'); host.replaceChildren();
-    const fines = data.fines.filter(r => r.plate_key === lookupPlate), bookings = data.bookings.filter(r => r.plate_key === lookupPlate);
-    host.append(el('p', 'staff-lookup-summary', translate('{plate} · {fines} fine records · {bookings} parking records', { plate: lookupPlate, fines: fines.length, bookings: bookings.length })));
-    const fineCard = el('section', 'staff-card'); fineCard.append(el('h2', '', 'Related fines'), createTable(fines, fineColumns, 'fine', 'No fine records found for this vehicle.')); host.append(fineCard);
-    const parkingCard = el('section', 'staff-card'); parkingCard.append(el('h2', '', 'Parking records'));
-    const rows = bookings.map(r => ({ ...r, code: '#' + r.id, date: r.created_at }));
-    const scroll = createTable(rows, [['code', translate('Booking ID')], ['plate', 'Vehicle Plate'], ['location', translate('Location')], ['hours', translate('Hours'), true], ['date', translate('Created')]], 'maintenance', translate('No parking records found for this vehicle.')); parkingCard.append(scroll); host.append(parkingCard);
+    const summary = el('p', 'staff-lookup-summary', plate);
+    host.append(summary);
+    const updateSummary = () => {
+      const [fines, bookings] = tables;
+      if (fines?.paged && bookings?.paged) summary.textContent = translate('{plate} · {fines} fine records · {bookings} parking records',
+        { plate, fines: fines.paged.unfiltered, bookings: bookings.paged.unfiltered });
+    };
+    for (const key of ['vehicle-fines', 'vehicle-bookings']) {
+      const card = el('section', 'staff-card');
+      card.append(el('h2', '', translate(tabs[key].label)));
+      host.append(card);
+      tables.push(new RecordTable(card, key, plate, updateSummary));
+    }
   }
   if (page === 'dashboard') {
     renderDashboard();
+    tables.push(new RecordTable(document.getElementById('staff-recent'), 'recent-fines'));
     const leaveForm = document.querySelector('.staff-leave-form');
     if (leaveForm) {
       const reason = leaveForm.elements.namedItem('reason');
@@ -394,7 +454,8 @@
     }
   }
   if (page === 'fines' || page === 'maintenance') {
-    const kind = page === 'fines' ? 'fine' : 'maintenance'; table = new RecordTable(document.getElementById('staff-records'), kind);
+    const kind = tabs[page].kind;
+    tables.push(new RecordTable(document.getElementById('staff-records'), page));
     const create = document.getElementById('staff-new'); create.addEventListener('click', () => editRecord(kind, null, create));
   }
   if (page === 'vehicles') {
@@ -403,7 +464,7 @@
     const lookup = () => {
       const value = input.value.trim();
       if (!/^[A-Za-z0-9][A-Za-z0-9 -]{1,14}$/.test(value)) { error.textContent = translate('Enter a valid vehicle plate.'); error.hidden = false; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
-      error.hidden = true; input.setAttribute('aria-invalid', 'false'); lookupPlate = plateKey(value); renderLookup();
+      error.hidden = true; input.setAttribute('aria-invalid', 'false'); renderLookup(plateKey(value));
     };
     form.addEventListener('submit', event => { event.preventDefault(); lookup(); }); if (input.value.trim()) lookup();
   }

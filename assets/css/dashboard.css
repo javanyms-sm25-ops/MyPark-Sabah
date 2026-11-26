@@ -179,6 +179,8 @@
 }
 .ops-location-fields { display: grid; gap: 14px; }
 .ops-location-form label { margin: 0; }
+.ops-location-fields input[aria-invalid="true"] { border-color: var(--red); }
+.ops-location-fields .field-feedback:empty { margin: 0; }
 .ops-place-search {
   position: relative;
   z-index: 1;
@@ -235,8 +237,25 @@
   border-radius: 12px;
   overflow: hidden;
 }
-.ops-location-submit { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+.ops-location-submit { grid-column: 1 / -1; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 .ops-location-submit button:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+#location-form, #location-list { scroll-margin-top: 6rem; }
+.ops-location-page-links { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.operations-page .ops-location-list .ops-table { min-width: 580px; }
+.ops-location-list .ops-table td { overflow-wrap: anywhere; white-space: normal; }
+.ops-location-list .ops-table :is(th, td):nth-child(4) { text-align: right; font-variant-numeric: tabular-nums; }
+.ops-location-list .ops-location-delete-trigger { color: var(--red); }
+.ops-location-delete-dialog {
+  width: min(460px, calc(100% - 32px));
+  margin: auto;
+  border-radius: 12px;
+  background: var(--card);
+}
+.ops-location-delete-dialog h2 { margin-bottom: 10px; }
+.ops-location-delete-dialog .ops-dialog-actions { flex-wrap: wrap; }
+.ops-location-delete-dialog .ops-location-confirm-button { background: #9b2c3c; border-color: #9b2c3c; color: #fff; }
+.ops-location-delete-dialog .ops-location-confirm-button:hover { background: #852434; }
+.ops-location-delete-dialog .ops-location-confirm-button:disabled { opacity: .6; cursor: wait; }
 @media (max-width: 720px) {
   .ops-location-form { grid-template-columns: minmax(0, 1fr); }
 }

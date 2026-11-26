@@ -1,5 +1,9 @@
 <?php
 $leaveRequests = staff_leave_rows($actor);
+$view = ajax_table_view('staff-leave', $leaveRequests, ['start_date' => 'Start date', 'end_date' => 'End date', 'status' => 'Status'], [
+    'filter' => ['label' => 'Status', 'field' => 'status', 'choices' => ['' => 'All statuses'] + STAFF_LEAVE_STATUSES],
+    'empty' => 'No leave requests yet.',
+]);
 $reasonError = in_array($leaveError, [STAFF_LEAVE_REASON_REQUIRED, STAFF_LEAVE_REASON_TOO_LONG], true) ? $leaveError : '';
 ?>
 <section class="staff-card" id="leave-requests" aria-labelledby="leave-requests-heading">
@@ -25,18 +29,12 @@ $reasonError = in_array($leaveError, [STAFF_LEAVE_REASON_REQUIRED, STAFF_LEAVE_R
     </div>
     <button type="submit" class="staff-button"><?= te('Submit leave request') ?></button>
   </form>
-  <?php if (!$leaveRequests): ?>
-    <p class="staff-leave-empty staff-muted"><?= te('No leave requests yet.') ?></p>
-  <?php else: ?>
+  <?php ajax_table_begin($view); ?>
     <div class="staff-table-scroll" role="region" aria-labelledby="leave-requests-heading" tabindex="0">
       <table class="staff-table staff-leave-table">
-        <thead><tr>
-          <th scope="col"><?= te('Start date') ?></th>
-          <th scope="col"><?= te('End date') ?></th>
-          <th scope="col"><?= te('Status') ?></th>
-        </tr></thead>
+        <?php ajax_table_head($view); ?>
         <tbody>
-          <?php foreach ($leaveRequests as $leave): ?>
+          <?php foreach ($view['rows'] as $leave): ?>
             <tr>
               <td><time datetime="<?= e($leave['start_date']) ?>"><?= e($leave['start_date']) ?></time></td>
               <td><time datetime="<?= e($leave['end_date']) ?>"><?= e($leave['end_date']) ?></time></td>
@@ -45,8 +43,9 @@ $reasonError = in_array($leaveError, [STAFF_LEAVE_REASON_REQUIRED, STAFF_LEAVE_R
               }) ?>"><?= te(STAFF_LEAVE_STATUSES[$leave['status']]) ?></span></td>
             </tr>
           <?php endforeach; ?>
+          <?php ajax_table_empty($view); ?>
         </tbody>
       </table>
     </div>
-  <?php endif; ?>
+  <?php ajax_table_end($view); ?>
 </section>

@@ -6,6 +6,8 @@ require_once __DIR__ . '/staff-leave.php';
 // The Dashboard reads from the current database workspace.
 const OPS_ROLES = ['superadmin' => 'Super Admin', 'admin' => 'Admin', 'staff' => 'Staff', 'user' => 'Member'];
 const OPS_TRANSITIONS = ['active' => ['completed', 'cancelled'], 'completed' => [], 'cancelled' => []];
+const OPS_MAX_PARKING_SPACES = 2500;
+const OPS_PARKING_SPACES_ERROR = 'Enter a whole number from 1 to {max}.';
 
 function ops_actor(): array {
     if (!me()) throw new RuntimeException('Please sign in again.', 401);
@@ -49,6 +51,7 @@ function ops_snapshot(array $actor): array {
         ];
     }, MyParkData::$records['demo_bookings']);
     $active = array_filter($reservations, static fn($b) => $b['status'] === 'active');
+    $lots = active_parking_locations();
     $snapshot = [
         'accounts' => array_values($accounts), 'reservations' => array_values($reservations),
         'roles' => OPS_ROLES, 'reservation_statuses' => array_keys(OPS_TRANSITIONS),
@@ -57,7 +60,7 @@ function ops_snapshot(array $actor): array {
         'can_export' => in_array($actor['role'], ['admin', 'superadmin'], true),
         'revision' => MyParkData::$records['ops_revision'] ?? 0,
         'summary' => [
-            'lots' => count(MyParkData::$records['demo_lots']), 'reservations' => count($reservations),
+            'lots' => count($lots), 'reservations' => count($reservations),
             'active' => count($active),
             'completed' => count(array_filter($reservations, static fn($b) => $b['status'] === 'completed')),
             'cancelled' => count(array_filter($reservations, static fn($b) => $b['status'] === 'cancelled')),
@@ -66,11 +69,82 @@ function ops_snapshot(array $actor): array {
     ];
     if (in_array($actor['role'], ['admin', 'superadmin'], true)) {
         $snapshot['parking_availability'] = [
-            'locations' => parking_availability_catalog(MyParkData::$records['demo_lots'], MyParkData::$records['demo_bookings']),
+            'locations' => parking_availability_catalog($lots, MyParkData::$records['demo_bookings']),
             'refreshed_at' => date(DATE_ATOM),
         ];
     }
     return $snapshot;
+}
+
+function ops_parking_location_fields(array $input): array {
+    $name = trim($input['name'] ?? '');
+    $city = trim($input['city'] ?? '');
+    $address = trim($input['address'] ?? '');
+    $capacity = filter_var($input['capacity'] ?? null, FILTER_VALIDATE_INT, [
+        'options' => ['min_range' => 1, 'max_range' => OPS_MAX_PARKING_SPACES],
+    ]);
+    if ($capacity === false) {
+        throw new RuntimeException(t(OPS_PARKING_SPACES_ERROR, ['max' => number_format(OPS_MAX_PARKING_SPACES)]), 422);
+    }
+    if ($name === '' || $city === '' || $address === '') {
+        throw new RuntimeException('Enter a location name, city and address.', 422);
+    }
+    $lat = filter_var($input['lat'] ?? null, FILTER_VALIDATE_FLOAT);
+    $lng = filter_var($input['lng'] ?? null, FILTER_VALIDATE_FLOAT);
+    if ($lat === false || $lng === false || abs($lat) > 90 || abs($lng) > 180) {
+        throw new RuntimeException('Choose a location on the map.', 422);
+    }
+    return compact('name', 'city', 'address', 'capacity', 'lat', 'lng');
+}
+
+function ops_change_parking_location(array $actor, string $action, int|false $id, array $input): string {
+    if ($action === 'delete_lot' && $actor['role'] !== 'superadmin') {
+        throw new RuntimeException('Only Super Admin can delete parking locations.', 403);
+    }
+    if (!in_array($actor['role'], ['admin', 'superadmin'], true)) {
+        throw new RuntimeException('Only an administrator can manage parking locations.', 403);
+    }
+
+    $lots =& MyParkData::$records['demo_lots'];
+    if ($action === 'add_lot') {
+        $lots[] = [
+            'id' => max(array_column($lots, 'id') ?: [0]) + 1,
+            'rate' => PARKING_HOURLY_CENTS / 100,
+        ] + ops_parking_location_fields($input);
+        $message = 'Parking location added.';
+    } else {
+        $index = null;
+        foreach ($lots as $key => $lot) {
+            if ((int)$lot['id'] === $id && !isset($lot['deleted_at'])) {
+                $index = $key;
+                break;
+            }
+        }
+        if ($index === null) throw new RuntimeException('Parking location unavailable.', 404);
+
+        complete_expired_bookings();
+        $occupied = parking_occupancy_by_lot(MyParkData::$records['demo_bookings'])[$id] ?? [];
+        if ($action === 'delete_lot') {
+            if ($occupied) throw new RuntimeException('End all active parking sessions at this location before deleting it.', 409);
+            // Keep the original ID and details for historical reports.
+            $lots[$index]['deleted_at'] = date(DATE_ATOM);
+            $lots[$index]['deleted_by'] = $actor['id'];
+            $message = 'Parking location deleted.';
+        } else {
+            $fields = ops_parking_location_fields($input);
+            $reserved = max(0, (int)($lots[$index]['oku_capacity'] ?? 0));
+            if ($fields['capacity'] < $reserved) {
+                throw new RuntimeException('Total spaces must cover the existing OKU bay allocation.', 422);
+            }
+            if ($fields['capacity'] - $reserved < ($occupied['regular'] ?? 0) || $reserved < ($occupied['oku'] ?? 0)) {
+                throw new RuntimeException('There are too few spaces for current parking sessions.', 409);
+            }
+            $lots[$index] = array_replace($lots[$index], $fields);
+            $message = 'Parking location updated.';
+        }
+    }
+    MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
+    return $message;
 }
 
 function ops_mutate(array $actor, array $input): string {
@@ -78,6 +152,9 @@ function ops_mutate(array $actor, array $input): string {
     $action = $input['action'] ?? '';
     if ($action === 'leave_review') return staff_leave_review($actor, $input);
     $id = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT);
+    if (in_array($action, ['add_lot', 'update_lot', 'delete_lot'], true)) {
+        return ops_change_parking_location($actor, $action, $id, $input);
+    }
     if ($action === 'oku_decide') {
         return oku_decide($actor, $input['submission_id'] ?? '', $input['decision'] ?? '', $input['reason'] ?? '');
     }
@@ -97,7 +174,7 @@ function ops_mutate(array $actor, array $input): string {
         complete_expired_bookings();
         $occupied = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);
         foreach (MyParkData::$records['demo_lots'] as &$lot) {
-            if ($lot['id'] !== $id) continue;
+            if ($lot['id'] !== $id || isset($lot['deleted_at'])) continue;
             $total = parking_lot_capacity($lot);
             if ($total === null || $reserved === false || $reserved > $total) {
                 throw new RuntimeException('Enter an OKU bay count between zero and total capacity.', 422);
@@ -146,24 +223,6 @@ function ops_mutate(array $actor, array $input): string {
         }
         unset($user);
         throw new RuntimeException('Account not found.', 404);
-    }
-    if ($action === 'add_lot') {
-        if (!in_array($actor['role'], ['admin', 'superadmin'], true)) throw new RuntimeException('Only an administrator can add locations.', 403);
-        $name = trim($input['name'] ?? ''); $city = trim($input['city'] ?? ''); $address = trim($input['address'] ?? '');
-        $capacity = filter_var($input['capacity'] ?? null, FILTER_VALIDATE_INT);
-        if ($name === '' || $city === '' || $address === '' || $capacity === false || $capacity < 1) throw new RuntimeException('Enter a location name, city, address and valid capacity.', 422);
-        $lat = filter_var($input['lat'] ?? null, FILTER_VALIDATE_FLOAT);
-        $lng = filter_var($input['lng'] ?? null, FILTER_VALIDATE_FLOAT);
-        if ($lat === false || $lng === false || abs($lat) > 90 || abs($lng) > 180) {
-            throw new RuntimeException('Choose a location on the map.', 422);
-        }
-        MyParkData::$records['demo_lots'][] = [
-            'id' => max(array_column(MyParkData::$records['demo_lots'], 'id') ?: [0]) + 1,
-            'name' => $name, 'city' => $city, 'address' => $address,
-            'rate' => PARKING_HOURLY_CENTS / 100, 'capacity' => $capacity, 'lat' => $lat, 'lng' => $lng,
-        ];
-        MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
-        return 'Parking location added.';
     }
     throw new RuntimeException('Unknown operation.', 400);
 }

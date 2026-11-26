@@ -177,10 +177,9 @@
   });
 
   // Confirmation prompts
-  document.querySelectorAll('[data-confirm]').forEach(function (button) {
-    button.addEventListener('click', function (event) {
-      if (!window.confirm(button.dataset.confirm)) event.preventDefault();
-    });
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('[data-confirm]');
+    if (button && !window.confirm(button.dataset.confirm)) event.preventDefault();
   });
 
   // Parking location filters
@@ -199,33 +198,7 @@
     if (control) control.addEventListener(control.tagName === 'INPUT' ? 'input' : 'change', filterLocations);
   });
 
-  const parkingTable = document.getElementById('parkingSessionsTable');
-  const parkingSearch = document.getElementById('parkingSessionSearch');
-  const parkingStatus = document.getElementById('parkingSessionStatus');
-  const parkingRows = Array.from(parkingTable?.querySelectorAll('tbody tr[data-status]') ?? []);
-  const noParkingMatches = parkingTable?.querySelector('[data-no-parking-matches]');
-  const tablePaginators = new Map();
-
-  function filterParkingSessions(resetPage = true) {
-    if (!parkingTable) return;
-    const query = parkingSearch.value.trim().toLowerCase();
-    const status = parkingStatus.value;
-    let matchingCount = 0;
-    parkingRows.forEach(function (row) {
-      const rowStatus = row.dataset.status;
-      const searchText = [row.dataset.search, rowStatus, translate(rowStatus)].join(' ').toLowerCase();
-      const matches = (!status || rowStatus === status) && searchText.includes(query);
-      row.dataset.filterHidden = String(!matches);
-      row.hidden = !matches;
-      if (matches) matchingCount++;
-    });
-    noParkingMatches.hidden = matchingCount > 0 || tablePaginators.has(parkingTable);
-    tablePaginators.get(parkingTable)?.(resetPage);
-  }
-
-  parkingSearch?.addEventListener('input', () => filterParkingSessions());
-  parkingStatus?.addEventListener('change', () => filterParkingSessions());
-
+  const parkingTable = document.querySelector('[data-ajax-table="parking-sessions"]');
   const hasNotificationCenter = Boolean(document.querySelector('[data-notification-menu]'));
 
   // Parking countdown timers
@@ -241,10 +214,11 @@
   let shownSession = dashboardSessions[0];
 
   function formatDashboardCountdown(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    if (minutes === 0) return translate('Less than 1 min');
-    if (minutes < 60) return translate('{minutes} min left', { minutes });
-    return translate('{hours} hr {minutes} min left', { hours: Math.floor(minutes / 60), minutes: minutes % 60 });
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor(seconds / 60) % 60;
+    const remainingSeconds = String(seconds % 60).padStart(2, '0');
+    const template = hours ? '{hours} hr {minutes} min {seconds} sec' : '{minutes} min {seconds} sec';
+    return translate(template, { hours, minutes, seconds: remainingSeconds });
   }
 
   function updateDashboardParking() {
@@ -352,62 +326,19 @@
           (secondsLeft <= 300 ? translate('Less than 5 minutes remaining') : translate('Time remaining'));
       }
     });
-    if (statusChanged) filterParkingSessions(false);
+    if (statusChanged) parkingTable?.dispatchEvent(new Event('mypark:table-refresh'));
   }
 
-  if (dashboardSessions.length || document.querySelector('.parking-timer')) {
+  if (parkingTable || dashboardSessions.length || document.querySelector('.parking-timer')) {
     updateParkingTimers();
     window.setInterval(updateParkingTimers, 1000);
   }
+  parkingTable?.addEventListener('mypark:table-updated', updateParkingTimers);
   if (activeParking) {
     window.addEventListener('pageshow', event => {
       if (event.persisted) window.location.reload();
     });
   }
-
-  // Generic client-side pagination: show 10 table rows per page.
-  document.querySelectorAll('table[data-paginated="true"]').forEach(function (table) {
-    const rows = Array.from(table.querySelectorAll('tbody tr[data-status]'));
-    const perPage = 10;
-    if (rows.length <= perPage) return;
-
-    let page = 1;
-    let pages = 1;
-    const controls = document.createElement('div');
-    controls.className = 'pagination';
-    controls.innerHTML = '<button type="button" class="page-prev"></button><span class="page-count"></span><button type="button" class="page-next"></button>';
-    controls.querySelector('.page-prev').textContent = translate('Previous');
-    controls.querySelector('.page-next').textContent = translate('Next');
-    table.parentNode.insertAdjacentElement('afterend', controls);
-
-    function showPage(resetPage = false) {
-      const matchingRows = rows.filter(function (row) {
-        return row.dataset.filterHidden !== 'true';
-      });
-      pages = Math.max(1, Math.ceil(matchingRows.length / perPage));
-      page = resetPage ? 1 : Math.min(page, pages);
-      const visibleRows = new Set(matchingRows.slice((page - 1) * perPage, page * perPage));
-      rows.forEach(function (row) {
-        row.dataset.pageHidden = String(!visibleRows.has(row));
-        row.hidden = !visibleRows.has(row);
-      });
-      controls.querySelector('.page-count').textContent = matchingRows.length
-        ? (window.MyParkLocale?.text('Page {page} of {pages}', { page, pages }) ?? 'Page ' + page + ' of ' + pages)
-        : translate('No matching records');
-      controls.querySelector('.page-prev').disabled = page === 1;
-      controls.querySelector('.page-next').disabled = page === pages;
-    }
-
-    controls.querySelector('.page-prev').addEventListener('click', function () {
-      if (page > 1) { page -= 1; showPage(); }
-    });
-    controls.querySelector('.page-next').addEventListener('click', function () {
-      if (page < pages) { page += 1; showPage(); }
-    });
-    tablePaginators.set(table, showPage);
-    showPage();
-  });
-  filterParkingSessions();
 
   // Operations table search and status filter
   const operationsSearch = document.getElementById('opsSearch');

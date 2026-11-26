@@ -1,6 +1,13 @@
 <?php
 $okuFilter = oku_queue_filter($_GET['oku_status'] ?? null);
-$okuRows = oku_review_rows($actor, $okuFilter);
+$view = ajax_table_view('oku-reviews', oku_review_rows($actor, 'all'), [
+    'name' => 'Member', 'submitted_at' => 'Submitted', 'status' => 'Status', 'actions' => 'Review',
+], [
+    'filter' => ['label' => 'Status', 'field' => 'status', 'choices' => OKU_STATUS_LABELS + ['' => 'All statuses'],
+        'default' => $okuFilter === 'all' ? '' : $okuFilter],
+    'empty' => 'No OKU submissions match this filter.',
+]);
+$okuFilter = $view['selected'] === '' ? 'all' : $view['selected'];
 ?>
 <section class="ops-panel" id="oku-verification" aria-labelledby="oku-queue-heading">
   <div class="ops-panel-heading"><h2 id="oku-queue-heading"><?= te('OKU Verification') ?></h2></div>
@@ -21,26 +28,13 @@ $okuRows = oku_review_rows($actor, $okuFilter);
       <?php endforeach; ?>
     </details>
   <?php endif; ?>
-  <form method="get" action="admin/dashboard.php#oku-verification" class="ops-toolbar ops-oku-filter">
-    <label for="oku-status-filter"><?= te('Status') ?></label>
-    <select id="oku-status-filter" name="oku_status">
-      <?php foreach (['pending', 'approved', 'rejected', 'all'] as $status): ?>
-        <option value="<?= e($status) ?>" <?= $status === $okuFilter ? 'selected' : '' ?>><?= te(OKU_STATUS_LABELS[$status] ?? 'All statuses') ?></option>
-      <?php endforeach; ?>
-    </select>
-    <button type="submit" class="ops-button"><?= te('Apply') ?></button>
-  </form>
   <p class="ops-caption"><?= te('Review proof for MyPark Sabah parking eligibility. Keep document numbers out of rejection reasons.') ?></p>
-  <?php if (!$okuRows): ?>
-    <p class="ops-caption"><?= te('No OKU submissions match this filter.') ?></p>
-  <?php else: ?>
+  <?php ajax_table_begin($view); ?>
     <div class="ops-table-scroll" role="region" aria-labelledby="oku-queue-heading" tabindex="0">
       <table class="ops-table ops-oku-table">
-        <thead>
-          <tr><th scope="col"><?= te('Member') ?></th><th scope="col"><?= te('Submitted') ?></th><th scope="col"><?= te('Status') ?></th><th scope="col"><?= te('Review') ?></th></tr>
-        </thead>
+        <?php ajax_table_head($view); ?>
         <tbody>
-          <?php foreach ($okuRows as $row): ?>
+          <?php foreach ($view['rows'] as $row): ?>
             <tr>
               <td><?= e($row['name']) ?></td>
               <td><time datetime="<?= e(date(DATE_ATOM, $row['submitted_at'])) ?>"><?= e(date('d M Y, H:i', $row['submitted_at'])) ?> MYT</time></td>
@@ -70,8 +64,9 @@ $okuRows = oku_review_rows($actor, $okuFilter);
               </td>
             </tr>
           <?php endforeach; ?>
+          <?php ajax_table_empty($view); ?>
         </tbody>
       </table>
     </div>
-  <?php endif; ?>
+  <?php ajax_table_end($view); ?>
 </section>

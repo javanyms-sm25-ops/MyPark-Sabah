@@ -4,11 +4,11 @@ require_once __DIR__ . '/staff-data.php';
 function staff_head(string $title): void {
     try { $actor = staff_actor(); }
     catch (RuntimeException $error) { http_response_code($error->getCode()); exit(e($error->getMessage())); }
-    $profile = basename($_SERVER['SCRIPT_NAME'] ?? '') === 'profile.php';
     $page = match (basename($_SERVER['SCRIPT_NAME'] ?? '')) {
-        'profile.php' => 'profile', 'receipts.php' => 'receipts', 'staff-attendance.php' => 'attendance',
+        'profile.php', 'change-email.php' => 'profile', 'receipts.php' => 'receipts', 'staff-attendance.php' => 'attendance',
         default => is_string($_GET['page'] ?? null) ? $_GET['page'] : 'dashboard',
     };
+    $profile = $page === 'profile';
     $links = ['dashboard' => ['Dashboard', 'staff.php'], 'fines' => ['Fine Management', 'staff.php?page=fines'],
         'vehicles' => ['Vehicle Lookup', 'staff.php?page=vehicles'], 'maintenance' => ['Parking Maintenance', 'staff.php?page=maintenance'],
         'attendance' => ['My Attendance', 'staff-attendance.php'],
@@ -25,13 +25,17 @@ function staff_head(string $title): void {
     <script src="assets/js/theme.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/glass.css">
+    <link rel="stylesheet" href="assets/css/ajax-tables.css">
     <link rel="stylesheet" href="assets/css/staff.css"></head>
     <body class="staff-portal<?= $profile ? ' staff-profile-page' : '' ?>">
     <a class="staff-skip" href="#staff-main"><?= te('Skip to content') ?></a>
     <div class="staff-backdrop" id="staff-backdrop" hidden></div>
     <aside class="staff-sidebar" id="staff-sidebar" aria-label="<?= te('Staff navigation') ?>">
       <button type="button" class="staff-sidebar-close staff-button staff-secondary"><?= te('Close menu') ?></button>
-      <a class="staff-brand" href="staff.php"><span class="staff-monogram" aria-hidden="true">MP</span><span>MyPark Sabah<small><?= te('Staff workspace') ?></small></span></a>
+      <a class="staff-brand" href="staff.php">
+        <span class="logo" role="img" aria-label="MyPark Sabah"></span>
+        <small><?= te('Staff workspace') ?></small>
+      </a>
       <p class="staff-nav-label"><?= te('WORKSPACE') ?></p>
       <nav aria-label="<?= te('Staff pages') ?>">
         <?php foreach ($links as $key => [$label, $href]): ?><a href="<?= e($href) ?>" <?= $page === $key ? 'aria-current="page"' : '' ?>><?= te($label) ?></a><?php endforeach; ?>
@@ -60,6 +64,7 @@ function staff_foot(bool $showChatbot = true): void {
     <div id="toast-status" class="pe-toast-announcer" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="toast-alert" class="pe-toast-announcer" role="alert" aria-live="assertive" aria-atomic="true"></div>
     <?php locale_client_scripts(); ?>
+    <script src="assets/js/ajax-tables.js"></script>
     <script src="assets/js/toasts.js"></script><script src="assets/js/app.js"></script>
     <script src="assets/js/dashboard-table.js"></script><script src="assets/js/staff.js"></script>
     <?php if ($showChatbot): ?>

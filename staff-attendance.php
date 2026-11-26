@@ -174,17 +174,33 @@ head('My Attendance');
   <section class="staff-card" id="attendance-history" aria-labelledby="attendance-history-heading">
     <h2 id="attendance-history-heading"><?= te('Attendance History') ?></h2>
     <p><?= te('Your shifts from the last 31 calendar days.') ?></p>
-    <?php if ($history): ?>
+    <?php
+    $view = ajax_table_view('attendance-history', $history, [
+        'shift_date' => 'Date', 'lot_name' => 'Assigned Location', 'in' => 'Check In', 'out' => 'Check Out',
+        'duration' => 'Working duration', 'status' => 'Attendance status', 'in_zone' => 'Location status', 'actions' => 'Details',
+    ], [
+        'values' => static function (array $entry) use ($now): array {
+            [$in, $out] = attendance_times($entry);
+            return $entry + ['in' => $in, 'out' => $out,
+                'duration' => $in === null || $out === null ? null : max(0, $out - $in),
+                'status' => attendance_status($entry, $now)];
+        },
+        'filter' => ['label' => 'Attendance status', 'field' => 'status', 'choices' => ['' => 'All statuses']
+            + array_intersect_key(ATTENDANCE_LABELS, array_flip(['pending', 'rejected', 'checked_out', 'on_time', 'late', 'leave', 'missing', 'scheduled']))],
+        'empty' => $error === '' ? 'No shifts to show yet.' : 'Attendance history is unavailable.',
+    ]);
+    ajax_table_begin($view);
+    ?>
       <div class="attendance-table" tabindex="0" role="region" aria-label="<?= te('Attendance History') ?>"><table>
-        <thead><tr><?php foreach (['Date', 'Assigned Location', 'Check In', 'Check Out', 'Working duration', 'Attendance status', 'Location status', 'Details'] as $heading): ?><th scope="col"><?= te($heading) ?></th><?php endforeach; ?></tr></thead>
-        <tbody><?php foreach ($history as $entry): [$in, $out] = attendance_times($entry); ?>
+        <?php ajax_table_head($view); ?>
+        <tbody><?php foreach ($view['rows'] as $entry): [$in, $out] = attendance_times($entry); ?>
           <tr><th scope="row"><?= e($entry['shift_date']) ?></th><td><?= e($entry['lot_name']) ?></td>
             <td><?= e(attendance_clock($in)) ?></td><td><?= e(attendance_clock($out)) ?></td><td><?= e(attendance_duration($entry)) ?></td>
             <td><?= attendance_badge(attendance_status($entry, $now)) ?></td><td><?= attendance_badge($entry['in_zone']) ?></td>
             <td><a class="btn btn-secondary" href="staff-attendance.php?shift=<?= $entry['id'] ?>#shift-attendance"><?= te('View details') ?></a></td></tr>
-        <?php endforeach; ?></tbody>
+        <?php endforeach; ajax_table_empty($view); ?></tbody>
       </table></div>
-    <?php else: ?><p><?= te($error === '' ? 'No shifts to show yet.' : 'Attendance history is unavailable.') ?></p><?php endif; ?>
+    <?php ajax_table_end($view); ?>
   </section>
 </div>
 <script src="assets/js/employee-attendance.js" defer></script>

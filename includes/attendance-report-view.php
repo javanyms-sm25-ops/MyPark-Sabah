@@ -59,7 +59,7 @@ function attendance_performance_tiles(array $performance): void {
 function attendance_performance_help(): void {
     ?>
     <details class="attendance-details">
-      <summary><?= te('How attendance is calculated') ?></summary>
+      <summary><?= te('Attendance rules & definitions') ?></summary>
       <p><?= te('Each employee with a scheduled shift is counted once. Checked-in employees include recorded arrivals waiting for review.') ?></p>
       <p><?= te('Attendance rate compares present and absent days after shifts end. Unfinished days, pending reviews, unverified check-ins, approved leave, and excused holidays are excluded.') ?></p>
       <p><?= te('A present day needs a verified check-in for every required shift. Punctuality measures how many present days had all check-ins on time. Recorded hours use paired effective times.') ?></p>

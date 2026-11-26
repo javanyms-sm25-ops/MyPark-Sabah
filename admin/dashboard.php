@@ -23,6 +23,14 @@ try {
         exit;
     }
     $snapshot = ops_snapshot($actor);
+    if ($isJson && isset($_GET['table'])) {
+        $table = $_GET['table'];
+        if (!in_array($table, ['accounts', 'reservations'], true)) throw new RuntimeException('Table unavailable.', 404);
+        $query = ajax_table_query();
+        $query += ['sort' => 'id', 'dir' => $table === 'accounts' ? 'asc' : 'desc'];
+        $rows = ops_filter_sort($snapshot[$table], $table, $query);
+        ops_json(['table' => ajax_table_page($rows, $query['row_page'] ?? null, $query['size'] ?? null)]);
+    }
     if ($isJson) ops_json(['data' => $snapshot]);
 } catch (RuntimeException $error) {
     $status = in_array($error->getCode(), [400, 401, 403, 404, 409, 422, 503], true) ? $error->getCode() : 500;
@@ -39,7 +47,7 @@ try {
     foot();
     exit;
 }
-$lots = MyParkData::$records['demo_lots'];
+$lots = active_parking_locations();
 $canReviewOku = oku_can_review($actor);
 if ($canReviewOku || $actor['role'] === 'admin') header('Cache-Control: private, no-store');
 $availability = $snapshot['parking_availability'] ?? null;

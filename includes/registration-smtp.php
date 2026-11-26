@@ -1,14 +1,18 @@
 <?php
 
 function send_registration_link(string $recipient, string $token): void {
-    send_account_email($recipient, $token, 'Verify your email address', 'Confirm that {email} is your email address to finish setting up your MyPark Sabah account.', true);
+    send_account_email($recipient, $token, 'Verify your email address', 'Confirm that {email} is your email address to finish setting up your MyPark Sabah account.', 'pages/register.php');
+}
+
+function send_email_change_link(string $recipient, string $token): void {
+    send_account_email($recipient, $token, 'Verify your new email address', 'Confirm that {email} is the new email address for your MyPark Sabah account.', 'pages/change-email.php');
 }
 
 function send_password_reset_code(string $recipient, string $code): void {
     send_account_email($recipient, $code, 'Reset your password', 'Enter this code on the MyPark Sabah password recovery page to choose a new password.');
 }
 
-function registration_verification_url(array $config, string $token): string {
+function account_verification_url(array $config, string $token, string $page): string {
     $appUrl = trim((string)($config['app_url'] ?? ''));
     if ($appUrl === '') {
         // Derive the URL only for local development. Set app_url for any other host.
@@ -33,13 +37,13 @@ function registration_verification_url(array $config, string $token): string {
         }
     }
 
-    return rtrim($appUrl, '/') . '/pages/register.php?verify=' . rawurlencode($token);
+    return rtrim($appUrl, '/') . '/' . $page . '?verify=' . rawurlencode($token);
 }
 
 function account_email_message(string $sender, string $recipient, string $detail, string $title, string $instructions, bool $useLink): string {
     $notice = $useLink ? 'This link expires in 10 minutes and can be used once.' : 'This code expires in 10 minutes.';
     $guidance = 'If you did not request this email, you can ignore it.';
-    if ($useLink) $guidance = 'Open the link in the browser where you started registration. ' . $guidance;
+    if ($useLink) $guidance = 'Open the link in the browser where you requested it. ' . $guidance;
     $plain = implode("\r\n\r\n", ['MyPark Sabah', $title, str_replace('{email}', $recipient, $instructions), $detail, $notice, $guidance]);
     $heading = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
     $description = htmlspecialchars($instructions, ENT_QUOTES, 'UTF-8');
@@ -144,7 +148,7 @@ HTML;
     ]);
 }
 
-function send_account_email(string $recipient, string $detail, string $title, string $instructions, bool $useLink = false): void {
+function send_account_email(string $recipient, string $detail, string $title, string $instructions, ?string $verificationPage = null): void {
     $path = dirname(__DIR__) . '/config/smtp.local.php';
     $config = is_file($path) ? require $path : [];
     $host = trim((string)($config['host'] ?? ''));
@@ -160,7 +164,8 @@ function send_account_email(string $recipient, string $detail, string $title, st
         throw new RuntimeException('Enter an email address like name@example.com.', 422);
     }
 
-    if ($useLink) $detail = registration_verification_url($config, $detail);
+    $useLink = $verificationPage !== null;
+    if ($useLink) $detail = account_verification_url($config, $detail, $verificationPage);
     $message = account_email_message($sender, $recipient, $detail, $title, $instructions, $useLink);
     $offset = 0;
     $smtp = curl_init('smtp://' . $host . ':' . $port);

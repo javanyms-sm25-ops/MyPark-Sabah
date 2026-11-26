@@ -8,7 +8,7 @@ if ($role === 'superadmin' || $role === 'staff') {
     exit;
 }
 
-require_once __DIR__ . '/includes/parking-capacity.php';
+require_once __DIR__ . '/includes/parking-availability.php';
 require_once __DIR__ . '/includes/oku-verification.php';
 
 $canBook = can_use_customer_wallet(me());
@@ -20,7 +20,7 @@ $okuOnly = ($_GET['oku'] ?? '') === '1';
 $bayType = $okuOnly ? 'oku' : 'regular';
 $searchTerm = trim(mb_convert_kana($query, 'as', 'UTF-8'));
 
-$lots = MyParkData::$records['demo_lots'];
+$lots = active_parking_locations();
 $occupiedByLot = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);
 $locations = [];
 $visibleCount = 0;
@@ -44,6 +44,7 @@ head('Find parking');
 <link rel="stylesheet" href="assets/css/find-parking.css">
 <h1><?= te('Find parking') ?></h1>
 <div class="find-parking<?= $okuOnly ? ' is-oku-search' : '' ?>" data-find-parking
+     data-catalog-version="<?= e(parking_availability_catalog_version($lots)) ?>"
      data-maps-key="<?= e(trim($mapsConfig['api_key'] ?? '')) ?>"
      data-map-id="<?= e($mapsConfig['map_id'] ?? 'DEMO_MAP_ID') ?>">
   <section class="find-parking-search card" aria-label="<?= te('Search parking locations') ?>">

@@ -13,7 +13,7 @@ if (me()) {
 
 require_once __DIR__ . '/includes/parking-capacity.php';
 
-$lots = MyParkData::$records['demo_lots'];
+$lots = active_parking_locations();
 $locationCount = count($lots);
 $previewLots = array_slice($lots, 0, 3);
 $occupiedByLot = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);

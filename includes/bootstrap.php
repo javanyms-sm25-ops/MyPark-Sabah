@@ -5,6 +5,7 @@ require_once __DIR__ . '/localization.php';
 require_once __DIR__ . '/parking-pricing.php';
 require_once __DIR__ . '/parking-capacity.php';
 require_once __DIR__ . '/parking-notifications.php';
+require_once __DIR__ . '/ajax-table.php';
 remember_selected_language();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once __DIR__ . '/database.php';
@@ -59,6 +60,7 @@ function require_login(string $loginPath = 'pages/login.php'){
     foreach (MyParkData::$records['demo_users'] as $key => $account) {
         if ($account['id'] === me()['id'] && !$account['blocked'] && $account['role'] === me()['role']) {
             $_SESSION['mypark_account_key'] = (string)$key;
+            $_SESSION['user']['email'] = $account['email'];
             return;
         }
     }
@@ -158,6 +160,7 @@ function profile_nav(array $account): void {
 }
 
 function head(string $title): void {
+    if (ajax_table_fragment() !== null) return;
     if ((me()['role'] ?? '') === 'staff') {
         require_once __DIR__ . '/staff-layout.php';
         staff_head($title);
@@ -199,6 +202,7 @@ function head(string $title): void {
       <script src="assets/js/theme.js"></script>
       <link rel="stylesheet" href="assets/css/style.css">
       <link rel="stylesheet" href="assets/css/glass.css">
+      <link rel="stylesheet" href="assets/css/ajax-tables.css">
       <?php if (($user['role'] ?? '') === 'user'): ?>
         <link rel="stylesheet" href="assets/css/customer.css">
       <?php endif; ?>
@@ -230,6 +234,13 @@ function head(string $title): void {
 }
 
 function foot(bool $showChatbot = true): void {
+    if (ajax_table_fragment() !== null) {
+        ob_clean();
+        if (http_response_code() < 400) http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Cache-Control: private, no-store');
+        exit(t('Table unavailable.'));
+    }
     if ((me()['role'] ?? '') === 'staff') {
         require_once __DIR__ . '/staff-layout.php';
         staff_foot($showChatbot);
@@ -246,6 +257,7 @@ function foot(bool $showChatbot = true): void {
       <div id="toast-status" class="pe-toast-announcer" role="status" aria-live="polite" aria-atomic="true"></div>
       <div id="toast-alert" class="pe-toast-announcer" role="alert" aria-live="assertive" aria-atomic="true"></div>
       <?php locale_client_scripts(); ?>
+      <script src="assets/js/ajax-tables.js"></script>
       <script src="assets/js/toasts.js"></script>
       <script src="assets/js/app.js"></script>
       <?php if (me()): ?><script src="assets/js/notifications.js"></script><?php endif; ?>

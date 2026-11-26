@@ -14,6 +14,10 @@ function booking_expiry(array $booking): ?int {
     return $start->getTimestamp() + $hours * 3600;
 }
 
+function active_parking_locations(?array $lots = null): array {
+    return array_values(array_filter($lots ?? MyParkData::$records['demo_lots'], static fn(array $lot): bool => !isset($lot['deleted_at'])));
+}
+
 function parking_lot_capacity(array $lot): ?int {
     $capacity = filter_var($lot['capacity'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
     return $capacity === false ? null : $capacity;

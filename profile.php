@@ -118,6 +118,7 @@ head('Profile');
   </div>
   <label><?= te('Name') ?><input name="name" value="<?= e(me()['name']) ?>" minlength="2" maxlength="100" required></label>
   <label><?= te('Email') ?><input value="<?= e(me()['email']) ?>" disabled></label>
+  <p class="email-code-back"><a href="pages/change-email.php"><?= te('Change email address') ?></a></p>
   <label><?= te('Phone') ?><input name="phone" value="<?= e(me()['phone'] ?? '') ?>" maxlength="50"></label>
   <div class="row"><button type="button" data-rotate><?= te('Rotate photo') ?></button><button><?= te('Save profile') ?></button></div>
 </form>

@@ -30,6 +30,7 @@ try {
     $output = match ($view) {
         'counts' => [
             'checkedAt' => $snapshot['checkedAt'],
+            'catalogVersion' => parking_availability_catalog_version($snapshot['lots']),
             'locations' => array_map(static fn($lot) => ['id' => $lot['id'], 'bays' => $lot['bays']], $locations),
         ],
         'dashboard' => ['locations' => $locations, 'refreshed_at' => $snapshot['checkedAt']],
