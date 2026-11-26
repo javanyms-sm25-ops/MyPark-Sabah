@@ -183,3 +183,53 @@ CREATE TABLE IF NOT EXISTS attendance_report_holidays (
     PRIMARY KEY (scope, holiday_date),
     FOREIGN KEY (scope) REFERENCES mypark_workspaces (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Use the same workspace lock as PHP when installing the parking location.
+START TRANSACTION;
+INSERT INTO mypark_workspaces (id) VALUES ('shared')
+    ON DUPLICATE KEY UPDATE id = id;
+
+-- Keep the usual starting locations on a fresh import. PHP also seeds these
+-- defaults when it opens other workspaces.
+INSERT INTO mypark_records (workspace_id, collection, record_key, position, payload)
+SELECT 'shared', 'demo_lots', defaults.record_key, defaults.position, defaults.payload
+FROM (
+    SELECT '0' AS record_key, 0 AS position, JSON_OBJECT(
+        'id', 1, 'name', 'Kota Kinabalu Waterfront', 'city', 'Kota Kinabalu',
+        'address', 'Jalan Tun Fuad Stephens', 'rate', 1.00, 'capacity', 36,
+        'oku_capacity', 1, 'lat', 5.9804, 'lng', 116.0735
+    ) AS payload
+    UNION ALL
+    SELECT '1', 1, JSON_OBJECT(
+        'id', 2, 'name', 'Sandakan Central Parking', 'city', 'Sandakan',
+        'address', 'Bandar Sandakan', 'rate', 1.00, 'capacity', 24,
+        'lat', 5.8402, 'lng', 118.1179
+    )
+    UNION ALL
+    SELECT '2', 2, JSON_OBJECT(
+        'id', 3, 'name', 'Tawau Tanjung Market', 'city', 'Tawau',
+        'address', 'Jalan Dunlop, Bandar Tawau, 91000', 'rate', 1.00, 'capacity', 30,
+        'lat', 4.2434983, 'lng', 117.8847606
+    )
+) AS defaults
+WHERE NOT EXISTS (
+    SELECT 1 FROM mypark_records
+    WHERE workspace_id = 'shared' AND collection = 'demo_lots'
+);
+
+-- Keep a stable record key while assigning the next available location ID.
+INSERT INTO mypark_records (workspace_id, collection, record_key, position, payload)
+SELECT 'shared', 'demo_lots', 'tar-umt-sabah', COALESCE(MAX(position) + 1, 0),
+    JSON_OBJECT(
+        'id', COALESCE(MAX(CAST(JSON_VALUE(payload, '$.id') AS UNSIGNED)), 0) + 1,
+        'name', 'TAR UMT Sabah', 'city', 'Kota Kinabalu',
+        'address', 'No. 1, Jalan Alamesra, Alamesra, 88450', 'rate', 1.00,
+        'capacity', 1, 'lat', 6.02849, 'lng', 116.12928
+    )
+FROM mypark_records
+WHERE workspace_id = 'shared' AND collection = 'demo_lots'
+HAVING COUNT(CASE
+    WHEN record_key = 'tar-umt-sabah' OR LOWER(TRIM(JSON_VALUE(payload, '$.name'))) = 'tar umt sabah'
+    THEN 1
+END) = 0;
+COMMIT;
