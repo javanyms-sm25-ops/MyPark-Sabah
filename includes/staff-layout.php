@@ -4,11 +4,11 @@ require_once __DIR__ . '/staff-data.php';
 function staff_head(string $title): void {
     try { $actor = staff_actor(); }
     catch (RuntimeException $error) { http_response_code($error->getCode()); exit(e($error->getMessage())); }
-    $profile = basename($_SERVER['SCRIPT_NAME'] ?? '') === 'profile.php';
     $page = match (basename($_SERVER['SCRIPT_NAME'] ?? '')) {
-        'profile.php' => 'profile', 'receipts.php' => 'receipts', 'staff-attendance.php' => 'attendance',
+        'profile.php', 'change-email.php' => 'profile', 'receipts.php' => 'receipts', 'staff-attendance.php' => 'attendance',
         default => is_string($_GET['page'] ?? null) ? $_GET['page'] : 'dashboard',
     };
+    $profile = $page === 'profile';
     $links = ['dashboard' => ['Dashboard', 'staff.php'], 'fines' => ['Fine Management', 'staff.php?page=fines'],
         'vehicles' => ['Vehicle Lookup', 'staff.php?page=vehicles'], 'maintenance' => ['Parking Maintenance', 'staff.php?page=maintenance'],
         'attendance' => ['My Attendance', 'staff-attendance.php'],
@@ -32,7 +32,10 @@ function staff_head(string $title): void {
     <div class="staff-backdrop" id="staff-backdrop" hidden></div>
     <aside class="staff-sidebar" id="staff-sidebar" aria-label="<?= te('Staff navigation') ?>">
       <button type="button" class="staff-sidebar-close staff-button staff-secondary"><?= te('Close menu') ?></button>
-      <a class="staff-brand" href="staff.php"><span class="staff-monogram" aria-hidden="true">MP</span><span>MyPark Sabah<small><?= te('Staff workspace') ?></small></span></a>
+      <a class="staff-brand" href="staff.php">
+        <span class="logo" role="img" aria-label="MyPark Sabah"></span>
+        <small><?= te('Staff workspace') ?></small>
+      </a>
       <p class="staff-nav-label"><?= te('WORKSPACE') ?></p>
       <nav aria-label="<?= te('Staff pages') ?>">
         <?php foreach ($links as $key => [$label, $href]): ?><a href="<?= e($href) ?>" <?= $page === $key ? 'aria-current="page"' : '' ?>><?= te($label) ?></a><?php endforeach; ?>

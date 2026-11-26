@@ -214,10 +214,11 @@
   let shownSession = dashboardSessions[0];
 
   function formatDashboardCountdown(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    if (minutes === 0) return translate('Less than 1 min');
-    if (minutes < 60) return translate('{minutes} min left', { minutes });
-    return translate('{hours} hr {minutes} min left', { hours: Math.floor(minutes / 60), minutes: minutes % 60 });
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor(seconds / 60) % 60;
+    const remainingSeconds = String(seconds % 60).padStart(2, '0');
+    const template = hours ? '{hours} hr {minutes} min {seconds} sec' : '{minutes} min {seconds} sec';
+    return translate(template, { hours, minutes, seconds: remainingSeconds });
   }
 
   function updateDashboardParking() {

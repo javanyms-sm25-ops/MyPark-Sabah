@@ -1,9 +1,8 @@
 /* Staff Workspace layout and role-specific components. */
 .staff-portal { font-size: 14px; }
 .staff-sidebar { position: fixed; inset: 0 auto 0 0; z-index: 45; display: flex; flex-direction: column; width: 244px; padding: 26px 18px 20px; background: var(--glass-panel); color: var(--text); border-inline-end: 1px solid var(--glass-rim); box-shadow: var(--glass-elevation); overflow-y: auto; }
-.staff-brand { display: flex; align-items: center; gap: 10px; padding: 0 6px 28px; color: var(--text); font-weight: 600; font-size: 16px; text-decoration: none; }
-.staff-brand small { display: block; margin-top: 3px; color: var(--muted-text); font-size: 11px; font-weight: 400; }
-.staff-monogram { display: grid; place-items: center; width: 36px; height: 36px; flex: 0 0 36px; border-radius: 9px; background: var(--glass-control); color: var(--navy); font-size: 13px; }
+.staff-brand { display: grid; justify-items: start; gap: 4px; padding: 0 6px 24px; text-decoration: none; }
+.staff-brand small { color: var(--muted-text); font-size: 11px; }
 .staff-nav-label { margin: 0 12px 10px; color: var(--muted-text); font-size: 10px; letter-spacing: 0.12em; font-weight: 600; }
 .staff-sidebar nav { display: grid; gap: 5px; }
 .staff-sidebar nav a { padding: 12px; border-radius: 8px; color: var(--text); font-size: 13px; line-height: 20px; text-decoration: none; transition: background-color 140ms ease; }

@@ -58,7 +58,10 @@ function &demo_wallet(): array {
 function require_login(string $loginPath = 'pages/login.php'){
     if (!me()) { header('Location: ' . $loginPath); exit; }
     foreach (MyParkData::$records['demo_users'] as $account) {
-        if ($account['id'] === me()['id'] && !$account['blocked'] && $account['role'] === me()['role']) return;
+        if ($account['id'] === me()['id'] && !$account['blocked'] && $account['role'] === me()['role']) {
+            $_SESSION['user']['email'] = $account['email'];
+            return;
+        }
     }
     unset($_SESSION['user']);
     http_response_code(403); exit('Your account is no longer available. Please sign in again.');
