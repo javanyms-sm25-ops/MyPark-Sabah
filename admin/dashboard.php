@@ -43,13 +43,15 @@ $lots = MyParkData::$records['demo_lots'];
 $canReviewOku = oku_can_review($actor);
 if ($canReviewOku || $actor['role'] === 'admin') header('Cache-Control: private, no-store');
 $availability = $snapshot['parking_availability'] ?? null;
-if ($availability !== null) {
+$canShowMap = $actor['role'] === 'superadmin';
+$mapsApiKey = $mapsId = '';
+if ($canShowMap && $availability !== null) {
     $mapsConfigPath = dirname(__DIR__) . '/config/maps.local.php';
     $mapsConfig = is_file($mapsConfigPath) ? require $mapsConfigPath : [];
     $mapsApiKey = trim((string)($mapsConfig['api_key'] ?? ''));
     $mapsId = trim((string)($mapsConfig['map_id'] ?? '')) ?: 'DEMO_MAP_ID';
-    $availabilityTime = new DateTimeImmutable($availability['refreshed_at']);
 }
+$availabilityTime = $availability === null ? null : new DateTimeImmutable($availability['refreshed_at']);
 head('Dashboard');
 ?>
 <link rel="stylesheet" href="assets/css/dashboard.css">
@@ -90,15 +92,18 @@ head('Dashboard');
   <?php endif; ?>
   <?php if ($availability !== null): ?>
     <section class="ops-panel" id="parking-availability" aria-labelledby="parking-availability-heading"
-      data-maps-key="<?= e($mapsApiKey) ?>" data-maps-id="<?= e($mapsId) ?>">
+      data-map-enabled="<?= $canShowMap ? 'true' : 'false' ?>" data-maps-key="<?= e($mapsApiKey) ?>" data-maps-id="<?= e($mapsId) ?>">
       <div class="ops-panel-heading ops-availability-heading">
-        <h2 id="parking-availability-heading"><?= te('Parking Availability Map') ?></h2>
+        <h2 id="parking-availability-heading"><?= te($canShowMap ? 'Parking Availability Map' : 'Parking availability') ?></h2>
         <div class="ops-availability-tools">
           <span><?= te('Last refresh') ?> <time data-availability-time datetime="<?= e($availability['refreshed_at']) ?>"><?= e($availabilityTime->format('j M Y, H:i:s')) ?> MYT</time></span>
           <button class="ops-button" type="button" data-availability-refresh hidden><?= te('Refresh availability') ?></button>
         </div>
       </div>
-      <p class="ops-caption"><?= te('Select a marker or location to filter the reservations below.') ?></p>
+      <p class="ops-caption">
+        <?= te($canShowMap ? 'Select a marker or location to filter the reservations below.' : 'Select a location to filter the reservations below.') ?>
+        <?= te('Updates every 20 seconds while this page is open.') ?>
+      </p>
       <p class="ops-caption" data-maps-message role="status" hidden></p>
       <p class="ops-notice" data-availability-error role="alert" hidden></p>
       <div class="ops-availability-layout">

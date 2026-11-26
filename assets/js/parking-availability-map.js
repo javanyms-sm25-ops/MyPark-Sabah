@@ -19,7 +19,7 @@
     let locations = new Map();
     let selectedId = '', openId = '', positionsKey = '';
     let maps, map, infoWindow, loadTimeout;
-    let mapState = 'idle';
+    let mapState = 'idle', renderedCatalog = '';
 
     refreshButton.hidden = false;
     refreshButton.addEventListener('click', refresh);
@@ -205,6 +205,7 @@
     }
 
     function renderMap() {
+      if (section.dataset.mapEnabled !== 'true') return;
       const first = [...locations.values()].find(location => location.position);
       if (!first) {
         if (mapState === 'ready') updateMarkers();
@@ -227,10 +228,14 @@
         closeInfoWindow();
         return;
       }
-      locations = new Map(snapshot.locations.map(location => [String(location.id), location]));
       time.dateTime = snapshot.refreshed_at;
       time.textContent = dateFormat.format(new Date(snapshot.refreshed_at)) + ' MYT';
       refreshError.hidden = true;
+
+      const catalog = JSON.stringify(snapshot.locations);
+      if (catalog === renderedCatalog) return;
+      renderedCatalog = catalog;
+      locations = new Map(snapshot.locations.map(location => [String(location.id), location]));
       renderLocations();
       renderMap();
     }
@@ -243,6 +248,7 @@
         if (value) refreshError.hidden = true;
       },
       showRefreshError() {
+        if (!refreshError.hidden) return;
         refreshError.textContent = translate('Refresh failed. Showing the last known parking availability.');
         refreshError.hidden = false;
       }

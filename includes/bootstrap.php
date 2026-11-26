@@ -3,6 +3,7 @@ require_once __DIR__ . '/demo-session.php';
 start_demo_session();
 require_once __DIR__ . '/localization.php';
 require_once __DIR__ . '/parking-pricing.php';
+require_once __DIR__ . '/parking-capacity.php';
 require_once __DIR__ . '/parking-notifications.php';
 remember_selected_language();
 date_default_timezone_set('Asia/Kuala_Lumpur');
@@ -55,10 +56,13 @@ function &demo_wallet(): array {
 }
 function require_login(string $loginPath = 'pages/login.php'){
     if (!me()) { header('Location: ' . $loginPath); exit; }
-    foreach (MyParkData::$records['demo_users'] as $account) {
-        if ($account['id'] === me()['id'] && !$account['blocked'] && $account['role'] === me()['role']) return;
+    foreach (MyParkData::$records['demo_users'] as $key => $account) {
+        if ($account['id'] === me()['id'] && !$account['blocked'] && $account['role'] === me()['role']) {
+            $_SESSION['mypark_account_key'] = (string)$key;
+            return;
+        }
     }
-    unset($_SESSION['user']);
+    unset($_SESSION['user'], $_SESSION['mypark_account_key']);
     http_response_code(403); exit('Your account is no longer available. Please sign in again.');
 }
 function require_customer_wallet(): void {
@@ -68,18 +72,6 @@ function require_customer_wallet(): void {
         exit(te(CUSTOMER_WALLET_REQUIRED));
     }
 }
-function booking_expiry(array $booking): ?int {
-    $expiry = filter_var($booking['expires_at'] ?? null, FILTER_VALIDATE_INT);
-    if ($expiry !== false && $expiry > 0) return $expiry;
-
-    // Older reservations use their original start time rather than a new countdown.
-    $created = $booking['created_at'] ?? '';
-    $hours = filter_var($booking['hours'] ?? null, FILTER_VALIDATE_INT);
-    $start = DateTimeImmutable::createFromFormat('!Y-m-d H:i', $created);
-    if (!$start || $start->format('Y-m-d H:i') !== $created || $hours === false || $hours < 1 || $hours > 24) return null;
-    return $start->getTimestamp() + $hours * 3600;
-}
-
 const PARKING_CANCELLATION_SECONDS = 180;
 const PARKING_CANCELLATION_POLICY = 'You can cancel within the first 3 minutes of parking.';
 const PARKING_CANCELLATION_CLOSED = 'The 3-minute cancellation window has closed.';

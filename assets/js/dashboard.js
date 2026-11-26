@@ -1,4 +1,4 @@
-/* Complete session snapshots; each table owns its independent view state. */
+/* Dashboard snapshots and background availability share the database workspace. */
 (function () {
   'use strict';
   const translate = window.MyParkLocale?.text ?? (message => message);
@@ -33,7 +33,7 @@
   let data = JSON.parse(bootstrap.textContent);
   const pipeline = window.MyParkTableData, tables = [], pending = new Set();
   let refreshController, refreshSequence = 0;
-  let parkingMap;
+  let parkingMap, availabilityPending = false;
   const money = v => 'RM ' + Number(v).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const title = v => translate(v.charAt(0).toUpperCase() + v.slice(1));
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
@@ -311,15 +311,50 @@
         table.error('Refresh failed. Existing records have been kept. ' + error.message, () => refresh(table));
         parkingMap?.showRefreshError();
       }
-    } finally { if (sequence === refreshSequence) setRefreshing(); }
+    } finally {
+      if (sequence === refreshSequence) {
+        refreshController = null;
+        setRefreshing();
+      }
+    }
   }
+
+  async function refreshAvailability(reservations) {
+    if (document.hidden || refreshController || pending.size || availabilityPending) return;
+    const sequence = refreshSequence;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    availabilityPending = true;
+
+    try {
+      const response = await fetch('api/availability.php?view=dashboard', {
+        credentials: 'same-origin', cache: 'no-store', signal: controller.signal
+      });
+      const snapshot = await readResponse(response);
+      if (sequence !== refreshSequence) return;
+      if (!Array.isArray(snapshot.locations) || !Number.isFinite(Date.parse(snapshot.refreshed_at))) {
+        throw new Error('Invalid availability snapshot.');
+      }
+      const options = locations => JSON.stringify(locations.map(lot => [lot.id, lot.name]));
+      const locationsChanged = options(snapshot.locations) !== options(data.parking_availability.locations);
+      data.parking_availability = snapshot;
+      if (locationsChanged) reservations.updateOptions();
+      parkingMap.update(snapshot);
+    } catch (_) {
+      if (sequence === refreshSequence) parkingMap.showRefreshError();
+    } finally {
+      window.clearTimeout(timeout);
+      availabilityPending = false;
+    }
+  }
+
   function setRefreshing(table = null) {
     tables.forEach(item => item.loadingState(item === table));
     parkingMap?.setRefreshing(table !== null);
   }
   async function mutate(table, record, action, status) {
     const key = table.kind + ':' + record.id; if (pending.has(key)) return;
-    refreshController?.abort(); ++refreshSequence; setRefreshing(); pending.add(key); table.notice.hidden = true; table.render();
+    refreshController?.abort(); refreshController = null; ++refreshSequence; setRefreshing(); pending.add(key); table.notice.hidden = true; table.render();
     const payload = new FormData(); Object.entries({ action, id: record.id, status, expected_status: record.status, csrf: data.csrf }).forEach(([k, v]) => payload.set(k, String(v)));
     try {
       const result = await readResponse(await fetch('api/dashboard.php', { method: 'POST', body: payload, credentials: 'same-origin' })); applySnapshot(result.data); toast(result.message, 'success');
@@ -342,5 +377,10 @@
       refresh: () => refresh(reservations)
     });
     parkingMap.update(data.parking_availability);
+    const refreshVisibleAvailability = () => refreshAvailability(reservations);
+    window.setInterval(refreshVisibleAvailability, 20000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) refreshVisibleAvailability();
+    });
   }
 }());

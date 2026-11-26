@@ -72,6 +72,16 @@ workspace. The old vehicles.sqlite3 and attendance.sqlite3 files are read
 during migration when present, which requires pdo_sqlite for that first request.
 Do not use this prototype for real payments or official enforcement.
 
+Shared parking availability
+
+Open the same MyPark site on both devices. Each device's localhost points to
+its own computer, so separate XAMPP installations have their own counts.
+Find parking and the Admin/Super Admin dashboard refresh their bay counts while
+visible. Start or cancel a stay on one device and check the other screen.
+Availability uses committed MariaDB bookings. Active, unexpired stays occupy
+one bay of the selected type. All booking confirmations recheck capacity before
+saving a stay or charging a wallet. No new database tables are needed.
+
 To try compound payments, create a fine in Staff → Fine Management, sign out,
 then sign in as a member in the same workspace. Open Compounds and search for the
 fine number or plate. Only members can use wallet credit, pay parking fees or

@@ -81,20 +81,22 @@ head('Find parking');
     <div class="find-parking-tools">
       <p class="find-parking-note">
         <?= te('Availability based on active MyPark sessions.') ?>
-        <span><?= te('Last checked') ?> <time datetime="<?= e($checkedAt->format(DATE_ATOM)) ?>"><?= e($checkedAt->format('g:i A')) ?> MYT</time></span>
+        <span><?= te('Last checked') ?> <time data-parking-checked-at datetime="<?= e($checkedAt->format(DATE_ATOM)) ?>"><?= e($checkedAt->format('g:i:s A')) ?> MYT</time></span>
+        <span data-parking-auto-update hidden><?= te('Updates every 20 seconds while this page is open.') ?></span>
       </p>
       <div class="find-parking-tool-actions">
         <button type="submit" class="btn btn-secondary" form="find-parking-filters" data-refresh-parking><?= te('Apply filters') ?></button>
         <button type="button" class="btn btn-secondary" data-use-location aria-controls="find-parking-map find-parking-list" hidden><?= te('Use my location') ?></button>
       </div>
     </div>
+    <p class="find-parking-note" data-parking-refresh-status role="status"></p>
     <p class="find-parking-note" data-location-status role="status"></p>
   </section>
 
   <section class="find-parking-results" aria-labelledby="find-parking-heading">
     <div class="find-parking-result-heading">
       <div>
-        <h2 id="find-parking-heading"><?= te('Parking locations') ?></h2>
+        <h2 id="find-parking-heading" tabindex="-1"><?= te('Parking locations') ?></h2>
         <p class="find-parking-note" data-parking-result-count role="status" aria-atomic="true">
           <?= te($visibleCount === 1 ? '{count} location found' : '{count} locations found', ['count' => $visibleCount]) ?>
         </p>
@@ -117,7 +119,7 @@ head('Find parking');
           $lng = filter_var($lot['lng'] ?? null, FILTER_VALIDATE_FLOAT);
           $hasPosition = $lat !== false && $lng !== false && abs($lat) <= 90 && abs($lng) <= 180;
           ?>
-          <li class="find-parking-location" data-parking-location
+          <li class="find-parking-location" data-parking-location="<?= e($lot['id']) ?>"
               data-search="<?= e($searchText) ?>" data-regular-available="<?= e($bays['regular']['available']) ?>"
               data-oku-capacity="<?= e($bays['oku']['capacity']) ?>" data-oku-available="<?= e($bays['oku']['available']) ?>"
               <?php if ($hasPosition): ?>data-lat="<?= e($lat) ?>" data-lng="<?= e($lng) ?>"<?php endif; ?>
@@ -126,28 +128,28 @@ head('Find parking');
             <p class="find-parking-address"><?= e(implode(' · ', array_filter([$lot['address'] ?? '', $lot['city'] ?? '']))) ?></p>
             <?php if ($hasPosition): ?><p class="find-parking-distance" data-parking-distance hidden></p><?php endif; ?>
             <dl class="find-parking-availability">
-              <?php if ($bays['regular']['capacity'] === null): ?>
-                <div><dt><?= te('Parking availability') ?></dt><dd class="find-parking-status"><?= te('Capacity unavailable') ?></dd></div>
-              <?php else: ?>
-                <?php foreach (['regular' => 'Regular bays', 'oku' => 'OKU bays'] as $type => $label):
-                    $bay = $bays[$type];
-                    $state = match (true) {
-                        $bay['capacity'] === 0 => 'none',
-                        $bay['available'] === 0 => 'full',
-                        default => 'available',
-                    };
-                    $status = match ($state) {
-                        'none' => t('Not offered'),
-                        'full' => t('Full'),
-                        default => t('{count} available', ['count' => $bay['available']]),
-                    };
-                ?>
-                  <div data-parking-bay="<?= e($type) ?>">
-                    <dt><?= te($label) ?><?php if ($type === 'oku' && $bay['capacity'] > 0): ?> · <?= te('Free') ?><?php endif; ?></dt>
-                    <dd class="find-parking-status" data-bay-status="<?= e($state) ?>"><?= e($status) ?></dd>
-                  </div>
-                <?php endforeach; ?>
-              <?php endif; ?>
+              <div data-parking-capacity-unknown <?= $bays['regular']['capacity'] === null ? '' : 'hidden' ?>>
+                <dt><?= te('Parking availability') ?></dt>
+                <dd class="find-parking-status"><?= te('Capacity unavailable') ?></dd>
+              </div>
+              <?php foreach (['regular' => 'Regular bays', 'oku' => 'OKU bays'] as $type => $label):
+                  $bay = $bays[$type];
+                  $state = match (true) {
+                      !$bay['capacity'] => 'none',
+                      $bay['available'] === 0 => 'full',
+                      default => 'available',
+                  };
+                  $status = match ($state) {
+                      'none' => t('Not offered'),
+                      'full' => t('Full'),
+                      default => t('{count} available', ['count' => $bay['available']]),
+                  };
+              ?>
+                <div data-parking-bay="<?= e($type) ?>" <?= $bay['capacity'] === null ? 'hidden' : '' ?>>
+                  <dt><?= te($label) ?><?php if ($type === 'oku'): ?><span data-parking-oku-rate <?= $bay['capacity'] > 0 ? '' : 'hidden' ?>> · <?= te('Free') ?></span><?php endif; ?></dt>
+                  <dd class="find-parking-status" data-bay-status="<?= e($state) ?>"><?= e($status) ?></dd>
+                </div>
+              <?php endforeach; ?>
             </dl>
             <p class="find-parking-rate"><?= te('Regular parking') ?> · <?= e(parking_price_label()) ?></p>
             <div class="find-parking-actions">

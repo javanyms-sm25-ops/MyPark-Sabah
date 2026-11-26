@@ -2,6 +2,18 @@
 
 const PARKING_BAY_TYPES = ['regular' => 'Regular parking', 'oku' => 'OKU parking'];
 
+function booking_expiry(array $booking): ?int {
+    $expiry = filter_var($booking['expires_at'] ?? null, FILTER_VALIDATE_INT);
+    if ($expiry !== false && $expiry > 0) return $expiry;
+
+    // Older reservations use their original start time rather than a new countdown.
+    $created = $booking['created_at'] ?? '';
+    $hours = filter_var($booking['hours'] ?? null, FILTER_VALIDATE_INT);
+    $start = DateTimeImmutable::createFromFormat('!Y-m-d H:i', $created, new DateTimeZone('Asia/Kuala_Lumpur'));
+    if (!$start || $start->format('Y-m-d H:i') !== $created || $hours === false || $hours < 1 || $hours > 24) return null;
+    return $start->getTimestamp() + $hours * 3600;
+}
+
 function parking_lot_capacity(array $lot): ?int {
     $capacity = filter_var($lot['capacity'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
     return $capacity === false ? null : $capacity;

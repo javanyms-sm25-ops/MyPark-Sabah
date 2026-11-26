@@ -21,11 +21,20 @@
   const canvas = finder.querySelector('#find-parking-map');
   const mapPanel = canvas.closest('.find-parking-map-panel');
   const message = finder.querySelector('[data-map-message]');
+  const refreshButton = finder.querySelector('[data-refresh-parking]');
+  const refreshStatus = finder.querySelector('[data-parking-refresh-status]');
+  const checkedAt = finder.querySelector('[data-parking-checked-at]');
+  const checkTimeFormat = new Intl.DateTimeFormat(document.documentElement.lang || 'en', {
+    timeZone: 'Asia/Kuala_Lumpur', hour: 'numeric', minute: '2-digit', second: '2-digit',
+  });
+  const refreshInterval = 20000;
   // Match the full-width letters, numbers and punctuation supported by the server search.
   const normalize = value => value.replace(/[\uFF01\uFF03-\uFF06\uFF08-\uFF3B\uFF3D-\uFF5D]/g, character =>
     String.fromCharCode(character.charCodeAt(0) - 0xFEE0)).replace(/\u3000/g, ' ').toLowerCase().trim();
   const locations = Array.from(finder.querySelectorAll('[data-parking-location]'), card => ({
     card,
+    id: card.dataset.parkingLocation,
+    availability: card.querySelector('.find-parking-availability'),
     searchText: normalize(card.dataset.search),
     title: card.querySelector('h3').textContent,
     button: card.querySelector('[data-show-on-map]'),
@@ -42,6 +51,10 @@
   let map, infoWindow, selected, timeout, searchTimeout;
   let userPosition, userMarker;
   let mapFailed = false;
+  let refreshTimer;
+  let refreshing = false;
+  let manualRefresh = false;
+  let catalogChanged = false;
   const mapped = locations.filter(location => location.position);
 
   function centerUserPosition() {
@@ -91,7 +104,8 @@
   }
 
   locate.hidden = !mapped.length;
-  finder.querySelector('[data-refresh-parking]').textContent = translate('Refresh availability');
+  refreshButton.textContent = translate('Refresh availability');
+  finder.querySelector('[data-parking-auto-update]').hidden = false;
   locate.addEventListener('click', () => {
     if (!window.isSecureContext || !navigator.geolocation) {
       locationStatus.textContent = translate('Location access requires HTTPS or localhost. You can still search for parking.');
@@ -132,7 +146,7 @@
     content.className = 'find-parking-map-info';
     const title = document.createElement('strong');
     title.textContent = location.title;
-    const availability = location.card.querySelector('.find-parking-availability').cloneNode(true);
+    const availability = location.availability.cloneNode(true);
     const rate = location.card.querySelector('.find-parking-rate').cloneNode(true);
     const link = location.bookingLink?.cloneNode(true);
     content.append(title, availability, rate);
@@ -145,9 +159,10 @@
     infoWindow.open({ map, anchor: location.marker });
   }
 
-  function updateMarkers() {
+  function updateMarkers(refit = true) {
     if (!map || mapFailed) return;
     const visible = locations.filter(location => location.marker && !location.card.hidden);
+    const wasHidden = mapPanel.hidden;
     mapPanel.hidden = !visible.length;
     finder.classList.toggle('has-parking-map', !mapPanel.hidden);
     for (const location of locations) {
@@ -157,7 +172,7 @@
       infoWindow.close();
       selectLocation(null);
     }
-    if (selected || userPosition || !visible.length) return;
+    if (selected || userPosition || !visible.length || (!refit && !wasHidden)) return;
 
     const first = visible[0].position;
     if (visible.every(({ position }) => position.lat === first.lat && position.lng === first.lng)) {
@@ -170,17 +185,18 @@
     map.fitBounds(bounds, 42);
   }
 
-  function applyFilters() {
-    clearTimeout(searchTimeout);
-    const query = normalize(search.value);
+  function renderResults(query, refreshingCounts = false) {
     let count = 0;
     for (const location of locations) {
       const baysAvailable = okuOnly.checked ? location.okuAvailable : location.regularAvailable;
       const matches = location.searchText.includes(query) && (!okuOnly.checked || location.hasOku)
         && (!availableOnly.checked || baysAvailable);
+      if (!matches && refreshingCounts && location.card.contains(document.activeElement)) {
+        locationsHeading.focus({ preventScroll: true });
+      }
       location.card.hidden = !matches;
       if (matches) count++;
-      if (location.bookingLink) {
+      if (location.bookingLink && !refreshingCounts) {
         const bookingUrl = new URL(location.bookingLink.href);
         if (okuOnly.checked) bookingUrl.searchParams.set('bay_type', 'oku');
         else bookingUrl.searchParams.delete('bay_type');
@@ -193,6 +209,11 @@
     empty.hidden = count > 0;
     clear.hidden = !query && !availableOnly.checked && !okuOnly.checked;
     if (okuHelp) okuHelp.hidden = !okuOnly.checked;
+  }
+
+  function applyFilters() {
+    clearTimeout(searchTimeout);
+    renderResults(normalize(search.value));
     finder.classList.toggle('is-oku-search', okuOnly.checked);
     list.scrollTop = 0;
 
@@ -210,6 +231,111 @@
       if (popupLink) popupLink.href = selected.bookingLink.href;
     }
   }
+
+  function updateAvailabilityRows(root, bays) {
+    root.querySelector('[data-parking-capacity-unknown]').hidden = bays.regular.capacity !== null;
+    for (const type of ['regular', 'oku']) {
+      const { capacity, available } = bays[type];
+      const row = root.querySelector('[data-parking-bay="' + type + '"]');
+      row.hidden = capacity === null;
+      const status = row.querySelector('[data-bay-status]');
+      const state = !capacity ? 'none' : available === 0 ? 'full' : 'available';
+      const label = state === 'none' ? translate('Not offered')
+        : state === 'full' ? translate('Full') : translate('{count} available', { count: available });
+      status.dataset.bayStatus = state;
+      if (status.textContent !== label) status.textContent = label;
+      if (type === 'oku') row.querySelector('[data-parking-oku-rate]').hidden = !(capacity > 0);
+    }
+  }
+
+  function setRefreshStatus(label, stale = false) {
+    const text = label ? translate(label) : '';
+    if (refreshStatus.textContent !== text) refreshStatus.textContent = text;
+    refreshStatus.toggleAttribute('data-stale', stale);
+  }
+
+  function scheduleRefresh() {
+    clearTimeout(refreshTimer);
+    if (!document.hidden) refreshTimer = setTimeout(refreshAvailability, refreshInterval);
+  }
+
+  async function refreshAvailability() {
+    if (document.hidden || refreshing) return;
+    refreshing = true;
+    const controller = new AbortController();
+    const deadline = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch('api/availability.php?view=counts', {
+        cache: 'no-store',
+        credentials: 'same-origin',
+        signal: controller.signal,
+      });
+      if (!response.ok || response.redirected) throw new Error('Availability unavailable');
+      const snapshot = await response.json();
+      const time = new Date(snapshot.checkedAt);
+      if (typeof snapshot.checkedAt !== 'string' || Number.isNaN(time.getTime()) || !Array.isArray(snapshot.locations)) {
+        throw new Error('Availability response is invalid');
+      }
+      const byId = new Map(snapshot.locations.map(location => [String(location.id), location.bays]));
+      catalogChanged = byId.size !== locations.length || locations.some(location => !byId.has(location.id));
+      if (catalogChanged) {
+        if (manualRefresh) window.location.reload();
+        else setRefreshStatus('Parking locations changed. Refresh to see the latest list.', true);
+        return;
+      }
+
+      const validBay = bay => bay && (bay.capacity === null ? bay.available === null
+        : Number.isSafeInteger(bay.capacity) && bay.capacity >= 0
+          && Number.isSafeInteger(bay.available) && bay.available >= 0 && bay.available <= bay.capacity);
+      if (Array.from(byId.values()).some(bays => !validBay(bays?.regular) || !validBay(bays?.oku))) {
+        throw new Error('Bay counts are invalid');
+      }
+      for (const location of locations) {
+        const bays = byId.get(location.id);
+        location.hasOku = bays.oku.capacity > 0;
+        location.regularAvailable = bays.regular.available > 0;
+        location.okuAvailable = bays.oku.available > 0;
+        updateAvailabilityRows(location.availability, bays);
+      }
+      checkedAt.dateTime = snapshot.checkedAt;
+      checkedAt.textContent = checkTimeFormat.format(time) + ' MYT';
+      renderResults(normalize(search.value), true);
+      updateMarkers(false);
+      if (selected) {
+        const popup = infoWindow.getContent()?.querySelector('.find-parking-availability');
+        if (popup) updateAvailabilityRows(popup, byId.get(selected.id));
+      }
+      setRefreshStatus(manualRefresh ? 'Availability updated.' : '');
+    } catch (_) {
+      setRefreshStatus('Could not refresh availability. Showing the last successful check.', true);
+    } finally {
+      clearTimeout(deadline);
+      refreshing = false;
+      manualRefresh = false;
+      scheduleRefresh();
+    }
+  }
+
+  refreshButton.addEventListener('click', event => {
+    if (catalogChanged) return;
+    event.preventDefault();
+    manualRefresh = true;
+    setRefreshStatus('Checking availability…');
+    refreshAvailability();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) clearTimeout(refreshTimer);
+    else refreshAvailability();
+  });
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) refreshAvailability();
+  });
+  window.addEventListener('online', refreshAvailability);
+  window.addEventListener('offline', () => {
+    setRefreshStatus('Could not refresh availability. Showing the last successful check.', true);
+  });
+  scheduleRefresh();
 
   search.addEventListener('input', () => {
     clearTimeout(searchTimeout);

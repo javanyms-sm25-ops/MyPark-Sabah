@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/oku-verification.php';
-require_once __DIR__ . '/parking-capacity.php';
+require_once __DIR__ . '/parking-availability.php';
 require_once __DIR__ . '/staff-leave.php';
 
 // The Dashboard reads from the current database workspace.
@@ -28,32 +28,6 @@ function ops_valid_csrf(array $input): void {
     if (!is_string($token) || empty($_SESSION['csrf']) || !hash_equals($_SESSION['csrf'], $token)) {
         throw new RuntimeException('Your session token has expired. Refresh the page and try again.', 403);
     }
-}
-
-function ops_parking_availability(array $lots, array $bookings): array {
-    $occupiedByLot = parking_occupancy_by_lot($bookings);
-    $locations = [];
-    foreach ($lots as $lot) {
-        $id = (int)$lot['id'];
-        $capacity = parking_lot_capacity($lot);
-        $bays = parking_bay_counts($lot, $occupiedByLot[$id] ?? []);
-        $occupied = array_sum(array_column($bays, 'occupied'));
-        $lat = filter_var($lot['lat'] ?? null, FILTER_VALIDATE_FLOAT);
-        $lng = filter_var($lot['lng'] ?? null, FILTER_VALIDATE_FLOAT);
-        $position = $lat !== false && $lng !== false && abs($lat) <= 90 && abs($lng) <= 180
-            ? ['lat' => $lat, 'lng' => $lng] : null;
-        $locations[] = [
-            'id' => $id,
-            'name' => (string)$lot['name'],
-            'city' => (string)($lot['city'] ?? ''),
-            'position' => $position,
-            'capacity' => $capacity,
-            'occupied' => $occupied,
-            'available' => $capacity === null ? null : array_sum(array_column($bays, 'available')),
-            'bays' => $bays,
-        ];
-    }
-    return ['locations' => $locations, 'refreshed_at' => date(DATE_ATOM)];
 }
 
 function ops_snapshot(array $actor): array {
@@ -90,8 +64,11 @@ function ops_snapshot(array $actor): array {
             'revenue' => array_sum(array_map(static fn($b) => in_array($b['status'], ['active', 'completed'], true) ? $b['fee'] : 0, $reservations))
         ]
     ];
-    if ($actor['role'] === 'superadmin') {
-        $snapshot['parking_availability'] = ops_parking_availability(MyParkData::$records['demo_lots'], MyParkData::$records['demo_bookings']);
+    if (in_array($actor['role'], ['admin', 'superadmin'], true)) {
+        $snapshot['parking_availability'] = [
+            'locations' => parking_availability_catalog(MyParkData::$records['demo_lots'], MyParkData::$records['demo_bookings']),
+            'refreshed_at' => date(DATE_ATOM),
+        ];
     }
     return $snapshot;
 }

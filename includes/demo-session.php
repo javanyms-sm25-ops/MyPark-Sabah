@@ -1,6 +1,6 @@
 <?php
 
-function start_demo_session(): void {
+function start_demo_session(bool $trackActivity = true): void {
     $now = time();
     $lifetime = 31 * 86400;
     $legacyName = session_name();
@@ -31,7 +31,7 @@ function start_demo_session(): void {
                     'transactions' => $legacy['demo_wallet_transactions'] ?? [],
                 ];
             }
-            unset($legacy['user'], $legacy['csrf'], $legacy['demo_wallet_balance'], $legacy['demo_wallet_transactions']);
+            unset($legacy['user'], $legacy['mypark_account_key'], $legacy['csrf'], $legacy['demo_wallet_balance'], $legacy['demo_wallet_transactions']);
         }
         session_id('');
     }
@@ -71,8 +71,8 @@ function start_demo_session(): void {
     // Keep the browser's records available while expiring idle sign-ins separately.
     if (isset($_SESSION['user'])) {
         if ($now - ($_SESSION['demo_last_active'] ?? $now) >= 1440) {
-            unset($_SESSION['user'], $_SESSION['csrf'], $_SESSION['demo_last_active']);
-        } else {
+            unset($_SESSION['user'], $_SESSION['mypark_account_key'], $_SESSION['csrf'], $_SESSION['demo_last_active']);
+        } elseif ($trackActivity) {
             $_SESSION['demo_last_active'] = $now;
         }
     }

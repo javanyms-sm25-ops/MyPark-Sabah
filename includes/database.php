@@ -74,9 +74,7 @@ final class MyParkData {
         $session = $_SESSION;
         $legacy = isset($session['demo_users'], $session['demo_lots']);
         $oldScope = $session['vehicle_account_scope'] ?? '';
-        $workspace = $session['mypark_workspace'] ?? ($legacy
-            ? ($oldScope ?: substr(hash('sha256', session_id()), 0, 48))
-            : 'shared');
+        $workspace = self::sessionWorkspace($session);
 
         try {
             $database = mypark_database();
@@ -88,7 +86,7 @@ final class MyParkData {
             $lock->execute([$workspace]);
             $newWorkspace = $lock->rowCount() === 1;
             self::$workspaceId = $workspace;
-            $original = self::load($database);
+            $original = self::load($database, $workspace);
             self::$records = $original;
 
             if ($newWorkspace && $legacy) {
@@ -137,18 +135,63 @@ final class MyParkData {
         });
     }
 
-    private static function load(PDO $database): array {
-        $query = $database->prepare('SELECT collection, record_key, payload FROM mypark_records
-            WHERE workspace_id = ? ORDER BY collection, position');
+    private static function sessionWorkspace(array $session): string {
+        return $session['mypark_workspace'] ?? (isset($session['demo_users'], $session['demo_lots'])
+            ? (($session['vehicle_account_scope'] ?? '') ?: substr(hash('sha256', session_id()), 0, 48))
+            : 'shared');
+    }
+
+    /** Read committed parking records without taking the workspace write lock. */
+    public static function readParkingState(array $session): array {
+        $database = mypark_database();
+        $workspace = self::sessionWorkspace($session);
+        $collections = ['demo_users', 'demo_lots', 'demo_bookings'];
+        $user = $session['user'];
+        $key = $session['mypark_account_key'] ?? null;
+
+        // A consistent read also covers any multipart records loaded separately.
+        $database->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY');
+        $database->beginTransaction();
+        try {
+            $data = self::load($database, $workspace, $collections, $key);
+            $accounts = $data['demo_users'] ?? [];
+            if ($key !== null && ($accounts[$key]['id'] ?? null) !== $user['id']) {
+                $accounts = self::load($database, $workspace, ['demo_users'])['demo_users'] ?? [];
+            }
+            foreach ($accounts as $account) {
+                if ($account['id'] === $user['id'] && $account['role'] === $user['role'] && !$account['blocked']) {
+                    $database->commit();
+                    return ['role' => $account['role'], 'lots' => array_values($data['demo_lots'] ?? []),
+                        'bookings' => $data['demo_bookings'] ?? []];
+                }
+            }
+            throw new RuntimeException('Your account is no longer available. Please sign in again.', 403);
+        } finally {
+            if ($database->inTransaction()) $database->rollBack();
+        }
+    }
+
+    private static function load(PDO $database, string $workspace, array $collections = [], ?string $accountKey = null): array {
+        $parameters = [$workspace];
+        $sql = 'SELECT collection, record_key, payload FROM mypark_records WHERE workspace_id = ?';
+        if ($collections) {
+            $sql .= ' AND collection IN (' . implode(', ', array_fill(0, count($collections), '?')) . ')';
+            array_push($parameters, ...$collections);
+        }
+        if ($accountKey !== null) {
+            $sql .= " AND (collection <> 'demo_users' OR record_key = ?)";
+            $parameters[] = $accountKey;
+        }
+        $query = $database->prepare($sql . ' ORDER BY collection, position');
         $parts = $database->prepare('SELECT bytes FROM mypark_record_parts
             WHERE workspace_id = ? AND collection = ? AND record_key = ? ORDER BY part_number');
-        $query->execute([self::$workspaceId]);
+        $query->execute($parameters);
         $data = [];
         foreach ($query as $row) {
             $collection = $row['collection'];
             $payload = $row['payload'];
             if ($payload === 'null') {
-                $parts->execute([self::$workspaceId, $collection, $row['record_key']]);
+                $parts->execute([$workspace, $collection, $row['record_key']]);
                 $payload = implode('', $parts->fetchAll(PDO::FETCH_COLUMN));
             }
             $value = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
