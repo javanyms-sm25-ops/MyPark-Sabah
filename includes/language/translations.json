@@ -651,6 +651,7 @@
   "ID": {"zh-Hans":"编号","ms":"ID"},
   "Premium": {"zh-Hans":"优选","ms":"Premium"},
   "Sabah, Malaysia": {"zh-Hans":"马来西亚沙巴","ms":"Sabah, Malaysia"},
+  "Favourite {location}": {"zh-Hans":"收藏{location}","ms":"Tandakan {location} sebagai kegemaran"},
   "/ hour": {"zh-Hans":"/ 小时","ms":"/ jam"},
   "{count} spaces": {"zh-Hans":"{count} 个车位","ms":"{count} petak"},
   "Use demo credit to": {"zh-Hans":"使用演示余额","ms":"Gunakan kredit demo untuk"},

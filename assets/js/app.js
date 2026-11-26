@@ -365,19 +365,23 @@
   document.querySelectorAll('[data-wish]').forEach(function (button) {
     const key = 'park-wishlist';
     let savedItems = readWishlist(key);
-    if (savedItems.includes(button.dataset.wish)) button.textContent = '♥';
+    function renderFavourite() {
+      const saved = savedItems.includes(button.dataset.wish);
+      button.textContent = saved ? '♥' : '♡';
+      button.setAttribute('aria-pressed', String(saved));
+    }
+    renderFavourite();
 
     button.addEventListener('click', function () {
       if (readStorage(key) !== null) savedItems = readWishlist(key);
       const id = button.dataset.wish;
       if (savedItems.includes(id)) {
         savedItems = savedItems.filter(function (item) { return item !== id; });
-        button.textContent = '♡';
       } else {
         savedItems.push(id);
-        button.textContent = '♥';
       }
       writeStorage(key, JSON.stringify(savedItems));
+      renderFavourite();
       if (window.MyParkToast) {
         window.MyParkToast.show(savedItems.includes(id) ? 'Parking location added to favourites.' : 'Parking location removed from favourites.', savedItems.includes(id) ? 'success' : 'info');
       }

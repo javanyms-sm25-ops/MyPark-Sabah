@@ -53,6 +53,11 @@ if ($resume) {
 
 $wallet = demo_wallet();
 $lots = active_parking_locations();
+$locationPhotos = [
+    'Kota Kinabalu Waterfront' => 'kota-kinabalu-waterfront.webp',
+    'Sandakan Central Parking' => 'sandakan-central-parking.webp',
+    'Tawau Town Centre' => 'tawau-town-centre.webp',
+];
 $occupiedByLot = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);
 $bookings = array_values(array_filter(MyParkData::$records['demo_bookings'], fn($booking) => $booking['user_id'] === $userId));
 $completedBookings = array_filter($bookings, fn($booking) => $booking['status'] === 'completed');
@@ -121,10 +126,18 @@ head('Sabah Parking');
 </section>
 
 <h2 id="locations"><?= te('Popular parking locations') ?></h2>
-<section class="lot-grid">
+<section class="lot-grid dashboard-location-grid" aria-labelledby="locations">
   <?php foreach ($lots as $lot): ?>
+    <?php $photo = $locationPhotos[$lot['name']] ?? null; ?>
     <article class="card lot-card" data-city="<?= e($lot['city']) ?>" data-name="<?= e(strtolower($lot['name'] . ' ' . $lot['city'])) ?>">
-      <div class="lot-cover">📍 <span><?= te('Sabah, Malaysia') ?></span><button type="button" class="heart" data-wish="<?= $lot['id'] ?>">♡</button></div>
+      <div class="lot-cover">
+        <?php if ($photo !== null): ?>
+          <img class="lot-photo" src="assets/images/<?= e($photo) ?>" alt="" loading="lazy" decoding="async">
+        <?php endif; ?>
+        <span class="lot-region"><?= te('Sabah, Malaysia') ?></span>
+        <button type="button" class="heart" data-wish="<?= e($lot['id']) ?>" aria-pressed="false"
+                aria-label="<?= te('Favourite {location}', ['location' => $lot['name']]) ?>">♡</button>
+      </div>
       <h3><?= e($lot['name']) ?></h3>
       <p><?= e($lot['address']) ?> · <?= e($lot['city']) ?></p>
       <p class="rate"><?= e(parking_price_label()) ?></p>
@@ -136,8 +149,10 @@ head('Sabah Parking');
           <?php if ($bays['oku']['capacity'] > 0): ?> · <?= te('OKU bays available: {count}', ['count' => $bays['oku']['available']]) ?> (<?= te('Free') ?>)<?php endif; ?>
         </p>
       <?php endif; ?>
-      <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $lot['lat'] ?>,<?= $lot['lng'] ?>" target="_blank" rel="noopener"><?= te('View map') ?></a>
-      <a class="btn" href="parking-details.php?lot_id=<?= e($lot['id']) ?>"><?= te('Select location') ?></a>
+      <div class="lot-actions">
+        <a class="btn btn-secondary" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $lot['lat'] ?>,<?= $lot['lng'] ?>" target="_blank" rel="noopener"><?= te('View map') ?></a>
+        <a class="btn" href="parking-details.php?lot_id=<?= e($lot['id']) ?>"><?= te('Select location') ?></a>
+      </div>
     </article>
   <?php endforeach; ?>
 </section>
