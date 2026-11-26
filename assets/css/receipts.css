@@ -133,6 +133,16 @@
   color: var(--button-text);
 }
 
+:root:not([data-theme="dark"]) #parkingSessionsTable .ajax-table-sort {
+  background: var(--card);
+  color: var(--navy);
+  border: 1px solid var(--glass-field-border);
+}
+
+:root:not([data-theme="dark"]) #parkingSessionsTable .ajax-table-sort:hover {
+  background: var(--glass-control-hover);
+}
+
 .receipts-page .btn.btn-secondary {
   background: var(--glass-control);
   color: var(--navy);
