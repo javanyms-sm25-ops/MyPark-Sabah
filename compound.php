@@ -73,8 +73,14 @@ if ($isPaymentRequest) {
                 'amount' => staff_money($paid['paid_amount_cents']),
                 'compound' => $paid['code'],
             ]),
+            'compound_payment' => [
+                'user_id' => $actor['id'],
+                'lookup_key' => $lookupKey,
+                'code' => $paid['code'],
+                'reference' => $paid['payment_reference'],
+            ],
         ]);
-        header('Location: compound.php?q=' . rawurlencode($query));
+        header('Location: compound.php?q=' . rawurlencode($query), true, 303);
         exit;
     }
     http_response_code(409);
@@ -91,11 +97,27 @@ if ($canPay && $results) {
         }
     }
 }
+$payment = $_SESSION['flash']['compound_payment'] ?? null;
+$paidReceipt = null;
+$paymentMessage = '';
+if (!$isPaymentRequest && $canPay && ($payment['user_id'] ?? null) === $actor['id']
+    && $payment['lookup_key'] === $lookupKey) {
+    $receiptId = $compoundReceiptIds[$payment['code']][$payment['reference']] ?? null;
+    $paidReceipt = receipt_for_owner($actor['id'], $receiptId);
+    if ($paidReceipt) $paymentMessage = flash()['message'];
+}
+
 $lookupUrl = 'compound.php?q=' . rawurlencode($query);
 head($title);
 ?>
 <link rel="stylesheet" href="assets/css/compound.css">
 <div class="compound-page">
+  <?php if ($paidReceipt): ?>
+    <div class="payment-confirmation">
+      <p role="status"><strong><?= te('Payment confirmed') ?></strong><br><?= e($paymentMessage) ?></p>
+      <a class="btn" href="<?= e(receipt_url($paidReceipt)) ?>"><?= te('View receipt') ?></a>
+    </div>
+  <?php endif; ?>
   <section class="compound-hero" aria-labelledby="compound-title">
     <h1 id="compound-title"><?= te($title) ?></h1>
     <div class="card compound-search">

@@ -68,8 +68,7 @@ $receipts = MyParkData::$records['demo_receipts'][$userId] ?? [];
 $receipt = null;
 
 if ($showDetails) {
-    $id = $_GET['id'];
-    if (is_string($id) && preg_match('/\A[0-9A-F]{16}\z/', $id)) $receipt = $receipts[$id] ?? null;
+    $receipt = receipt_for_owner($userId, $_GET['id']);
     if (!$receipt) http_response_code(404);
 } else {
     $receipts = array_filter($receipts, static fn($item) =>
@@ -91,7 +90,9 @@ head('Digital receipts');
   <?php if (!$showDetails): ?>
     <div class="receipts-hero">
       <h1><?= te('Digital receipts') ?></h1>
-      <p><?= te('View or print receipts from the past 30 days.') ?></p>
+      <p><?= te('Receipts are available for the last {days} days, including today. Save a PDF if you need a copy for later.', [
+          'days' => RECEIPT_WINDOW_DAYS,
+      ]) ?></p>
     </div>
 
     <nav class="receipts-categories" aria-label="Receipt categories">
@@ -206,6 +207,9 @@ head('Digital receipts');
       </dl>
       <p><?= te(receipt_payment_note($receipt)) ?></p>
       <div class="receipt-actions">
+        <p><?= te('Available through {date} (Malaysia time).', [
+            'date' => receipt_available_through($receipt['at'])->format('j M Y'),
+        ]) ?></p>
         <button type="button" onclick="window.print()"><?= te('Print or save as PDF') ?></button>
       </div>
     </article>

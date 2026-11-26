@@ -4,6 +4,7 @@ require_customer_wallet();
 
 require_once __DIR__ . '/includes/parking-booking.php';
 require_once __DIR__ . '/includes/parking-topup.php';
+require_once __DIR__ . '/includes/receipt-data.php';
 
 $userId = me()['id'];
 $customer = me()['role'] === 'user';
@@ -38,15 +39,16 @@ header('Cache-Control: private, no-store');
 $errors = [];
 $bookingError = $vehicleStorageError;
 $review = null;
-$topupCredited = false;
 $addVehicleError = '';
 $pending = $_SESSION['parking_reviews'][$userId] ?? null;
 $pendingReview = $pending['review'] ?? null;
 // Old sessions stored the review metadata directly beside the draft.
 $confirmation = $pendingReview ?? $pending;
 $checkout = $_SESSION['paypal_checkout'] ?? null;
-$topupCredited = isset($pending['topup']) && ($checkout['user_id'] ?? null) === $userId
-    && ($checkout['parking'] ?? null) === $pending['topup'] && !empty($checkout['credited']);
+$step = $_GET['step'] ?? '';
+$topupReference = $step === 'resume' ? ($_GET['parking'] ?? null) : ($pending['topup'] ?? null);
+$topupCredited = is_string($topupReference) && ($checkout['user_id'] ?? null) === $userId
+    && ($checkout['parking'] ?? null) === $topupReference && !empty($checkout['credited']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
@@ -165,12 +167,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $bookingError = $error->getMessage();
         http_response_code($error->getCode() ?: 503);
     }
-} elseif (($_GET['step'] ?? '') === 'resume' && $vehicleStorageError === '') {
+} elseif ($step === 'resume' && $vehicleStorageError === '') {
     $saved = parking_topup_context($userId, $_GET['parking'] ?? null);
     if ($saved === null) {
         http_response_code(409);
         $bookingError = 'This booking is no longer saved. Choose your parking details again.';
-        $topupCredited = false;
     } else {
         $draft = $saved['draft'];
         $checked = validate_parking_draft(me(), $draft);
@@ -186,9 +187,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
     }
-} elseif (($_GET['step'] ?? '') === 'edit' && isset($pending['draft']) && !isset($confirmation['token'])) {
+} elseif ($step === 'edit' && isset($pending['draft']) && !isset($confirmation['token'])) {
     $draft = $pending['draft'];
-} elseif (($_GET['step'] ?? '') === 'review' && $vehicleStorageError === '') {
+} elseif ($step === 'review' && $vehicleStorageError === '') {
     if ($pendingReview === null) {
         http_response_code(409);
         $bookingError = 'This review is no longer valid. Check your parking details again.';
@@ -211,6 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$topupReceiptUrl = $topupCredited ? receipt_checkout_url($userId, $checkout) : null;
 $lots = active_parking_locations();
 head('Parking details');
 ?>

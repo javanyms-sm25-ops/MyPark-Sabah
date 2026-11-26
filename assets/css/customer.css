@@ -390,7 +390,7 @@
   scroll-margin-top: 7rem;
 }
 
-.booking-wallet-notice {
+:is(.booking-wallet-notice, .payment-confirmation) {
   margin: 12px 0;
   padding: 12px 16px;
   border-inline-start: 3px solid var(--green);
@@ -404,8 +404,8 @@
   background: var(--glass-warning-bg);
 }
 
-.booking-wallet-notice p { margin: 4px 0; }
-.booking-wallet-notice .btn { margin-top: 8px; }
+:is(.booking-wallet-notice, .payment-confirmation) p { margin: 4px 0; }
+:is(.booking-wallet-notice, .payment-confirmation) .btn { margin-top: 8px; }
 
 .parking-vehicle-dialog,
 .parking-review-dialog {

@@ -6,9 +6,45 @@ const RECEIPT_TYPES = [
     'topup' => 'Wallet top-ups',
 ];
 
+const RECEIPT_WINDOW_DAYS = 30;
+
 function receipt_window(): array {
     $today = new DateTimeImmutable('today');
-    return [$today->modify('-29 days'), $today];
+    return [$today->modify('-' . (RECEIPT_WINDOW_DAYS - 1) . ' days'), $today];
+}
+
+function receipt_available_through(int $timestamp): DateTimeImmutable {
+    return (new DateTimeImmutable())->setTimestamp($timestamp)->modify('+' . (RECEIPT_WINDOW_DAYS - 1) . ' days');
+}
+
+function receipt_for_owner(int $userId, mixed $id): ?array {
+    if (!is_string($id) || !preg_match('/\A[0-9A-F]{16}\z/', $id)) return null;
+    $receipt = MyParkData::$records['demo_receipts'][$userId][$id] ?? null;
+    [$firstDay] = receipt_window();
+    return $receipt && $receipt['at'] >= $firstDay->getTimestamp() ? $receipt : null;
+}
+
+function receipt_url(array $receipt): string {
+    return 'receipts.php?' . http_build_query(['type' => $receipt['type'], 'id' => $receipt['id']]);
+}
+
+function receipt_checkout_url(int $userId, mixed $checkout): ?string {
+    if (!is_array($checkout) || ($checkout['user_id'] ?? null) !== $userId
+        || empty($checkout['credited']) || empty($checkout['order_id'])) {
+        return null;
+    }
+
+    receipt_sync();
+    foreach (MyParkData::$records['demo_wallets'][$userId]['transactions'] ?? [] as $transaction) {
+        if (($transaction['type'] ?? 'topup') !== 'topup' || ($transaction['status'] ?? '') !== 'paid'
+            || ($transaction['reference'] ?? '') !== $checkout['order_id']) {
+            continue;
+        }
+        $receipt = receipt_for_owner($userId, $transaction['receipt_id'] ?? null);
+        return $receipt ? receipt_url($receipt) : null;
+    }
+
+    return null;
 }
 
 function receipt_date(string $value, string $format = 'Y-m-d'): ?DateTimeImmutable {

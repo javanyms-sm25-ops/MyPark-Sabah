@@ -18,7 +18,12 @@ $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'
     <li<?= $review ? ' aria-current="step"' : '' ?>><b>3</b> <?= te('Review and start parking') ?></li>
   </ol>
   <?php if ($topupCredited && !$review): ?>
-    <p class="muted" role="status"><?= te('Your top-up is in your wallet.') ?></p>
+    <div class="booking-wallet-notice">
+      <p role="status"><?= te('Your top-up is in your wallet.') ?></p>
+      <?php if ($topupReceiptUrl): ?>
+        <a class="btn btn-secondary" href="<?= e($topupReceiptUrl) ?>"><?= te('View top-up receipt') ?></a>
+      <?php endif; ?>
+    </div>
   <?php endif; ?>
   <p id="bookingError" class="booking-error" role="alert" tabindex="-1" <?= !$bookingError && !$errors ? 'hidden' : '' ?>>
     <?= te($bookingError ?: ($errors ? 'Check the highlighted booking details.' : '')) ?>
@@ -183,7 +188,12 @@ $okuProfileUrl = 'oku-verification.php?' . http_build_query(['from' => 'booking'
       : 'OKU parking is free. The times below are estimates in Malaysia time.') ?></p>
     <p class="hint"><?= te(PARKING_CANCELLATION_POLICY) ?></p>
     <?php if ($topupCredited): ?>
-      <p class="booking-wallet-notice" role="status"><?= te('Your top-up is in your wallet.') ?></p>
+      <div class="booking-wallet-notice">
+        <p role="status"><?= te('Your top-up is in your wallet.') ?></p>
+        <?php if ($topupReceiptUrl): ?>
+          <a class="btn btn-secondary" href="<?= e($topupReceiptUrl) ?>"><?= te('View top-up receipt') ?></a>
+        <?php endif; ?>
+      </div>
     <?php endif; ?>
     <?php if (!$canPay): ?>
       <div class="booking-wallet-notice booking-wallet-notice--shortfall">

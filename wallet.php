@@ -3,11 +3,15 @@ require __DIR__ . '/includes/bootstrap.php';
 require_customer_wallet();
 require_once __DIR__ . '/includes/parking-topup.php';
 require_once __DIR__ . '/includes/paypal-checkout.php';
+require_once __DIR__ . '/includes/receipt-data.php';
 header('Cache-Control: private, no-store');
 
 $wallet =& demo_wallet();
 $transactions = array_reverse($wallet['transactions']);
 $userId = me()['id'];
+$topupReceiptUrl = ($_GET['topup'] ?? null) === 'complete'
+    ? receipt_checkout_url($userId, $_SESSION['paypal_checkout'] ?? null)
+    : null;
 $bookings = array_column(MyParkData::$records['demo_bookings'], null, 'id');
 $invalidAmount = $_SESSION['wallet_topup_invalid_amount'][$userId] ?? null;
 if (ajax_table_fragment() === null) unset($_SESSION['wallet_topup_invalid_amount'][$userId]);
@@ -21,6 +25,12 @@ head('Wallet');
 
 <p class="eyebrow"><?= te('MyPark WALLET') ?></p>
 <h1><?= te('My wallet') ?></h1>
+<?php if ($topupReceiptUrl): ?>
+  <div class="payment-confirmation" id="topup-result">
+    <p role="status"><?= te('Your top-up is in your wallet.') ?></p>
+    <a class="btn" href="<?= e($topupReceiptUrl) ?>"><?= te('View receipt') ?></a>
+  </div>
+<?php endif; ?>
 
 <div class="wallet-layout">
   <section class="wallet-balance fade-in">

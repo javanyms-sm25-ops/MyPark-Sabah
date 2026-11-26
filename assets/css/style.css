@@ -2648,6 +2648,14 @@ header:has(.notification-menu[open]) {
   margin: 6px 0;
 }
 
+.ticket-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-block: 16px;
+}
+
 #qr {
   display: flex;
   justify-content: center;
