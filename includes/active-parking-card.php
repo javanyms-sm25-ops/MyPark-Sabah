@@ -10,6 +10,11 @@ foreach ($bookings as $booking) {
 }
 usort($parkingSessions, static fn($first, $second) => ($first['end'] ?? PHP_INT_MAX) <=> ($second['end'] ?? PHP_INT_MAX));
 $parkingCount = count($parkingSessions);
+$focusSession = array_search($openSessionId ?? false, array_column(array_column($parkingSessions, 'booking'), 'id'), true);
+if ($focusSession !== false && $focusSession > 0) {
+    // Keep the action's error next to the session it applies to.
+    array_unshift($parkingSessions, ...array_splice($parkingSessions, $focusSession, 1));
+}
 ?>
 <section class="card active-parking" aria-labelledby="active-parking-title" data-active-parking
     data-server-time="<?= e($parkingNow) ?>" data-reminder-seconds="<?= e(PARKING_REMINDER_SECONDS) ?>">
@@ -20,13 +25,27 @@ $parkingCount = count($parkingSessions);
         <rect x="3" y="10" width="18" height="7" rx="2"/>
       </svg>
     </span>
-    <h2 id="active-parking-title"><?= te('Active parking') ?></h2>
+    <h2 id="active-parking-title" tabindex="-1"><?= te('Active parking') ?></h2>
   </div>
+  <?php if (!empty($managementError) && $focusSession === false): ?>
+    <p class="active-parking__error" role="alert" tabindex="-1" data-parking-action-error><?= te($managementMessage) ?></p>
+  <?php endif; ?>
   <?php foreach ($parkingSessions as $index => ['booking' => $session, 'end' => $end, 'duration' => $duration]): ?>
     <?php
       $remaining = $end === null ? null : $end - $parkingNow;
       $endingSoon = $remaining !== null && $remaining <= PARKING_REMINDER_SECONDS;
       $endDate = $end === null || date('Y-m-d', $end) === date('Y-m-d', $parkingNow) ? '' : date('Y-m-d', $end);
+      $showActionError = !empty($managementError) && $openSessionId === $session['id'];
+      $deadline = booking_cancellation_deadline($session);
+      $canCancel = $deadline !== null && $parkingNow < $deadline;
+      $deadlineLabel = $deadline === null ? '' : date(
+          date('Y-m-d', $deadline) === date('Y-m-d', $parkingNow) ? 'g:i:s A' : 'j M, g:i:s A',
+          $deadline
+      ) . ' MYT';
+      $cancelHintId = 'dashboard-cancellation-' . $session['id'];
+      $bayType = parking_booking_bay_type($session);
+      $destination = $bayType === 'regular' ? 'oku' : 'regular';
+      $needsApproval = $destination === 'oku' && !oku_is_approved($userId);
     ?>
     <div class="active-parking__session" data-dashboard-parking-session data-expires="<?= e($end ?? '') ?>"
         <?= $endingSoon ? 'data-ending-soon' : '' ?> <?= $index > 0 ? 'hidden' : '' ?>>
@@ -45,6 +64,13 @@ $parkingCount = count($parkingSessions);
         <?php else: ?>
           <p class="active-parking__label"><?= te('End time unavailable') ?></p>
         <?php endif; ?>
+        <p id="<?= e($cancelHintId) ?>" class="active-parking__deadline" data-cancellation-policy aria-live="polite">
+          <?php if ($canCancel): ?>
+            <?= te('You can cancel until {time}.', ['time' => $deadlineLabel]) ?>
+          <?php else: ?>
+            <?= te($deadline === null ? 'Cancellation deadline unavailable.' : PARKING_CANCELLATION_CLOSED) ?>
+          <?php endif; ?>
+        </p>
       </div>
       <div class="active-parking__details">
         <h3><?= e($session['lot']) ?></h3>
@@ -55,6 +81,42 @@ $parkingCount = count($parkingSessions);
       </div>
       <div class="active-parking__actions">
         <a class="btn" href="ticket.php?id=<?= e($session['id']) ?>"><?= te('View ticket') ?> <span aria-hidden="true">→</span></a>
+        <details class="active-parking__manage" <?= $showActionError ? 'open' : '' ?>>
+          <summary class="btn btn-secondary"><?= te('Manage session') ?><span class="active-parking__chevron" aria-hidden="true"></span></summary>
+          <div class="active-parking__controls">
+            <?php if ($showActionError): ?>
+              <p class="active-parking__error" role="alert" tabindex="-1" data-parking-action-error><?= te($managementMessage) ?></p>
+            <?php endif; ?>
+            <div class="active-parking__control-row">
+              <?php if ($canCancel): ?>
+                <form method="post" action="dashboard.php#active-parking-title">
+                  <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
+                  <input type="hidden" name="manage_session" value="1">
+                  <input type="hidden" name="id" value="<?= e($session['id']) ?>">
+                  <button type="submit" name="action" value="cancel" class="active-parking__cancel"
+                          data-cancel-deadline="<?= e($deadline) ?>" aria-describedby="<?= e($cancelHintId) ?>"
+                          data-confirm="<?= te('Cancel parking for {plate}?', ['plate' => $session['plate']]) ?>"><?= te('Cancel session') ?></button>
+                </form>
+              <?php endif; ?>
+              <?php if ($end !== null && !$needsApproval && !parking_requires_new_booking($session, $destination)): ?>
+                <form method="post" action="dashboard.php#active-parking-title">
+                  <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
+                  <input type="hidden" name="manage_session" value="1">
+                  <input type="hidden" name="id" value="<?= e($session['id']) ?>">
+                  <input type="hidden" name="bay_type" value="<?= e($destination) ?>">
+                  <button type="submit" name="action" value="change_parking_bay" class="btn btn-secondary"><?= te($destination === 'oku' ? 'Switch to OKU parking' : 'Switch to regular parking') ?></button>
+                </form>
+              <?php endif; ?>
+            </div>
+            <?php if ($end !== null && $needsApproval): ?>
+              <p class="active-parking__deadline"><?= te('Approval is required to book OKU parking.') ?>
+                <a href="oku-verification.php"><?= te('OKU Parking Verification') ?></a>
+              </p>
+            <?php elseif ($end !== null && parking_requires_new_booking($session, $destination)): ?>
+              <p class="active-parking__deadline"><?= te(PARKING_REGULAR_NEW_BOOKING) ?></p>
+            <?php endif; ?>
+          </div>
+        </details>
       </div>
     </div>
   <?php endforeach; ?>

@@ -243,6 +243,13 @@
     if (!dashboardMore.hidden) {
       dashboardCount.textContent = translate('{count} active sessions', { count: available.length });
     }
+    const cancel = next?.querySelector('[data-cancel-deadline]');
+    if (cancel && !cancel.disabled && now >= Number(cancel.dataset.cancelDeadline)) {
+      if (document.activeElement === cancel) next.querySelector('summary').focus();
+      cancel.disabled = true;
+      cancel.hidden = true;
+      next.querySelector('[data-cancellation-policy]').textContent = translate('The 3-minute cancellation window has closed.');
+    }
     if (remaining === null) return;
 
     const soon = remaining <= dashboardReminder;
@@ -332,6 +339,7 @@
   }
   parkingTable?.addEventListener('mypark:table-updated', updateParkingTimers);
   if (activeParking) {
+    activeParking.querySelector('[data-parking-action-error]')?.focus();
     window.addEventListener('pageshow', event => {
       if (event.persisted) window.location.reload();
     });

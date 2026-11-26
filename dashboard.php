@@ -22,7 +22,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         return;
     }
     check_csrf();
-    if ($action === 'select_vehicle' && me()['role'] === 'user') {
+    if (isset($_POST['manage_session']) && in_array($action, ['cancel', 'change_parking_bay'], true)) {
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        try {
+            if ($id === false) throw new RuntimeException('Booking not found.', 404);
+            if ($action === 'cancel') {
+                cancel_booking($id, $userId);
+                $managementMessage = 'Booking cancelled.';
+            } else {
+                change_parking_bay(me(), $id, $_POST['bay_type'] ?? '');
+                $managementMessage = 'Parking bay type updated.';
+            }
+        } catch (RuntimeException $error) {
+            $managementMessage = $error->getMessage();
+            http_response_code($error->getCode());
+            $managementError = true;
+            $openSessionId = $id;
+        }
+        if (!isset($managementError)) {
+            flash(['message' => $managementMessage, 'type' => 'success']);
+            header('Location: dashboard.php#active-parking-title', true, 303);
+            exit;
+        }
+    } elseif ($action === 'select_vehicle' && me()['role'] === 'user') {
         try {
             $updated = change_saved_vehicle($userId, ['vehicle_action' => 'select', 'vehicle_id' => $_POST['vehicle_id'] ?? '']);
             flash($updated['message']);

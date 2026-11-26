@@ -73,7 +73,7 @@
   color: var(--navy);
 }
 
-.active-parking__heading h2 { margin: 0; font-size: 1.05rem; }
+.active-parking__heading h2 { margin: 0; font-size: 1.05rem; scroll-margin-top: 7rem; }
 
 .active-parking__icon {
   display: grid;
@@ -105,6 +105,10 @@
   border-radius: 16px;
   background: var(--light-blue);
   color: var(--navy);
+}
+
+.active-parking__session:has(.active-parking__manage[open]) .active-parking__clock {
+  align-self: start;
 }
 
 .active-parking__session[data-ending-soon] .active-parking__clock {
@@ -159,8 +163,81 @@
   letter-spacing: .06em;
 }
 
-.active-parking__actions { grid-area: actions; align-self: start; }
-.active-parking__actions .btn span,
+.active-parking__actions {
+  grid-area: actions;
+  align-self: start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.active-parking__manage {
+  min-width: 0;
+}
+
+.active-parking__manage[open] { flex: 1 1 100%; }
+
+.active-parking__manage summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  list-style: none;
+}
+
+.active-parking__manage summary::-webkit-details-marker { display: none; }
+
+.active-parking__chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.active-parking__manage[open] .active-parking__chevron {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.active-parking__controls {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid var(--glass-rim);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.active-parking__control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.active-parking__control-row:not(:has(button:not([hidden]))) { display: none; }
+.active-parking__deadline { color: var(--muted-text); font-size: .9rem; }
+.active-parking__clock .active-parking__deadline {
+  padding-top: 8px;
+  border-top: 1px solid var(--glass-rim);
+}
+.active-parking__deadline a { display: inline-block; text-decoration: underline; }
+.active-parking__error {
+  color: var(--red);
+  scroll-margin-top: 7rem;
+}
+
+.active-parking__cancel {
+  min-height: 44px;
+  border: 1px solid var(--red);
+  background: var(--glass-error-bg);
+  color: var(--red);
+}
+
+.active-parking__cancel:hover { background: var(--card); }
+
+.active-parking__actions > .btn span,
 .active-parking__empty .btn span { margin-inline-start: 7px; }
 
 .active-parking__empty,
@@ -184,7 +261,15 @@
     grid-template-areas: "clock" "details" "actions";
   }
 
-  .active-parking__actions .btn,
+  .active-parking__actions > .btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .active-parking__manage:not([open]) { flex: 1 1 auto; }
+  .active-parking__manage summary,
+  .active-parking__control-row form,
+  .active-parking__control-row button,
   .active-parking__empty .btn { width: 100%; }
 }
 
