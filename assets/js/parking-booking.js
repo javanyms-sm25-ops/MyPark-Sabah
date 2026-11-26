@@ -91,11 +91,14 @@
     const url = new URL(manage.href);
     url.searchParams.delete('lot_id');
     url.searchParams.delete('hours');
+    url.searchParams.delete('bay_type');
     if (location.value) url.searchParams.set('lot_id', location.value);
     if (validHours()) url.searchParams.set('hours', hours.value);
+    if (bayType) url.searchParams.set('bay_type', bayType.value);
     manage.href = profileLink.href = url.href;
     addForm.elements.namedItem('lot_id').value = location.value;
     addForm.elements.namedItem('hours').value = validHours() ? hours.value : '';
+    addForm.elements.namedItem('bay_type').value = bayType?.value ?? '';
   }
 
   function setError(name, input, message = '') {

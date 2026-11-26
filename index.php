@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/bootstrap.php';
 
 if (me()) {
     $home = match (me()['role']) {
@@ -11,6 +11,19 @@ if (me()) {
     exit;
 }
 
+require_once __DIR__ . '/includes/parking-capacity.php';
+
+$lots = MyParkData::$records['demo_lots'];
+$locationCount = count($lots);
+$previewLots = array_slice($lots, 0, 3);
+$occupiedByLot = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);
+$rates = [
+    'Regular parking' => t('RM {amount}/hour', ['amount' => number_format(PARKING_HOURLY_CENTS / 100, 2)]),
+    'Maximum per session' => 'RM ' . number_format(PARKING_DAILY_CENTS / 100, 2),
+    'OKU parking' => t('Free'),
+];
+
+header('Cache-Control: private, no-store');
 head('Home');
 ?>
 
@@ -20,54 +33,68 @@ head('Home');
   <div class="home-hero__content">
     <p class="eyebrow"><?= te('SMART PARKING FOR SABAH') ?></p>
     <h1><?= te('Park smarter.') ?><br><span><?= te('Drive easier.') ?></span></h1>
-    <p><?= te('Book your next parking spot in seconds, pay by the hour, and keep every trip smooth from arrival to departure.') ?></p>
+    <p><?= te('Find parking across Sabah, check the rates, and start a session when you arrive.') ?></p>
 
     <div class="home-hero__actions">
-      <a class="btn" href="pages/register.php"><?= te('Get started') ?></a>
+      <a class="btn" href="pages/register.php"><?= te('Create account') ?></a>
       <a class="btn btn-ghost" href="pages/login.php"><?= te('Log in') ?></a>
     </div>
 
-    <ul class="home-hero__stats" aria-label="MyPark metrics">
-      <li><strong>2,400+</strong><span><?= te('Daily parkers') ?></span></li>
-      <li><strong>18</strong><span><?= te('Smart zones') ?></span></li>
-      <li><strong>4.9/5</strong><span><?= te('Customer rating') ?></span></li>
-    </ul>
+    <?php if ($locationCount > 0): ?>
+      <p class="home-hero__coverage"><?= te($locationCount === 1 ? '{count} parking location in MyPark' : '{count} parking locations in MyPark', ['count' => $locationCount]) ?></p>
+    <?php endif; ?>
   </div>
 
   <div class="home-hero__visual">
-    <div class="home-hero__panel home-hero__panel--primary">
-      <div class="home-hero__chip"><?= te('Parking preview') ?></div>
-      <div class="home-hero__location">
-        <span class="home-hero__pin" aria-hidden="true">📍</span>
-        <div>
-          <strong>Kota Kinabalu Waterfront</strong>
-          <small><?= te('12 spaces left (example)') ?></small>
-        </div>
-      </div>
-      <div class="home-hero__price-row">
-        <span><?= te('Regular parking') ?></span>
-        <strong><?= te('RM {amount}/hour', ['amount' => number_format(PARKING_HOURLY_CENTS / 100, 2)]) ?></strong>
-      </div>
-    </div>
+    <section class="home-hero__panel home-hero__panel--primary" aria-labelledby="home-availability-title">
+      <h2 class="home-hero__panel-title" id="home-availability-title"><?= te('Parking availability') ?></h2>
+      <?php if ($previewLots): ?>
+        <ul class="home-hero__locations">
+          <?php foreach ($previewLots as $lot):
+              $available = parking_bay_counts($lot, $occupiedByLot[$lot['id']] ?? [])['regular']['available'];
+              $availability = match ($available) {
+                  null => t('Capacity unavailable'),
+                  0 => t('No regular bays available'),
+                  default => t('Regular bays available: {count}', ['count' => $available]),
+              };
+          ?>
+            <li class="home-hero__location">
+              <span class="home-hero__pin" aria-hidden="true">📍</span>
+              <div>
+                <strong><?= e($lot['name']) ?></strong>
+                <small><?= e($availability) ?></small>
+              </div>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+        <p class="home-hero__note"><?= te('Counts reflect active MyPark sessions when this page loads.') ?></p>
+        <?php if ($locationCount > count($previewLots)): ?>
+          <a class="home-hero__more" href="pages/login.php"><?= te('Log in to see all parking locations') ?> <span aria-hidden="true">→</span></a>
+        <?php endif; ?>
+      <?php else: ?>
+        <p class="home-hero__note"><?= te('No parking locations yet.') ?></p>
+      <?php endif; ?>
+    </section>
 
-    <div class="home-hero__panel home-hero__panel--secondary">
-      <p><?= te('Parking rates') ?></p>
-      <div class="home-hero__mini-grid">
-        <span><?= te('Daily maximum') ?></span>
-        <strong>RM <?= e(number_format(PARKING_DAILY_CENTS / 100, 2)) ?></strong>
-      </div>
-      <div class="home-hero__mini-grid">
-        <span><?= te('OKU parking') ?></span>
-        <strong><?= te('Free') ?></strong>
-      </div>
-    </div>
+    <section class="home-hero__panel home-hero__panel--secondary" aria-labelledby="home-rates-title">
+      <h2 class="home-hero__panel-title" id="home-rates-title"><?= te('Parking rates') ?></h2>
+      <dl class="home-hero__rates">
+        <?php foreach ($rates as $label => $rate): ?>
+          <div class="home-hero__mini-grid">
+            <dt><?= te($label) ?></dt>
+            <dd><?= e($rate) ?></dd>
+          </div>
+        <?php endforeach; ?>
+      </dl>
+      <p class="home-hero__note"><?= te('Free OKU parking requires approved MyPark verification and an available OKU bay.') ?></p>
+    </section>
   </div>
 </section>
 
 <section class="home-section">
   <div class="section-heading">
     <p class="eyebrow"><?= te('WHY MyPark') ?></p>
-    <h2><?= te('Everything your trip needs in one place') ?></h2>
+    <h2><?= te('Manage your parking in one place') ?></h2>
   </div>
 
   <div class="feature-grid">
@@ -79,14 +106,14 @@ head('Home');
 
     <article class="card feature-card">
       <div class="feature-card__icon">📍</div>
-      <h3><?= te('Smart locations') ?></h3>
-      <p><?= te('Find parking close to stations, malls, hotels and major city destinations across Sabah.') ?></p>
+      <h3><?= te('Parking locations') ?></h3>
+      <p><?= te('Check MyPark bay availability before starting a parking session.') ?></p>
     </article>
 
     <article class="card feature-card">
       <div class="feature-card__icon">💳</div>
-      <h3><?= te('Fast payment') ?></h3>
-      <p><?= te('Top up your wallet, pay by the hour and get receipts instantly with a cashless experience.') ?></p>
+      <h3><?= te('Wallet and receipts') ?></h3>
+      <p><?= te('Pay for regular parking with your MyPark wallet and find your receipts in your account.') ?></p>
     </article>
   </div>
 </section>
@@ -94,26 +121,26 @@ head('Home');
 <section class="home-section home-section--alt">
   <div class="section-heading">
     <p class="eyebrow"><?= te('HOW IT WORKS') ?></p>
-    <h2><?= te('Reserve in three simple steps') ?></h2>
+    <h2><?= te('Start parking in three steps') ?></h2>
   </div>
 
   <div class="steps-grid">
     <div class="card step-card">
       <span>1</span>
       <h3><?= te('Choose a location') ?></h3>
-      <p><?= te('Select a parking zone near your destination and check availability.') ?></p>
+      <p><?= te('Check bay availability and select a location near your destination.') ?></p>
     </div>
 
     <div class="card step-card">
       <span>2</span>
-      <h3><?= te('Set your timing') ?></h3>
-      <p><?= te('Pick your vehicle and duration, then confirm the details in one tap.') ?></p>
+      <h3><?= te('Set your duration') ?></h3>
+      <p><?= te('Choose your vehicle and how long you plan to park. Review the fee before you confirm.') ?></p>
     </div>
 
     <div class="card step-card">
       <span>3</span>
-      <h3><?= te('Enjoy the ride') ?></h3>
-      <p><?= te('Use your QR e-ticket and get in and out without the usual parking hassle.') ?></p>
+      <h3><?= te('Start parking') ?></h3>
+      <p><?= te('Confirm to start parking immediately and open your e-ticket. Use your MyPark wallet to pay for regular parking.') ?></p>
     </div>
   </div>
 </section>

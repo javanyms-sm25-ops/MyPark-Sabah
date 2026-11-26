@@ -6,13 +6,15 @@ require_once __DIR__ . '/oku-verification.php';
 
 const PARKING_WALLET_INSUFFICIENT = 'Your wallet balance is too low. Top up your wallet and try again.';
 
-/** Only carry location and duration in links between Profile and the booking form. */
+/** Carry the booking choices that can be shared in links. */
 function parking_resume_fields(array $query): array {
     $fields = [];
     $lotId = filter_var($query['lot_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
     $hours = filter_var($query['hours'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 24]]);
     if ($lotId !== false) $fields['lot_id'] = $lotId;
     if ($hours !== false) $fields['hours'] = $hours;
+    $bayType = $query['bay_type'] ?? null;
+    if (is_string($bayType) && isset(PARKING_BAY_TYPES[$bayType])) $fields['bay_type'] = $bayType;
     return $fields;
 }
 

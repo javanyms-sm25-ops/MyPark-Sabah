@@ -246,7 +246,7 @@ function foot(bool $showChatbot = true): void {
     ?>
       </main>
       <footer>
-        <section><b>MyPark Sabah</b><p><?= te('Simple parking reservations across Sabah.') ?></p></section>
+        <section><b>MyPark Sabah</b><p><?= te('Simple parking across Sabah.') ?></p></section>
         <section><b><?= te('Contact') ?></b><p>support@mypark-sabah.demo<br>+60 88 000 000</p></section>
         <section><b><?= te('Help') ?></b><p><a href="support.php"><?= te('Customer support') ?></a><br><a href="profile.php"><?= te('My profile') ?></a></p></section>
       </footer>

@@ -1288,28 +1288,6 @@ button.ghost {
   color: var(--text);
 }
 
-.home-hero__stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.home-hero__stats li {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.82rem;
-}
-
-.home-hero__stats strong {
-  color: #ffffff;
-  font-size: 1.3rem;
-}
-
 .home-hero__visual {
   position: relative;
   display: grid;
@@ -1327,19 +1305,6 @@ button.ghost {
 
 .home-hero__panel--primary {
   padding-top: 18px;
-}
-
-.home-hero__chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  background: rgba(178, 232, 233, 0.2);
-  color: #e7fbff;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .home-hero__location {
@@ -1370,31 +1335,6 @@ button.ghost {
 
 .home-hero__location small {
   color: rgba(255, 255, 255, 0.7);
-}
-
-.home-hero__price-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  color: rgba(255, 255, 255, 0.86);
-}
-
-.home-hero__price-row strong {
-  font-size: 1.5rem;
-}
-
-.home-hero__panel--secondary {
-  max-width: 280px;
-  justify-self: end;
-}
-
-.home-hero__panel--secondary p {
-  margin: 0 0 14px;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .home-hero__mini-grid {
