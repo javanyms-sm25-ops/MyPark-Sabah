@@ -4,14 +4,14 @@ require_login('../pages/login.php');
 header('Content-Type: application/json');
 
 $out = [];
-foreach ($_SESSION['demo_lots'] as $lot) {
+foreach (MyParkData::$records['demo_lots'] as $lot) {
     $out[] = [
         'id' => $lot['id'],
         'name' => $lot['name'],
         'city' => $lot['city'],
         'rate' => PARKING_HOURLY_CENTS / 100,
         'capacity' => $lot['capacity'],
-        'busy' => count(array_filter($_SESSION['demo_bookings'], fn($booking) =>
+        'busy' => count(array_filter(MyParkData::$records['demo_bookings'], fn($booking) =>
             $booking['lot_id'] === $lot['id'] && $booking['status'] === 'active'
         )),
     ];

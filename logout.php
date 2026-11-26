@@ -1,30 +1,13 @@
 <?php
-require __DIR__ . '/includes/bootstrap.php';
-require_once __DIR__ . '/includes/receipt-data.php';
+require __DIR__ . '/includes/demo-session.php';
+start_demo_session();
 
-migrate_legacy_demo_wallet();
-receipt_sync();
-
-// Keep issued compounds in this browser so a demo payer can sign in after staff.
-$fineAudit = array_filter($_SESSION['staff_audit'] ?? [], fn($key) => str_starts_with($key, 'fine:'), ARRAY_FILTER_USE_KEY);
-$_SESSION = [
-    'demo_users' => $_SESSION['demo_users'],
-    'demo_lots' => $_SESSION['demo_lots'],
-    'demo_receipts' => $_SESSION['demo_receipts'],
-    'demo_wallets' => $_SESSION['demo_wallets'],
-    // Retained wallet activity refers to these booking numbers.
-    'last_booking_id' => max($_SESSION['last_booking_id'] ?? 0, max(array_column($_SESSION['demo_bookings'], 'id') ?: [0])),
-    'saved_vehicles' => $_SESSION['saved_vehicles'] ?? [],
-    'default_vehicle_ids' => $_SESSION['default_vehicle_ids'] ?? [],
-    'vehicle_account_scope' => $_SESSION['vehicle_account_scope'] ?? bin2hex(random_bytes(24)),
-    'oku_submissions' => $_SESSION['oku_submissions'] ?? [],
-    'oku_latest' => $_SESSION['oku_latest'] ?? [],
-    'demo_cookie_refreshed_at' => time(),
-    'staff_fines' => $_SESSION['staff_fines'] ?? [],
-    'staff_leave_requests' => $_SESSION['staff_leave_requests'] ?? [],
-    'staff_counters' => ['fine' => $_SESSION['staff_counters']['fine'] ?? 0, 'maintenance' => 0],
-    'staff_audit' => $fineAudit,
-];
+// Signing out also works when MariaDB is offline.
+unset(
+    $_SESSION['user'], $_SESSION['csrf'], $_SESSION['demo_last_active'], $_SESSION['flash'], $_SESSION['failures'],
+    $_SESSION['demo_chat'], $_SESSION['parking_reviews'], $_SESSION['paypal_checkout'], $_SESSION['wallet_topup_invalid_amount'],
+    $_SESSION['registration_pending'], $_SESSION['registration_link_error'], $_SESSION['password_reset_pending']
+);
 session_regenerate_id(true);
 session_write_close();
 header('Location: pages/login.php');

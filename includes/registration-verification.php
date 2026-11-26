@@ -5,7 +5,7 @@ require_once __DIR__ . '/email-delivery.php';
 const REGISTRATION_LINK_LIFETIME = 600;
 
 function registration_email_exists(string $email): bool {
-    return in_array($email, array_column($_SESSION['demo_users'], 'email'), true);
+    return in_array($email, array_column(MyParkData::$records['demo_users'], 'email'), true);
 }
 
 function registration_link_is_active(?array $pending): bool {
@@ -42,8 +42,8 @@ function registration_complete(string $token): void {
         unset($_SESSION['registration_pending']);
         throw new RuntimeException('Email already registered.', 409);
     }
-    $_SESSION['demo_users'][] = [
-        'id' => max(array_column($_SESSION['demo_users'], 'id') ?: [0]) + 1,
+    MyParkData::$records['demo_users'][] = [
+        'id' => max(array_column(MyParkData::$records['demo_users'], 'id') ?: [0]) + 1,
         'name' => $account['name'],
         'email' => $account['email'],
         'password' => $account['password'],

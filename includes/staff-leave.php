@@ -24,7 +24,7 @@ function staff_leave_submit(array $staff, array $input): string {
         throw new RuntimeException(STAFF_LEAVE_REASON_TOO_LONG, 422);
     }
 
-    $requests = $_SESSION['staff_leave_requests'] ?? [];
+    $requests = MyParkData::$records['staff_leave_requests'] ?? [];
     foreach ($requests as $request) {
         if ($request['staff_id'] === $staff['id'] && $request['status'] !== 'rejected'
             && $request['start_date'] === $start && $request['end_date'] === $end) {
@@ -33,7 +33,7 @@ function staff_leave_submit(array $staff, array $input): string {
     }
 
     $id = max(array_keys($requests) ?: [0]) + 1;
-    $_SESSION['staff_leave_requests'][$id] = [
+    MyParkData::$records['staff_leave_requests'][$id] = [
         'id' => $id,
         'staff_id' => $staff['id'],
         'staff_name' => $staff['name'],
@@ -56,7 +56,7 @@ function staff_leave_review(array $actor, array $input): string {
     }
 
     $id = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-    $request = $id === false ? null : ($_SESSION['staff_leave_requests'][$id] ?? null);
+    $request = $id === false ? null : (MyParkData::$records['staff_leave_requests'][$id] ?? null);
     if (!$request) throw new RuntimeException('Leave request not found.', 404);
     if ($request['status'] !== 'pending') {
         throw new RuntimeException('This leave request has already been reviewed.', 409);
@@ -66,12 +66,12 @@ function staff_leave_review(array $actor, array $input): string {
     $request['reviewer_id'] = $actor['id'];
     $request['reviewer_name'] = $actor['name'];
     $request['reviewed_at'] = date(DATE_ATOM);
-    $_SESSION['staff_leave_requests'][$id] = $request;
+    MyParkData::$records['staff_leave_requests'][$id] = $request;
     return $decision === 'approved' ? 'Leave approval recorded.' : 'Leave rejection recorded.';
 }
 
 function staff_leave_rows(array $actor): array {
-    $requests = array_reverse($_SESSION['staff_leave_requests'] ?? []);
+    $requests = array_reverse(MyParkData::$records['staff_leave_requests'] ?? []);
     return match ($actor['role']) {
         'admin' => $requests,
         'staff' => array_filter($requests, static fn($request) => $request['staff_id'] === $actor['id']),

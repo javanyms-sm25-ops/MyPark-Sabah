@@ -6,19 +6,22 @@ require_once __DIR__ . '/parking-pricing.php';
 require_once __DIR__ . '/parking-notifications.php';
 remember_selected_language();
 date_default_timezone_set('Asia/Kuala_Lumpur');
-// Front-end prototype store. Demo data lives in the session; no database connection is made.
-$_SESSION['demo_users'] ??= [
+require_once __DIR__ . '/database.php';
+MyParkData::start();
+
+// Create the existing demonstration accounts and locations once per workspace.
+MyParkData::$records['demo_users'] ??= [
  ['id'=>1,'name'=>'Super Admin','email'=>'superadmin@park.com','password'=>password_hash('super123',PASSWORD_DEFAULT),'role'=>'superadmin','blocked'=>false],
  ['id'=>2,'name'=>'Parking Admin','email'=>'admin@park.com','password'=>password_hash('admin123',PASSWORD_DEFAULT),'role'=>'admin','blocked'=>false],
  ['id'=>3,'name'=>'Parking Staff','email'=>'staff@park.com','password'=>password_hash('staff123',PASSWORD_DEFAULT),'role'=>'staff','blocked'=>false],
  ['id'=>4,'name'=>'Demo Member','email'=>'user@park.com','password'=>password_hash('user123',PASSWORD_DEFAULT),'role'=>'user','blocked'=>false]
 ];
-$_SESSION['demo_lots'] ??= [
+MyParkData::$records['demo_lots'] ??= [
  ['id'=>1,'name'=>'Kota Kinabalu Waterfront','city'=>'Kota Kinabalu','address'=>'Jalan Tun Fuad Stephens','rate'=>PARKING_HOURLY_CENTS / 100,'capacity'=>36,'oku_capacity'=>1,'lat'=>5.9804,'lng'=>116.0735],
  ['id'=>2,'name'=>'Sandakan Central Parking','city'=>'Sandakan','address'=>'Bandar Sandakan','rate'=>PARKING_HOURLY_CENTS / 100,'capacity'=>24,'lat'=>5.8402,'lng'=>118.1179],
  ['id'=>3,'name'=>'Tawau Town Centre','city'=>'Tawau','address'=>'Jalan Dunlop','rate'=>PARKING_HOURLY_CENTS / 100,'capacity'=>30,'lat'=>4.2498,'lng'=>117.8871]
 ];
-$_SESSION['demo_bookings'] ??= [];
+MyParkData::$records['demo_bookings'] ??= [];
 complete_expired_bookings();
 function e(mixed $value): string {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
@@ -44,26 +47,15 @@ function can_use_customer_wallet(?array $account): bool {
     return ($account['role'] ?? null) === 'user';
 }
 
-function migrate_legacy_demo_wallet(): void {
-    if (!me() || (!isset($_SESSION['demo_wallet_balance']) && !isset($_SESSION['demo_wallet_transactions']))) return;
-    $userId = me()['id'];
-    $_SESSION['demo_wallets'][$userId] ??= [
-        'balance' => $_SESSION['demo_wallet_balance'] ?? 30.00,
-        'transactions' => $_SESSION['demo_wallet_transactions'] ?? [],
-    ];
-    unset($_SESSION['demo_wallet_balance'], $_SESSION['demo_wallet_transactions']);
-}
-
 function &demo_wallet(): array {
     if (!can_use_customer_wallet(me())) throw new RuntimeException(CUSTOMER_WALLET_REQUIRED, 403);
-    migrate_legacy_demo_wallet();
     $userId = me()['id'];
-    $_SESSION['demo_wallets'][$userId] ??= ['balance' => 30.00, 'transactions' => []];
-    return $_SESSION['demo_wallets'][$userId];
+    MyParkData::$records['demo_wallets'][$userId] ??= ['balance' => 30.00, 'transactions' => []];
+    return MyParkData::$records['demo_wallets'][$userId];
 }
 function require_login(string $loginPath = 'pages/login.php'){
     if (!me()) { header('Location: ' . $loginPath); exit; }
-    foreach ($_SESSION['demo_users'] as $account) {
+    foreach (MyParkData::$records['demo_users'] as $account) {
         if ($account['id'] === me()['id'] && !$account['blocked'] && $account['role'] === me()['role']) return;
     }
     unset($_SESSION['user']);
@@ -103,7 +95,7 @@ function booking_cancellation_deadline(array $booking): ?int {
 function complete_expired_bookings(): void {
     $now = time();
     $changed = false;
-    foreach ($_SESSION['demo_bookings'] as &$booking) {
+    foreach (MyParkData::$records['demo_bookings'] as &$booking) {
         if ($booking['status'] !== 'active') continue;
         $expiry = booking_expiry($booking);
         if ($expiry === null || $expiry > $now) continue;
@@ -111,11 +103,11 @@ function complete_expired_bookings(): void {
         $changed = true;
     }
     unset($booking);
-    if ($changed) $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
+    if ($changed) MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
 }
 function cancel_booking(int $id, int $userId): void {
     complete_expired_bookings();
-    foreach ($_SESSION['demo_bookings'] as &$booking) {
+    foreach (MyParkData::$records['demo_bookings'] as &$booking) {
         if ($booking['id'] !== $id || $booking['user_id'] !== $userId) continue;
         if ($booking['status'] !== 'active') throw new RuntimeException('Only active bookings can be cancelled.', 409);
         $deadline = booking_cancellation_deadline($booking);
@@ -125,7 +117,7 @@ function cancel_booking(int $id, int $userId): void {
             'type' => 'cancelled', 'location' => $booking['lot'], 'plate' => $booking['plate'],
         ]);
         $booking['status'] = 'cancelled';
-        $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
+        MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
         return;
     }
     throw new RuntimeException('Booking not found.', 404);

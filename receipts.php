@@ -63,9 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-migrate_legacy_demo_wallet();
 receipt_sync();
-$receipts = $_SESSION['demo_receipts'][$userId] ?? [];
+$receipts = MyParkData::$records['demo_receipts'][$userId] ?? [];
 $receipt = null;
 
 if ($showDetails) {
@@ -82,7 +81,7 @@ if ($showDetails) {
 }
 $parkingRows = $showParking ? receipt_parking_rows($userId, $receipts, $datesApplied ? $from : null, $until) : [];
 $bookingsByReceipt = $showParkingActions && !$showParking
-    ? array_column(array_filter($_SESSION['demo_bookings'], static fn($booking) =>
+    ? array_column(array_filter(MyParkData::$records['demo_bookings'], static fn($booking) =>
         $booking['user_id'] === $userId && isset($booking['receipt_id'])), null, 'receipt_id')
     : [];
 head('Digital receipts');

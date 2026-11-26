@@ -3,7 +3,7 @@
 require_once __DIR__ . '/email-otp.php';
 
 function password_reset_account_index(string $email): ?int {
-    foreach ($_SESSION['demo_users'] as $index => $account) {
+    foreach (MyParkData::$records['demo_users'] as $index => $account) {
         if ($account['email'] === $email) return $index;
     }
     return null;
@@ -11,7 +11,7 @@ function password_reset_account_index(string $email): ?int {
 
 function password_reset_issue_code(string $email, callable $deliver): void {
     $index = password_reset_account_index($email);
-    $account = $index === null ? null : $_SESSION['demo_users'][$index];
+    $account = $index === null ? null : MyParkData::$records['demo_users'][$index];
     $delivered = false;
 
     // Use the same browser response for unknown addresses and mail delivery errors.
@@ -43,7 +43,7 @@ function password_reset_is_verified(?array $pending): bool {
 
 function password_reset_target_index(array $pending): int {
     $index = password_reset_account_index($pending['email']);
-    $account = $index === null ? null : $_SESSION['demo_users'][$index];
+    $account = $index === null ? null : MyParkData::$records['demo_users'][$index];
     if ($account === null || $account['id'] !== $pending['account_id']
         || !hash_equals(hash('sha256', $account['password']), $pending['password_fingerprint'])) {
         unset($_SESSION['password_reset_pending']);
@@ -81,7 +81,7 @@ function password_reset_complete(string $password, string $confirmation): int {
         throw new RuntimeException('Passwords do not match.', 422);
     }
 
-    $_SESSION['demo_users'][$index]['password'] = password_hash($password, PASSWORD_DEFAULT);
+    MyParkData::$records['demo_users'][$index]['password'] = password_hash($password, PASSWORD_DEFAULT);
     unset($_SESSION['password_reset_pending'], $_SESSION['failures'][$pending['email']]);
-    return $_SESSION['demo_users'][$index]['id'];
+    return MyParkData::$records['demo_users'][$index]['id'];
 }

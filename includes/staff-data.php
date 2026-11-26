@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/staff-leave.php';
 
-// Session-only private parking prototype. Empty stores; no seed fines or maintenance.
+// Private parking prototype. Fines and maintenance start with no records.
 const STAFF_FINE_STATUSES = ['unpaid' => 'Unpaid', 'paid' => 'Paid', 'void' => 'Void'];
 const STAFF_MAINTENANCE_STATUSES = ['open' => 'Open', 'in_progress' => 'In progress', 'completed' => 'Completed'];
 
@@ -11,19 +11,19 @@ class StaffValidationException extends RuntimeException {
 
 function staff_actor(): array {
     if (!me()) throw new RuntimeException('Please sign in again.', 401);
-    foreach ($_SESSION['demo_users'] as $user) {
+    foreach (MyParkData::$records['demo_users'] as $user) {
         if ($user['id'] === me()['id'] && $user['role'] === 'staff' && !$user['blocked']) return $user;
     }
     throw new RuntimeException('This portal is available to active Staff accounts only.', 403);
 }
 
 function staff_store(): void {
-    $_SESSION['staff_fines'] ??= [];
-    $_SESSION['staff_maintenance'] ??= [];
-    $_SESSION['staff_audit'] ??= [];
-    $_SESSION['staff_counters'] ??= ['fine' => 0, 'maintenance' => 0];
-    $_SESSION['staff_revision'] ??= 0;
-    $_SESSION['staff_requests'] ??= [];
+    MyParkData::$records['staff_fines'] ??= [];
+    MyParkData::$records['staff_maintenance'] ??= [];
+    MyParkData::$records['staff_audit'] ??= [];
+    MyParkData::$records['staff_counters'] ??= ['fine' => 0, 'maintenance' => 0];
+    MyParkData::$records['staff_revision'] ??= 0;
+    MyParkData::$records['staff_requests'] ??= [];
 }
 
 function staff_now(): string { return (new DateTimeImmutable('now', new DateTimeZone('Asia/Kuala_Lumpur')))->format(DATE_ATOM); }
@@ -66,7 +66,7 @@ function staff_maintenance_fields(array $input): array {
     $title = staff_text($input, 'title', 'Issue title', 120, $errors);
     $description = staff_text($input, 'description', 'Description', 2000, $errors);
     $lot = null;
-    foreach ($_SESSION['demo_lots'] as $candidate) if ($candidate['id'] === (int)($input['lot_id'] ?? 0)) $lot = $candidate;
+    foreach (MyParkData::$records['demo_lots'] as $candidate) if ($candidate['id'] === (int)($input['lot_id'] ?? 0)) $lot = $candidate;
     if (!$lot) $errors['lot_id'] = 'Select an existing parking location.';
     $status = $input['status'] ?? 'open';
     if (!array_key_exists($status, STAFF_MAINTENANCE_STATUSES)) $errors['status'] = 'Select a valid maintenance status.';
@@ -75,9 +75,9 @@ function staff_maintenance_fields(array $input): array {
 }
 
 function staff_audit(string $kind, int $id, string $action, array $actor, ?array $before, array $after, string $reason = ''): void {
-    $_SESSION['staff_audit'][$kind . ':' . $id][] = ['action' => $action, 'at' => staff_now(), 'actor_id' => $actor['id'],
+    MyParkData::$records['staff_audit'][$kind . ':' . $id][] = ['action' => $action, 'at' => staff_now(), 'actor_id' => $actor['id'],
         'actor_name' => $actor['name'], 'reason' => $reason, 'before' => $before, 'after' => $after];
-    $_SESSION['staff_revision']++;
+    MyParkData::$records['staff_revision']++;
 }
 
 function staff_change(array $actor, array $input): string {
@@ -101,25 +101,25 @@ function staff_change(array $actor, array $input): string {
         unset($fingerprintInput['csrf']);
         ksort($fingerprintInput);
         $fingerprint = hash('sha256', json_encode($fingerprintInput, JSON_THROW_ON_ERROR));
-        if (isset($_SESSION['staff_requests'][$requestKey])) {
-            $previous = $_SESSION['staff_requests'][$requestKey];
+        if (isset(MyParkData::$records['staff_requests'][$requestKey])) {
+            $previous = MyParkData::$records['staff_requests'][$requestKey];
             if ($previous['fingerprint'] !== $fingerprint) throw new RuntimeException('This submission was already used. Reopen the form for a new record.', 409);
             return $previous['message'];
         }
         $record = $kind === 'fine' ? staff_fine_fields($input) : staff_maintenance_fields($input);
-        $id = ++$_SESSION['staff_counters'][$kind];
+        $id = ++MyParkData::$records['staff_counters'][$kind];
         $record += ['id' => $id, 'code' => ($kind === 'fine' ? 'F-' : 'M-') . str_pad((string)$id, 6, '0', STR_PAD_LEFT),
             'created_at' => staff_now(), 'updated_at' => staff_now(), 'created_by' => $actor['id'], 'created_by_name' => $actor['name'], 'version' => 1];
         if ($kind === 'fine') $record += ['status' => 'unpaid', 'paid_at' => null, 'payment_reference' => '', 'paid_amount_cents' => 0, 'voided_at' => null, 'void_reason' => ''];
         else $record['deleted_at'] = null;
-        $_SESSION[$store][$id] = $record;
+        MyParkData::$records[$store][$id] = $record;
         staff_audit($kind, $id, 'created', $actor, null, $record);
         $message = ($kind === 'fine' ? 'Fine ' : 'Maintenance record ') . $record['code'] . ' created.';
-        $_SESSION['staff_requests'][$requestKey] = ['fingerprint' => $fingerprint, 'message' => $message];
+        MyParkData::$records['staff_requests'][$requestKey] = ['fingerprint' => $fingerprint, 'message' => $message];
         return $message;
     }
     $id = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT);
-    $before = $_SESSION[$store][$id] ?? null;
+    $before = MyParkData::$records[$store][$id] ?? null;
     if (!$before || !empty($before['deleted_at'])) throw new RuntimeException('Record not found.', 404);
     if ($before['created_by'] !== $actor['id']) throw new RuntimeException('You can only change records created by your Staff account.', 403);
     if ((int)($input['version'] ?? 0) !== $before['version']) throw new RuntimeException('This record has changed. Refresh it before trying again.', 409);
@@ -150,28 +150,28 @@ function staff_change(array $actor, array $input): string {
         $record['deleted_at'] = staff_now();
     }
     $record['version']++; $record['updated_at'] = staff_now();
-    $_SESSION[$store][$id] = $record;
+    MyParkData::$records[$store][$id] = $record;
     staff_audit($kind, $id, substr($action, strlen($kind) + 1), $actor, $before, $record, $reason);
     return $record['code'] . match ($action) { 'fine_paid' => ' payment recorded.', 'fine_void' => ' voided. Audit history retained.', 'maintenance_delete' => ' removed. Audit history retained.', default => ' updated.' };
 }
 
 function staff_snapshot(array $actor): array {
     staff_store();
-    $fines = array_values($_SESSION['staff_fines']);
-    $maintenance = array_values(array_filter($_SESSION['staff_maintenance'], static fn($r) => !$r['deleted_at']));
+    $fines = array_values(MyParkData::$records['staff_fines']);
+    $maintenance = array_values(array_filter(MyParkData::$records['staff_maintenance'], static fn($r) => !$r['deleted_at']));
     $withHistory = static function ($records, $kind) use ($actor) {
         return array_map(static function ($record) use ($kind, $actor) {
             $record['can_manage'] = $record['created_by'] === $actor['id'];
-            $record['audit'] = $_SESSION['staff_audit'][$kind . ':' . $record['id']] ?? [];
+            $record['audit'] = MyParkData::$records['staff_audit'][$kind . ':' . $record['id']] ?? [];
             return $record;
         }, $records);
     };
     $unpaid = array_filter($fines, static fn($r) => $r['status'] === 'unpaid');
     return ['fines' => $withHistory($fines, 'fine'), 'maintenance' => $withHistory($maintenance, 'maintenance'),
-        'bookings' => array_values(array_map(static fn($b) => ['id' => $b['id'], 'plate' => $b['plate'], 'plate_key' => staff_plate_key($b['plate']), 'location' => $b['lot'], 'hours' => $b['hours'], 'status' => $b['status'], 'created_at' => $b['created_at']], $_SESSION['demo_bookings'])),
-        'locations' => array_values(array_map(static fn($l) => ['id' => $l['id'], 'name' => $l['name']], $_SESSION['demo_lots'])),
+        'bookings' => array_values(array_map(static fn($b) => ['id' => $b['id'], 'plate' => $b['plate'], 'plate_key' => staff_plate_key($b['plate']), 'location' => $b['lot'], 'hours' => $b['hours'], 'status' => $b['status'], 'created_at' => $b['created_at']], MyParkData::$records['demo_bookings'])),
+        'locations' => array_values(array_map(static fn($l) => ['id' => $l['id'], 'name' => $l['name']], MyParkData::$records['demo_lots'])),
         'fine_statuses' => STAFF_FINE_STATUSES, 'maintenance_statuses' => STAFF_MAINTENANCE_STATUSES,
-        'csrf' => csrf(), 'revision' => $_SESSION['staff_revision'],
+        'csrf' => csrf(), 'revision' => MyParkData::$records['staff_revision'],
         'summary' => ['total_fines' => count($fines), 'unpaid_fines' => count($unpaid),
             'outstanding_cents' => array_sum(array_column($unpaid, 'amount_cents')),
             'open_maintenance' => count(array_filter($maintenance, static fn($r) => $r['status'] !== 'completed'))]];

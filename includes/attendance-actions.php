@@ -22,7 +22,7 @@ function attendance_save_shift(PDO $db, array $actor, array $fields): string {
     $to = strtotime("$day $end");
     if ($to < $from) $to = strtotime('+1 day', $to);
     $scope = vehicle_account_scope();
-    return attendance_transaction($db, function () use ($db, $scope, $actor, $staffId, $lot, $lat, $lng, $day, $from, $to) {
+    return mypark_database_action($db, function () use ($db, $scope, $actor, $staffId, $lot, $lat, $lng, $day, $from, $to) {
         if (!isset(attendance_locations($db, $actor)[$lot['id']])) {
             throw new RuntimeException('You do not have access to that parking location.', 403);
         }
@@ -63,11 +63,11 @@ function attendance_save_settings(PDO $db, array $actor, array $fields): string 
         'accuracy_m' => attendance_int($fields['accuracy_m'] ?? null, 5, 1000),
         'grace_minutes' => attendance_int($fields['grace_minutes'] ?? null, 0, 120),
     ];
-    return attendance_transaction($db, function () use ($db, $actor, $updated) {
+    return mypark_database_action($db, function () use ($db, $actor, $updated) {
         $previous = attendance_settings($db);
         attendance_query($db, 'INSERT INTO attendance_settings (scope, radius_m, accuracy_m, grace_minutes) VALUES (?, ?, ?, ?)
-            ON CONFLICT(scope) DO UPDATE SET radius_m = excluded.radius_m, accuracy_m = excluded.accuracy_m,
-            grace_minutes = excluded.grace_minutes', [vehicle_account_scope(), ...array_values($updated)]);
+            ON DUPLICATE KEY UPDATE radius_m = VALUES(radius_m), accuracy_m = VALUES(accuracy_m),
+            grace_minutes = VALUES(grace_minutes)', [vehicle_account_scope(), ...array_values($updated)]);
         attendance_audit($db, $actor, null, 'Settings updated', $previous, $updated, 'Attendance policy updated.');
         return 'Attendance settings saved.';
     });
@@ -82,7 +82,7 @@ function attendance_set_scope(PDO $db, array $actor, array $fields): string {
         throw new RuntimeException('Choose an active Admin and a parking location.', 422);
     }
     $grant = ($fields['action'] ?? '') === 'grant_scope';
-    return attendance_transaction($db, function () use ($db, $actor, $adminId, $lotId, $grant) {
+    return mypark_database_action($db, function () use ($db, $actor, $adminId, $lotId, $grant) {
         $params = [vehicle_account_scope(), $adminId, $lotId];
         $existed = (bool)attendance_query($db, 'SELECT 1 FROM attendance_admin_locations WHERE scope = ? AND admin_id = ? AND lot_id = ?', $params)->fetchColumn();
         if ($existed !== $grant) {
@@ -101,13 +101,13 @@ function attendance_set_scope(PDO $db, array $actor, array $fields): string {
 
 function attendance_init_record(PDO $db, int $id, int $now, array $settings): void {
     attendance_query($db, 'INSERT INTO attendance_records (shift_id, radius_m, accuracy_m, grace_minutes, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(shift_id) DO NOTHING',
+        VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE shift_id = shift_id',
         [$id, $settings['radius_m'], $settings['accuracy_m'], $settings['grace_minutes'], $now, $now]);
 }
 
 function attendance_request(PDO $db, int $id, string $kind, string $reason, int $now, ?int $in = null, ?int $out = null): bool {
     return attendance_query($db, 'INSERT INTO attendance_requests (shift_id, kind, reason, proposed_in, proposed_out, created_at)
-        VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(shift_id) WHERE status = \'pending\' DO NOTHING',
+        VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE id = id',
         [$id, $kind, $reason, $in, $out, $now])->rowCount() === 1;
 }
 
@@ -126,7 +126,7 @@ function attendance_capture(PDO $db, array $actor, int $id, string $action, arra
     if ($actor['role'] !== 'staff') throw new RuntimeException('Only employees can record attendance.', 403);
     $checkOut = $action === 'check_out';
     $exception = $action === 'exception';
-    return attendance_transaction($db, function () use ($db, $actor, $id, $checkOut, $exception, $fields, $now) {
+    return mypark_database_action($db, function () use ($db, $actor, $id, $checkOut, $exception, $fields, $now) {
         $row = attendance_row($db, $actor, $id);
         [$in, $out] = attendance_times($row);
         if ($checkOut && $out !== null) throw new RuntimeException('This shift is already checked out.', 409);
@@ -147,11 +147,7 @@ function attendance_capture(PDO $db, array $actor, int $id, string $action, arra
                 in_distance = ?, in_capture = ?, in_zone = ?, updated_at = ? WHERE shift_id = ?', [$now, ...$gps, $now, $id]);
         }
         if ($photo !== null) {
-            $stmt = $db->prepare('INSERT INTO attendance_photos (shift_id, captured_at, jpeg) VALUES (?, ?, ?)');
-            $stmt->bindValue(1, $id, PDO::PARAM_INT);
-            $stmt->bindValue(2, $now, PDO::PARAM_INT);
-            $stmt->bindValue(3, $photo, PDO::PARAM_LOB);
-            $stmt->execute();
+            attendance_store_photo($db, $id, $now, $photo);
         }
         if ($exception || $gps[5] !== 'within') {
             attendance_request($db, $id, $exception ? 'exception' : 'evidence', $reason, $now);
@@ -185,7 +181,7 @@ function attendance_validate_correction(array $row, ?int $proposedIn, ?int $prop
 
 function attendance_correct(PDO $db, array $actor, int $id, array $fields, int $now): string {
     if ($actor['role'] !== 'staff') throw new RuntimeException('Only employees can request a correction.', 403);
-    return attendance_transaction($db, function () use ($db, $actor, $id, $fields, $now) {
+    return mypark_database_action($db, function () use ($db, $actor, $id, $fields, $now) {
         $row = attendance_row($db, $actor, $id);
         if ($now < $row['starts_at'] - 1800 || attendance_status($row, $now) === 'leave') {
             throw new RuntimeException('This shift does not need an attendance correction.', 409);
@@ -209,7 +205,7 @@ function attendance_decide(PDO $db, array $actor, int $id, array $fields): strin
     $decision = $fields['decision'] ?? '';
     if (!in_array($decision, ['approved', 'rejected'], true)) throw new RuntimeException('Choose Approve or Reject.', 422);
     $reason = attendance_reason($fields['reason'] ?? null);
-    return attendance_transaction($db, function () use ($db, $actor, $id, $requestId, $decision, $reason) {
+    return mypark_database_action($db, function () use ($db, $actor, $id, $requestId, $decision, $reason) {
         $row = attendance_row($db, $actor, $id);
         $request = attendance_query($db, 'SELECT * FROM attendance_requests WHERE id = ? AND shift_id = ?', [$requestId, $id])->fetch();
         if (!$request || $request['status'] !== 'pending') throw new RuntimeException('This request is no longer pending.', 409);

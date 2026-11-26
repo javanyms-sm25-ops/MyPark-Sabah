@@ -76,14 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vehicle_action'])) {
         $_SESSION['user']['phone'] = $phone;
         if ($photo !== null) $_SESSION['user']['photo'] = $photo;
         // Keep the account source in sync for every role.
-        foreach ($_SESSION['demo_users'] as &$account) {
+        foreach (MyParkData::$records['demo_users'] as &$account) {
             if ($account['id'] !== me()['id']) continue;
             $account['name'] = $name;
             $account['phone'] = $phone;
             if ($photo !== null) $account['photo'] = $photo;
         }
         unset($account);
-        $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
+        MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
         flash('Profile updated.');
     }
     header('Location: profile.php');

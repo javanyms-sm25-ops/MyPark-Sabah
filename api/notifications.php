@@ -19,8 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (($_POST['action'] ?? '') === 'read') {
         $ids = explode(',', substr($_POST['ids'] ?? '', 0, 1500));
         foreach ($ids as $id) {
-            if (isset($_SESSION['parking_notifications'][$userId][$id])) {
-                $_SESSION['parking_notifications'][$userId][$id]['read'] = true;
+            if (isset(MyParkData::$records['parking_notifications'][$userId][$id])) {
+                MyParkData::$records['parking_notifications'][$userId][$id]['read'] = true;
             }
         }
     } elseif (($_POST['action'] ?? '') === 'zone') {
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $items = parking_notification_items($userId);
 $unread = array_filter($items, fn($notice) => !$notice['read']);
-$statuses = array_column($_SESSION['demo_bookings'], 'status', 'id');
+$statuses = array_column(MyParkData::$records['demo_bookings'], 'status', 'id');
 $now = time();
 $live = array_filter($unread, fn($notice) => match ($notice['type']) {
     'ending' => $notice['expires_at'] > $now && ($statuses[$notice['booking_id']] ?? '') === 'active',

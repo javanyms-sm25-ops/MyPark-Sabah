@@ -3,13 +3,13 @@ require_once __DIR__ . '/oku-verification.php';
 require_once __DIR__ . '/parking-capacity.php';
 require_once __DIR__ . '/staff-leave.php';
 
-// The Dashboard reads from the existing session store.
+// The Dashboard reads from the current database workspace.
 const OPS_ROLES = ['superadmin' => 'Super Admin', 'admin' => 'Admin', 'staff' => 'Staff', 'user' => 'Member'];
 const OPS_TRANSITIONS = ['active' => ['completed', 'cancelled'], 'completed' => [], 'cancelled' => []];
 
 function ops_actor(): array {
     if (!me()) throw new RuntimeException('Please sign in again.', 401);
-    foreach ($_SESSION['demo_users'] as $user) {
+    foreach (MyParkData::$records['demo_users'] as $user) {
         if ($user['id'] === me()['id'] && !$user['blocked'] && in_array($user['role'], ['staff', 'admin', 'superadmin'], true)) return $user;
     }
     throw new RuntimeException('You do not have permission to access the Dashboard.', 403);
@@ -61,7 +61,7 @@ function ops_snapshot(array $actor): array {
         'id' => (int)$user['id'], 'name' => (string)$user['name'], 'email' => (string)$user['email'],
         'role' => $user['role'], 'role_label' => OPS_ROLES[$user['role']] ?? $user['role'],
         'status' => $user['blocked'] ? 'blocked' : 'active'
-    ], $_SESSION['demo_users']);
+    ], MyParkData::$records['demo_users']);
     $reservations = array_map(static function ($booking) {
         $created = DateTimeImmutable::createFromFormat('!Y-m-d H:i', $booking['created_at'] ?? '');
         return [
@@ -73,7 +73,7 @@ function ops_snapshot(array $actor): array {
             'created_day' => $created ? $created->format('Y-m-d') : '',
             'allowed_statuses' => OPS_TRANSITIONS[$booking['status']] ?? []
         ];
-    }, $_SESSION['demo_bookings']);
+    }, MyParkData::$records['demo_bookings']);
     $active = array_filter($reservations, static fn($b) => $b['status'] === 'active');
     $snapshot = [
         'accounts' => array_values($accounts), 'reservations' => array_values($reservations),
@@ -81,9 +81,9 @@ function ops_snapshot(array $actor): array {
         'account_statuses' => ['active', 'blocked'], 'csrf' => csrf(), 'actor_id' => $actor['id'],
         'can_manage_accounts' => $actor['role'] === 'superadmin',
         'can_export' => in_array($actor['role'], ['admin', 'superadmin'], true),
-        'revision' => $_SESSION['ops_revision'] ?? 0,
+        'revision' => MyParkData::$records['ops_revision'] ?? 0,
         'summary' => [
-            'lots' => count($_SESSION['demo_lots']), 'reservations' => count($reservations),
+            'lots' => count(MyParkData::$records['demo_lots']), 'reservations' => count($reservations),
             'active' => count($active),
             'completed' => count(array_filter($reservations, static fn($b) => $b['status'] === 'completed')),
             'cancelled' => count(array_filter($reservations, static fn($b) => $b['status'] === 'cancelled')),
@@ -91,7 +91,7 @@ function ops_snapshot(array $actor): array {
         ]
     ];
     if ($actor['role'] === 'superadmin') {
-        $snapshot['parking_availability'] = ops_parking_availability($_SESSION['demo_lots'], $_SESSION['demo_bookings']);
+        $snapshot['parking_availability'] = ops_parking_availability(MyParkData::$records['demo_lots'], MyParkData::$records['demo_bookings']);
     }
     return $snapshot;
 }
@@ -118,8 +118,8 @@ function ops_mutate(array $actor, array $input): string {
         }
         $reserved = filter_var($input['oku_capacity'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
         complete_expired_bookings();
-        $occupied = parking_occupancy_by_lot($_SESSION['demo_bookings']);
-        foreach ($_SESSION['demo_lots'] as &$lot) {
+        $occupied = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);
+        foreach (MyParkData::$records['demo_lots'] as &$lot) {
             if ($lot['id'] !== $id) continue;
             $total = parking_lot_capacity($lot);
             if ($total === null || $reserved === false || $reserved > $total) {
@@ -130,7 +130,7 @@ function ops_mutate(array $actor, array $input): string {
                 throw new RuntimeException('This allocation is too small for current stays. Wait until bays are free.', 409);
             }
             $lot['oku_capacity'] = $reserved;
-            $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
+            MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
             return 'OKU bay allocation updated.';
         }
         unset($lot);
@@ -138,13 +138,13 @@ function ops_mutate(array $actor, array $input): string {
     }
     if ($action === 'status') {
         complete_expired_bookings();
-        foreach ($_SESSION['demo_bookings'] as &$booking) {
+        foreach (MyParkData::$records['demo_bookings'] as &$booking) {
             if ($booking['id'] !== $id) continue;
             $next = $input['status'] ?? '';
             if (($input['expected_status'] ?? '') !== $booking['status']) throw new RuntimeException('This reservation has changed. Refresh and try again.', 409);
             if (!in_array($next, OPS_TRANSITIONS[$booking['status']] ?? [], true)) throw new RuntimeException('This reservation status transition is not allowed.', 422);
             $booking['status'] = $next;
-            $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
+            MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
             return 'Reservation #' . $id . ' updated.';
         }
         unset($booking);
@@ -152,7 +152,7 @@ function ops_mutate(array $actor, array $input): string {
     }
     if ($action === 'toggle_user') {
         if ($actor['role'] !== 'superadmin') throw new RuntimeException('Only Super Admin can block or unblock accounts.', 403);
-        foreach ($_SESSION['demo_users'] as &$user) {
+        foreach (MyParkData::$records['demo_users'] as &$user) {
             if ($user['id'] !== $id) continue;
             $current = $user['blocked'] ? 'blocked' : 'active';
             $next = $input['status'] ?? '';
@@ -160,11 +160,11 @@ function ops_mutate(array $actor, array $input): string {
             if (!in_array($next, ['active', 'blocked'], true) || $next === $current) throw new RuntimeException('Invalid account status change.', 422);
             if ($next === 'blocked') {
                 if ($user['id'] === $actor['id']) throw new RuntimeException('You cannot block your own account.', 422);
-                $activeSuperAdmins = count(array_filter($_SESSION['demo_users'], static fn($u) => $u['role'] === 'superadmin' && !$u['blocked']));
+                $activeSuperAdmins = count(array_filter(MyParkData::$records['demo_users'], static fn($u) => $u['role'] === 'superadmin' && !$u['blocked']));
                 if ($user['role'] === 'superadmin' && $activeSuperAdmins <= 1) throw new RuntimeException('The last active Super Admin cannot be blocked.', 422);
             }
             $user['blocked'] = $next === 'blocked';
-            $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
+            MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
             return 'Account ' . ($user['blocked'] ? 'blocked.' : 'unblocked.');
         }
         unset($user);
@@ -180,12 +180,12 @@ function ops_mutate(array $actor, array $input): string {
         if ($lat === false || $lng === false || abs($lat) > 90 || abs($lng) > 180) {
             throw new RuntimeException('Choose a location on the map.', 422);
         }
-        $_SESSION['demo_lots'][] = [
-            'id' => max(array_column($_SESSION['demo_lots'], 'id') ?: [0]) + 1,
+        MyParkData::$records['demo_lots'][] = [
+            'id' => max(array_column(MyParkData::$records['demo_lots'], 'id') ?: [0]) + 1,
             'name' => $name, 'city' => $city, 'address' => $address,
             'rate' => PARKING_HOURLY_CENTS / 100, 'capacity' => $capacity, 'lat' => $lat, 'lng' => $lng,
         ];
-        $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
+        MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
         return 'Parking location added.';
     }
     throw new RuntimeException('Unknown operation.', 400);

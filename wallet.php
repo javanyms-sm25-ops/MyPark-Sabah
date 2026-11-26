@@ -6,7 +6,7 @@ header('Cache-Control: private, no-store');
 $wallet =& demo_wallet();
 $transactions = array_reverse($wallet['transactions']);
 $userId = me()['id'];
-$bookings = array_column($_SESSION['demo_bookings'], null, 'id');
+$bookings = array_column(MyParkData::$records['demo_bookings'], null, 'id');
 $invalidAmount = $_SESSION['wallet_topup_invalid_amount'][$userId] ?? null;
 unset($_SESSION['wallet_topup_invalid_amount'][$userId]);
 $amountError = te('Enter an amount from RM 1.00 to RM 500.00, with up to two decimal places.');

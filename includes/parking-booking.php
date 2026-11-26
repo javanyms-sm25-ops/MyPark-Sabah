@@ -35,7 +35,7 @@ function parking_bay_error(array $actor, ?array $lot, string $bayType): ?string 
     if ($lot === null) return null;
 
     // Every stay begins immediately, so every active stay overlaps the requested start.
-    $occupied = parking_occupancy_by_lot($_SESSION['demo_bookings']);
+    $occupied = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);
     $bay = parking_bay_counts($lot, $occupied[$lot['id']] ?? [])[$bayType];
     if ($bay['capacity'] === null) return 'Capacity unavailable';
     if ($bay['available'] > 0) return null;
@@ -49,7 +49,7 @@ function validate_parking_draft(array $actor, array $draft): array {
     complete_expired_bookings();
     $errors = [];
     $lotId = filter_var($draft['lot_id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-    $lots = array_column($_SESSION['demo_lots'], null, 'id');
+    $lots = array_column(MyParkData::$records['demo_lots'], null, 'id');
     $lot = $lots[$lotId] ?? null;
     $bayType = $draft['bay_type'] ?? 'regular';
     if ($lot === null) {
@@ -74,7 +74,7 @@ function validate_parking_draft(array $actor, array $draft): array {
     }
 
     if ($plate !== null) {
-        foreach ($_SESSION['demo_bookings'] as $booking) {
+        foreach (MyParkData::$records['demo_bookings'] as $booking) {
             if ($booking['status'] === 'active' && vehicle_plate_key($booking['plate']) === vehicle_plate_key($plate)) {
                 $errors['vehicle'] = 'This vehicle already has an active parking session. End it before booking again.';
                 break;
@@ -118,8 +118,8 @@ function start_parking(array $actor, array $details): int {
     if ($feeCents > $balanceCents) throw new RuntimeException(PARKING_WALLET_INSUFFICIENT, 409);
 
     $start = time();
-    $bookingId = max($_SESSION['last_booking_id'] ?? 0, max(array_column($_SESSION['demo_bookings'], 'id') ?: [0])) + 1;
-    $_SESSION['demo_bookings'][] = [
+    $bookingId = max(MyParkData::$records['last_booking_id'] ?? 0, max(array_column(MyParkData::$records['demo_bookings'], 'id') ?: [0])) + 1;
+    MyParkData::$records['demo_bookings'][] = [
         'id' => $bookingId,
         'user_id' => $actor['id'],
         'user' => $actor['name'],
@@ -146,7 +146,7 @@ function start_parking(array $actor, array $details): int {
         ];
         parking_payment_notice($actor['id'], $feeCents, $details['lot']['name']);
     }
-    $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
+    MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
     return $bookingId;
 }
 
@@ -162,8 +162,8 @@ function change_parking_bay(array $member, int $id, string $bayType): void {
         throw new RuntimeException('Only members can change their parking bay type.', 403);
     }
     complete_expired_bookings();
-    $lots = array_column($_SESSION['demo_lots'], null, 'id');
-    foreach ($_SESSION['demo_bookings'] as &$booking) {
+    $lots = array_column(MyParkData::$records['demo_lots'], null, 'id');
+    foreach (MyParkData::$records['demo_bookings'] as &$booking) {
         if ($booking['id'] !== $id || $booking['user_id'] !== $member['id']) continue;
         if ($booking['status'] !== 'active' || (booking_expiry($booking) ?? 0) <= time()) {
             throw new RuntimeException('Only active stays can change bay type.', 409);
@@ -181,7 +181,7 @@ function change_parking_bay(array $member, int $id, string $bayType): void {
 
         // The location, original start, remaining time and fee stay the same.
         $booking['bay_type'] = $bayType;
-        $_SESSION['ops_revision'] = ($_SESSION['ops_revision'] ?? 0) + 1;
+        MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
         return;
     }
     unset($booking);
