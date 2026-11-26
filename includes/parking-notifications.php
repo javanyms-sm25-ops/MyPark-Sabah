@@ -6,14 +6,14 @@ const PARKING_ALERT_RADII = [1 => 150, 2 => 150, 3 => 150];
 
 function parking_add_notice(int $userId, array $notice): void {
     $id = bin2hex(random_bytes(12));
-    $items = $_SESSION['parking_notifications'][$userId] ?? [];
+    $items = MyParkData::$records['parking_notifications'][$userId] ?? [];
     $items[$id] = $notice + ['id' => $id, 'created_at' => time(), 'read' => false];
-    $_SESSION['parking_notifications'][$userId] = array_slice($items, -60, null, true);
+    MyParkData::$records['parking_notifications'][$userId] = array_slice($items, -60, null, true);
 }
 
 function parking_notification_items(int $userId): array {
     $now = time();
-    foreach ($_SESSION['demo_bookings'] as &$booking) {
+    foreach (MyParkData::$records['demo_bookings'] as &$booking) {
         if ($booking['user_id'] !== $userId || $booking['status'] !== 'active') continue;
         $expiry = booking_expiry($booking);
         if ($expiry === null || $expiry <= $now || $expiry - $now > PARKING_REMINDER_SECONDS ||
@@ -27,12 +27,12 @@ function parking_notification_items(int $userId): array {
     }
     unset($booking);
 
-    return array_reverse($_SESSION['parking_notifications'][$userId] ?? [], true);
+    return array_reverse(MyParkData::$records['parking_notifications'][$userId] ?? [], true);
 }
 
 function parking_alert_zones(): array {
     $zones = [];
-    foreach ($_SESSION['demo_lots'] as $lot) {
+    foreach (MyParkData::$records['demo_lots'] as $lot) {
         $id = (int)$lot['id'];
         $radius = PARKING_ALERT_RADII[$id] ?? null;
         $lat = filter_var($lot['lat'] ?? null, FILTER_VALIDATE_FLOAT);
@@ -46,14 +46,14 @@ function parking_alert_zones(): array {
 function parking_zone_notice(int $userId, int $zoneId): void {
     $now = time();
     // A reload or concurrent tab should not create repeated alerts for the same location.
-    if ($now - ($_SESSION['parking_zone_notice_at'][$userId][$zoneId] ?? 0) < 600) return;
+    if ($now - (MyParkData::$records['parking_zone_notice_at'][$userId][$zoneId] ?? 0) < 600) return;
 
-    $lots = array_column($_SESSION['demo_lots'], null, 'id');
+    $lots = array_column(MyParkData::$records['demo_lots'], null, 'id');
     $lot = $lots[$zoneId];
     parking_add_notice($userId, [
         'type' => 'zone', 'location' => $lot['name'], 'lot_id' => $zoneId,
     ]);
-    $_SESSION['parking_zone_notice_at'][$userId][$zoneId] = $now;
+    MyParkData::$records['parking_zone_notice_at'][$userId][$zoneId] = $now;
 }
 
 function parking_payment_notice(int $userId, int $amountCents, ?string $location = null): void {

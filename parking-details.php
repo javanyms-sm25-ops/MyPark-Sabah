@@ -159,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$lots = $_SESSION['demo_lots'];
+$lots = MyParkData::$records['demo_lots'];
 head('Parking details');
 ?>
 

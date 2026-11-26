@@ -26,7 +26,6 @@ try {
         throw new RuntimeException('OKU proof is unavailable.', 404);
     }
 
-    session_write_close();
     header('Content-Type: ' . $mime);
     header('Content-Disposition: inline; filename="oku-parking-proof.' . OKU_PROOF_TYPES[$mime] . '"');
     header('Content-Length: ' . strlen($proof));

@@ -20,6 +20,8 @@ try {
     $bytes = attendance_query($db, "SELECT p.jpeg FROM attendance_photos p JOIN attendance_shifts s ON s.id = p.shift_id
         WHERE $scope AND s.id = ?", [...$parameters, $shift])->fetchColumn();
     if ($bytes === false) throw new RuntimeException('Attendance photo not found.', 404);
+    $parts = attendance_query($db, 'SELECT bytes FROM attendance_photo_parts WHERE shift_id = ? ORDER BY part_number', [$shift]);
+    $bytes .= implode('', $parts->fetchAll(PDO::FETCH_COLUMN));
     header('Content-Type: image/jpeg');
     header('Content-Length: ' . strlen($bytes));
     if ($_SERVER['REQUEST_METHOD'] === 'GET') echo $bytes;

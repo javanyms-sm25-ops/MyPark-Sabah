@@ -44,6 +44,14 @@ try {
             paypal_reply(['error' => 'This payment does not match your checkout.'], 409);
         }
         if (!empty($checkout['credited'])) paypal_reply(['success' => true]);
+        $transactions = MyParkData::$records['demo_wallets'][me()['id']]['transactions'] ?? [];
+        foreach ($transactions as $transaction) {
+            if (($transaction['type'] ?? null) === 'topup' && ($transaction['status'] ?? null) === 'paid'
+                && ($transaction['reference'] ?? null) === $orderId) {
+                $checkout['credited'] = true;
+                paypal_reply(['success' => true]);
+            }
+        }
         $token = paypal_access_token();
         $orderPath = '/v2/checkout/orders/' . $orderId;
         $order = [];

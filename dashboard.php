@@ -52,9 +52,9 @@ if ($resume) {
 }
 
 $wallet = demo_wallet();
-$lots = $_SESSION['demo_lots'];
-$occupiedByLot = parking_occupancy_by_lot($_SESSION['demo_bookings']);
-$bookings = array_values(array_filter($_SESSION['demo_bookings'], fn($booking) => $booking['user_id'] === $userId));
+$lots = MyParkData::$records['demo_lots'];
+$occupiedByLot = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);
+$bookings = array_values(array_filter(MyParkData::$records['demo_bookings'], fn($booking) => $booking['user_id'] === $userId));
 $completedBookings = array_filter($bookings, fn($booking) => $booking['status'] === 'completed');
 $vehicleState = ['vehicles' => [], 'selected_id' => null, 'default_id' => null];
 if (me()['role'] === 'user') {

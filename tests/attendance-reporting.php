@@ -6,6 +6,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require_once dirname(__DIR__) . '/includes/localization.php';
+require_once dirname(__DIR__) . '/includes/database.php';
 require_once dirname(__DIR__) . '/includes/attendance-actions.php';
 require_once dirname(__DIR__) . '/includes/attendance-report.php';
 require_once dirname(__DIR__) . '/includes/attendance-report-view.php';
@@ -62,18 +63,19 @@ $accounts = [
     7 => ['id' => 7, 'role' => 'staff', 'name' => 'Fictional Ravi', 'blocked' => false],
     8 => ['id' => 8, 'role' => 'staff', 'name' => 'Fictional Mei', 'blocked' => false],
 ];
-$_SESSION = [
+$testDatabase = getenv('MYPARK_DB_NAME');
+expect(is_string($testDatabase) && preg_match('/\Amypark_test_[a-z0-9_]+\z/D', $testDatabase) === 1,
+    'Set MYPARK_DB_NAME to a disposable mypark_test_ database initialized with sql/database.sql.');
+$_SESSION = ['mypark_workspace' => 'report-test-' . bin2hex(random_bytes(8))];
+MyParkData::start();
+$db = mypark_database();
+MyParkData::$records = [
     'demo_users' => $accounts,
     'demo_lots' => [
         ['id' => 1, 'name' => 'Waterfront demo', 'lat' => 5.98, 'lng' => 116.07],
         ['id' => 2, 'name' => 'East office demo', 'lat' => 5.84, 'lng' => 118.11],
     ],
-    'vehicle_account_scope' => 'report-test-workspace',
 ];
-$db = new PDO('sqlite::memory:', options: [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-$db->exec('PRAGMA foreign_keys = ON');
-$includes = dirname(__DIR__) . '/includes/';
-$db->exec(file_get_contents($includes . 'attendance-schema.sql'));
 [$super, $admin] = [$accounts[1], $accounts[2]];
 $staff = array_filter($accounts, static fn($account) => $account['role'] === 'staff');
 $locations = attendance_locations($db, $super);
@@ -82,13 +84,14 @@ $period = ['from' => '2026-11-01', 'to' => '2026-11-18'];
 
 attendance_query($db, 'INSERT INTO attendance_shifts (scope, staff_id, lot_id, lot_name, lot_lat, lot_lng, shift_date, starts_at, ends_at)
     VALUES (?, 3, 1, ?, 5.98, 116.07, ?, ?, ?)', [vehicle_account_scope(), 'Waterfront demo', '2026-11-01', strtotime('2026-11-01 08:00'), strtotime('2026-11-01 16:00')]);
-$db->exec(file_get_contents($includes . 'attendance-analytics-schema.sql'));
-test('Version 2 migration preserves scheduled rows and adds clarification columns', static function () use ($db, $super) {
-    $row = attendance_row($db, $super, 1);
-    expect($row['staff_id'] === 3 && $row['shift_date'] === '2026-11-01', 'Legacy shift lost.');
+$initialShift = (int)$db->lastInsertId();
+test('MariaDB schema stores scheduled rows and supports reporting and clarification', static function () use ($db, $super, $initialShift) {
+    $row = attendance_row($db, $super, $initialShift);
+    expect($row['staff_id'] === 3 && $row['shift_date'] === '2026-11-01', 'Scheduled shift lost.');
+    expect(array_key_exists('awaiting_reply', $row), 'Clarification state was not loaded.');
     expect(attendance_report_policy($db) === ['require_checkout' => 1, 'excuse_holidays' => 1], 'Unexpected default policy.');
     // The rest of the case data starts on the second day.
-    $db->exec('DELETE FROM attendance_shifts WHERE id = 1');
+    attendance_query($db, 'DELETE FROM attendance_shifts WHERE scope = ? AND id = ?', [vehicle_account_scope(), $initialShift]);
 });
 
 attendance_set_scope($db, $super, ['action' => 'grant_scope', 'admin_id' => '2', 'lot_id' => '1']);
@@ -168,9 +171,13 @@ test('Admins, staff and workspaces are scoped on the server', static function ()
     rejects(fn() => attendance_row($db, $admin, $other), 404);
     rejects(fn() => attendance_row($db, $accounts[3], $other), 404);
     rejects(fn() => attendance_row($db, $accounts[4], $other), 403);
-    $_SESSION['vehicle_account_scope'] = 'unrelated-test-workspace';
-    try { rejects(fn() => attendance_row($db, $super, $other), 404); }
-    finally { $_SESSION['vehicle_account_scope'] = 'report-test-workspace'; }
+    $unrelated = 'other-test-' . bin2hex(random_bytes(8));
+    attendance_query($db, 'INSERT INTO mypark_workspaces (id) VALUES (?)', [$unrelated]);
+    attendance_query($db, 'INSERT INTO attendance_shifts (scope, staff_id, lot_id, lot_name, lot_lat, lot_lng, shift_date, starts_at, ends_at)
+        VALUES (?, 3, 1, ?, 5.98, 116.07, ?, ?, ?)',
+        [$unrelated, 'Unrelated workplace', '2026-11-01', strtotime('2026-11-01 08:00'), strtotime('2026-11-01 16:00')]);
+    $isolatedShift = (int)$db->lastInsertId();
+    rejects(fn() => attendance_row($db, $super, $isolatedShift), 404);
 });
 
 test('Calendar groups overnight shifts on the start date and distinguishes exempt days', static function () use ($db, $accounts, $now) {

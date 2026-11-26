@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = null;
         $userIndex = null;
 
-        foreach ($_SESSION['demo_users'] as $index => $candidate) {
+        foreach (MyParkData::$records['demo_users'] as $index => $candidate) {
             if ($candidate['email'] === $email) {
                 $user = $candidate;
                 $userIndex = $index;
@@ -43,7 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'This account is blocked.';
         } elseif ($user && password_verify($_POST['password'] ?? '', $user['password'])) {
             $_SESSION['failures'][$email] = 0;
-            migrate_legacy_demo_wallet();
             session_regenerate_id(true);
             unset($_SESSION['csrf']);
             $_SESSION['demo_last_active'] = time();
@@ -56,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['failures'][$email] = $attempts;
 
             if ($attempts >= 3 && $user) {
-                $_SESSION['demo_users'][$userIndex]['blocked'] = true;
+                MyParkData::$records['demo_users'][$userIndex]['blocked'] = true;
                 $error = 'Account blocked after 3 failed attempts. Ask an administrator to unblock it.';
             } else {
                 $error = $attempts >= 3 ? 'Too many attempts. Try again later.' : 'Incorrect email or password.';

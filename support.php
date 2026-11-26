@@ -2,7 +2,7 @@
 require __DIR__ . '/includes/bootstrap.php';
 require_login();
 $_SESSION['demo_chat'] ??= [];
-$_SESSION['demo_reviews'] ??= [];
+MyParkData::$records['demo_reviews'] ??= [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
     if (($_POST['action'] ?? '') === 'review') {
@@ -11,8 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($rating === false || $rating < 1 || $rating > 5 || $review === '' || strlen($review) > 2000) {
             flash('Review failed. Choose a rating and enter a review of up to 2,000 characters.');
         } else {
-            $_SESSION['demo_reviews'][] = ['user_id' => me()['id'], 'rating' => $rating, 'review' => $review, 'at' => date('Y-m-d H:i')];
-            flash('Review saved for this demo session.');
+            MyParkData::$records['demo_reviews'][] = ['user_id' => me()['id'], 'rating' => $rating, 'review' => $review, 'at' => date('Y-m-d H:i')];
+            flash('Review saved.');
         }
     } else {
         $message = trim($_POST['message'] ?? '');
@@ -49,7 +49,7 @@ head('Support');
   </select></label>
   <label><?= te('Review') ?><input name="review" placeholder="<?= te('Share feedback') ?>" maxlength="2000" required></label><button><?= te('Submit review') ?></button>
 </form>
-<?php $reviews = array_filter($_SESSION['demo_reviews'], fn($review) => $review['user_id'] === me()['id']); ?>
+<?php $reviews = array_filter(MyParkData::$records['demo_reviews'], fn($review) => $review['user_id'] === me()['id']); ?>
 <?php if ($reviews): ?>
   <h2><?= te('Your reviews') ?></h2>
   <?php foreach (array_reverse($reviews) as $review): ?>

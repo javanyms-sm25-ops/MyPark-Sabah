@@ -57,8 +57,8 @@ function receipt_add(array &$source, int $userId, string $type, int $amountCents
 
     do {
         $id = strtoupper(bin2hex(random_bytes(8)));
-    } while (isset($_SESSION['demo_receipts'][$userId][$id]));
-    $_SESSION['demo_receipts'][$userId][$id] = [
+    } while (isset(MyParkData::$records['demo_receipts'][$userId][$id]));
+    MyParkData::$records['demo_receipts'][$userId][$id] = [
         'id' => $id,
         'type' => $type,
         'at' => $created->getTimestamp(),
@@ -70,11 +70,11 @@ function receipt_add(array &$source, int $userId, string $type, int $amountCents
 
 function receipt_assign_numbers(): void {
     $used = [];
-    foreach ($_SESSION['demo_receipts'] as $receipts) {
+    foreach (MyParkData::$records['demo_receipts'] as $receipts) {
         foreach (array_column($receipts, 'number') as $number) $used[$number] = true;
     }
 
-    foreach ($_SESSION['demo_receipts'] as &$receipts) {
+    foreach (MyParkData::$records['demo_receipts'] as &$receipts) {
         foreach ($receipts as &$receipt) {
             if (isset($receipt['number'])) continue;
 
@@ -95,18 +95,18 @@ function receipt_assign_numbers(): void {
 function receipt_sync(): void {
     [$firstDay] = receipt_window();
     $oldest = $firstDay->getTimestamp();
-    $_SESSION['demo_receipts'] ??= [];
+    MyParkData::$records['demo_receipts'] ??= [];
 
-    foreach ($_SESSION['demo_receipts'] as $userId => $receipts) {
+    foreach (MyParkData::$records['demo_receipts'] as $userId => $receipts) {
         $recent = array_filter($receipts, static fn($receipt) => $receipt['at'] >= $oldest);
         if ($recent) {
-            $_SESSION['demo_receipts'][$userId] = $recent;
+            MyParkData::$records['demo_receipts'][$userId] = $recent;
         } else {
-            unset($_SESSION['demo_receipts'][$userId]);
+            unset(MyParkData::$records['demo_receipts'][$userId]);
         }
     }
 
-    foreach ($_SESSION['demo_bookings'] as &$booking) {
+    foreach (MyParkData::$records['demo_bookings'] as &$booking) {
         $start = receipt_date($booking['created_at'], 'Y-m-d H:i');
         if (!$start || $start->getTimestamp() < $oldest || isset($booking['receipt_id'])) continue;
 
@@ -123,8 +123,8 @@ function receipt_sync(): void {
     }
     unset($booking);
 
-    $_SESSION['demo_wallets'] ??= [];
-    foreach ($_SESSION['demo_wallets'] as $userId => &$wallet) {
+    MyParkData::$records['demo_wallets'] ??= [];
+    foreach (MyParkData::$records['demo_wallets'] as $userId => &$wallet) {
         foreach ($wallet['transactions'] as &$transaction) {
             if (($transaction['status'] ?? '') !== 'paid' || ($transaction['type'] ?? '') === 'parking') continue;
             $type = ($transaction['type'] ?? 'topup') === 'compound' ? 'compound' : 'topup';
@@ -150,7 +150,7 @@ function receipt_sync(): void {
 function receipt_parking_rows(int $userId, array $receipts, ?int $from, int $until): array {
     $remainingReceipts = array_column($receipts, null, 'id');
     $rows = [];
-    foreach ($_SESSION['demo_bookings'] as $booking) {
+    foreach (MyParkData::$records['demo_bookings'] as $booking) {
         if ($booking['user_id'] !== $userId) continue;
         $at = receipt_date($booking['created_at'], 'Y-m-d H:i')?->getTimestamp() ?? 0;
         if ($from !== null && ($at < $from || $at >= $until)) continue;

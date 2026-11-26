@@ -14,7 +14,7 @@ function attendance_export_datetime(?int $value): string {
 }
 
 function attendance_export_label(?string $status): string {
-    return isset(ATTENDANCE_LABELS[$status]) ? t(ATTENDANCE_LABELS[$status]) : '';
+    return $status !== null && isset(ATTENDANCE_LABELS[$status]) ? t(ATTENDANCE_LABELS[$status]) : '';
 }
 
 function attendance_export_data(array $report, array $staff, array $locations): array {

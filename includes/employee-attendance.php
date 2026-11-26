@@ -22,38 +22,15 @@ const ATTENDANCE_CAPTURE = [
 function attendance_db(): PDO {
     static $db;
     if ($db instanceof PDO) return $db;
-    $normalize = static fn(string $path): string => strtolower(rtrim(str_replace('\\', '/', $path), '/') . '/');
-    $directory = realpath(session_save_path());
-    $webRoot = realpath(($_SERVER['DOCUMENT_ROOT'] ?? '') ?: dirname(__DIR__));
-    if (!$directory || !$webRoot || str_starts_with($normalize($directory), $normalize($webRoot))
-        || str_starts_with($normalize($directory), $normalize(dirname(__DIR__))) || !extension_loaded('pdo_sqlite')) {
-        throw new RuntimeException('Private attendance storage is unavailable.', 503);
-    }
     try {
-        $connection = new PDO('sqlite:' . $directory . DIRECTORY_SEPARATOR . 'attendance.sqlite3', options: [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
-        $connection->exec('PRAGMA foreign_keys = ON');
-        $connection->exec('PRAGMA busy_timeout = 5000');
-        $connection->exec('PRAGMA secure_delete = ON');
-        if ((int)$connection->query('PRAGMA user_version')->fetchColumn() < 2) {
-            attendance_transaction($connection, function () use ($connection) {
-                $version = (int)$connection->query('PRAGMA user_version')->fetchColumn();
-                foreach ([1 => 'attendance-schema.sql', 2 => 'attendance-analytics-schema.sql'] as $target => $file) {
-                    if ($version >= $target) continue;
-                    $sql = file_get_contents(__DIR__ . '/' . $file);
-                    if ($sql === false) throw new RuntimeException('Attendance migration is unavailable.', 503);
-                    $connection->exec($sql);
-                    $connection->exec('PRAGMA user_version = ' . $target);
-                }
-            });
-        }
-        $cutoff = time() - ATTENDANCE_EVIDENCE_DAYS * 86400;
-        attendance_query($connection, 'DELETE FROM attendance_photos WHERE captured_at < ?', [$cutoff]);
-        attendance_query($connection, 'UPDATE attendance_records SET in_lat = NULL, in_lng = NULL
-            WHERE checked_in < ? AND in_lat IS NOT NULL', [$cutoff]);
-        attendance_query($connection, 'UPDATE attendance_records SET out_lat = NULL, out_lng = NULL
-            WHERE checked_out < ? AND out_lat IS NOT NULL', [$cutoff]);
+        $connection = mypark_database();
+        $params = [MyParkData::workspace(), time() - ATTENDANCE_EVIDENCE_DAYS * 86400];
+        attendance_query($connection, 'DELETE p FROM attendance_photos p JOIN attendance_shifts s ON s.id = p.shift_id
+            WHERE s.scope = ? AND p.captured_at < ?', $params);
+        attendance_query($connection, 'UPDATE attendance_records r JOIN attendance_shifts s ON s.id = r.shift_id
+            SET r.in_lat = NULL, r.in_lng = NULL WHERE s.scope = ? AND r.checked_in < ? AND r.in_lat IS NOT NULL', $params);
+        attendance_query($connection, 'UPDATE attendance_records r JOIN attendance_shifts s ON s.id = r.shift_id
+            SET r.out_lat = NULL, r.out_lng = NULL WHERE s.scope = ? AND r.checked_out < ? AND r.out_lat IS NOT NULL', $params);
         return $db = $connection;
     } catch (PDOException $error) {
         throw new RuntimeException('Private attendance storage is unavailable.', 503, $error);
@@ -71,24 +48,25 @@ function attendance_query(PDO $db, string $sql, array $params = []): PDOStatemen
     return $stmt;
 }
 
-function attendance_transaction(PDO $db, callable $operation): mixed {
-    $db->exec('BEGIN IMMEDIATE');
-    try {
-        $result = $operation();
-        $db->exec('COMMIT');
-        return $result;
-    } catch (Throwable $error) {
-        $db->exec('ROLLBACK');
-        throw $error;
+function attendance_store_photo(PDO $db, int $shiftId, int $capturedAt, string $jpeg): void {
+    $parts = str_split($jpeg, MYPARK_DATABASE_PART_BYTES);
+    $first = array_shift($parts);
+    attendance_query($db, 'INSERT INTO attendance_photos (shift_id, captured_at, jpeg) VALUES (?, ?, ?)',
+        [$shiftId, $capturedAt, $first]);
+    if (!$parts) return;
+
+    $insert = $db->prepare('INSERT INTO attendance_photo_parts (shift_id, part_number, bytes) VALUES (?, ?, ?)');
+    foreach ($parts as $part => $bytes) {
+        $insert->execute([$shiftId, $part, $bytes]);
     }
 }
 
 function attendance_accounts(): array {
-    return array_column($_SESSION['demo_users'], null, 'id');
+    return array_column(MyParkData::$records['demo_users'], null, 'id');
 }
 
 function attendance_locations(PDO $db, array $actor): array {
-    $lots = array_column($_SESSION['demo_lots'], null, 'id');
+    $lots = array_column(MyParkData::$records['demo_lots'], null, 'id');
     if ($actor['role'] === 'superadmin') return $lots;
     if ($actor['role'] !== 'admin') return [];
     $ids = attendance_query($db, 'SELECT lot_id FROM attendance_admin_locations WHERE scope = ? AND admin_id = ?',
@@ -135,7 +113,7 @@ function attendance_reason(mixed $value): string {
 }
 
 function attendance_leave(array $row): bool {
-    foreach ($_SESSION['staff_leave_requests'] ?? [] as $leave) {
+    foreach (MyParkData::$records['staff_leave_requests'] ?? [] as $leave) {
         if ($leave['staff_id'] !== $row['staff_id'] || $leave['status'] !== 'approved') continue;
         $from = strtotime($leave['start_date']);
         $until = strtotime($leave['end_date'] . ' +1 day');

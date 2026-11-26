@@ -61,11 +61,11 @@ function attendance_save_report_policy(PDO $db, array $actor, array $fields): st
         'require_checkout' => attendance_int($fields['require_checkout'] ?? '0', 0, 1),
         'excuse_holidays' => attendance_int($fields['excuse_holidays'] ?? '0', 0, 1),
     ];
-    return attendance_transaction($db, function () use ($db, $actor, $policy) {
+    return mypark_database_action($db, function () use ($db, $actor, $policy) {
         $previous = attendance_report_policy($db);
         attendance_query($db, 'INSERT INTO attendance_report_policy (scope, require_checkout, excuse_holidays)
-            VALUES (?, ?, ?) ON CONFLICT(scope) DO UPDATE SET
-            require_checkout = excluded.require_checkout, excuse_holidays = excluded.excuse_holidays',
+            VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE
+            require_checkout = VALUES(require_checkout), excuse_holidays = VALUES(excuse_holidays)',
             [vehicle_account_scope(), ...array_values($policy)]);
         if ($previous !== $policy) attendance_audit($db, $actor, null, 'Reporting settings updated',
             $previous, $policy, 'Full attendance policy updated.');
@@ -83,14 +83,14 @@ function attendance_save_holiday(PDO $db, array $actor, array $fields): string {
         || (!$remove && preg_match('/\A.{1,100}\z/u', $name) !== 1)) {
         throw new RuntimeException('Enter a valid holiday date and name of up to 100 characters.', 422);
     }
-    return attendance_transaction($db, function () use ($db, $actor, $date, $name, $remove) {
+    return mypark_database_action($db, function () use ($db, $actor, $date, $name, $remove) {
         $scope = vehicle_account_scope();
         $previous = attendance_report_holidays($db, $date, $date)[$date] ?? null;
         if ($remove) {
             attendance_query($db, 'DELETE FROM attendance_report_holidays WHERE scope = ? AND holiday_date = ?', [$scope, $date]);
         } else {
             attendance_query($db, 'INSERT INTO attendance_report_holidays (scope, holiday_date, name) VALUES (?, ?, ?)
-                ON CONFLICT(scope, holiday_date) DO UPDATE SET name = excluded.name', [$scope, $date, $name]);
+                ON DUPLICATE KEY UPDATE name = VALUES(name)', [$scope, $date, $name]);
         }
         $after = $remove ? null : $name;
         if ($previous !== $after) attendance_audit($db, $actor, null, 'Reporting holiday updated',

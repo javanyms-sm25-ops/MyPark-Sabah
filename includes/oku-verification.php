@@ -11,8 +11,8 @@ const OKU_MAX_PROOF_BYTES = 2000000;
 const OKU_APPROVAL_REQUIRED = 'Approved OKU parking verification is required. Open the OKU verification page to check your status or submit proof.';
 
 function oku_current_submission(int $memberId): ?array {
-    $id = $_SESSION['oku_latest'][$memberId] ?? '';
-    return $_SESSION['oku_submissions'][$id] ?? null;
+    $id = MyParkData::$records['oku_latest'][$memberId] ?? '';
+    return MyParkData::$records['oku_submissions'][$id] ?? null;
 }
 
 function oku_is_approved(int $memberId): bool {
@@ -89,7 +89,7 @@ function oku_submit(array $member, array $file): void {
     }
 
     $id = bin2hex(random_bytes(16));
-    $_SESSION['oku_submissions'][$id] = [
+    MyParkData::$records['oku_submissions'][$id] = [
         'id' => $id,
         'member_id' => $member['id'],
         'submitted_at' => time(),
@@ -97,7 +97,7 @@ function oku_submit(array $member, array $file): void {
         'proof_mime' => $mime,
         'proof_bytes' => $bytes,
     ];
-    $_SESSION['oku_latest'][$member['id']] = $id;
+    MyParkData::$records['oku_latest'][$member['id']] = $id;
 }
 
 function oku_queue_filter(mixed $value): string {
@@ -106,9 +106,9 @@ function oku_queue_filter(mixed $value): string {
 
 function oku_review_rows(array $reviewer, string $filter): array {
     oku_require_reviewer($reviewer);
-    $accounts = array_column($_SESSION['demo_users'], null, 'id');
+    $accounts = array_column(MyParkData::$records['demo_users'], null, 'id');
     $rows = [];
-    foreach ($_SESSION['oku_submissions'] ?? [] as $submission) {
+    foreach (MyParkData::$records['oku_submissions'] ?? [] as $submission) {
         $member = $accounts[$submission['member_id']] ?? null;
         if (($member['role'] ?? null) !== 'user' || ($filter !== 'all' && $submission['status'] !== $filter)) continue;
         $rows[] = [
@@ -126,19 +126,19 @@ function oku_review_rows(array $reviewer, string $filter): array {
 function oku_pending_review(array $reviewer, string $id): array {
     oku_require_reviewer($reviewer);
     oku_require_private_session();
-    $row = preg_match('/\A[a-f0-9]{32}\z/', $id) ? ($_SESSION['oku_submissions'][$id] ?? null) : null;
-    $accounts = array_column($_SESSION['demo_users'], null, 'id');
+    $row = preg_match('/\A[a-f0-9]{32}\z/', $id) ? (MyParkData::$records['oku_submissions'][$id] ?? null) : null;
+    $accounts = array_column(MyParkData::$records['demo_users'], null, 'id');
     if (!$row || ($accounts[$row['member_id']]['role'] ?? null) !== 'user') {
         throw new RuntimeException('OKU submission not found.', 404);
     }
-    if ($row['status'] !== 'pending' || ($_SESSION['oku_latest'][$row['member_id']] ?? '') !== $id) {
+    if ($row['status'] !== 'pending' || (MyParkData::$records['oku_latest'][$row['member_id']] ?? '') !== $id) {
         throw new RuntimeException('This submission has already been reviewed. Refresh the queue.', 409);
     }
     return $row;
 }
 
 function oku_decide(array $reviewer, string $id, string $decision, string $reason): string {
-    // This read and write happen while PHP holds the same exclusive file-session lock.
+    // The database workspace is locked until the decision is committed.
     $row = oku_pending_review($reviewer, $id);
     if (!in_array($decision, ['approved', 'rejected'], true)) {
         throw new RuntimeException('Choose Approve or Reject.', 422);
@@ -157,7 +157,7 @@ function oku_decide(array $reviewer, string $id, string $decision, string $reaso
     $row['reviewed_at'] = time();
     $row['reason'] = $reason;
     unset($row['proof_bytes'], $row['proof_mime']);
-    $_SESSION['oku_submissions'][$id] = $row;
+    MyParkData::$records['oku_submissions'][$id] = $row;
     return $decision === 'approved' ? 'OKU submission approved.' : 'OKU submission rejected.';
 }
 
@@ -165,7 +165,7 @@ function oku_set_reviewer_access(array $actor, int $adminId, bool $granted): str
     if ($actor['role'] !== 'superadmin') {
         throw new RuntimeException('Only Super Admin can change OKU review access.', 403);
     }
-    foreach ($_SESSION['demo_users'] as &$account) {
+    foreach (MyParkData::$records['demo_users'] as &$account) {
         if ($account['id'] === $adminId && $account['role'] === 'admin') {
             $account['can_review_oku'] = $granted;
             return $granted ? 'OKU review access granted.' : 'OKU review access revoked.';

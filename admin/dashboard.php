@@ -39,7 +39,7 @@ try {
     foot();
     exit;
 }
-$lots = $_SESSION['demo_lots'];
+$lots = MyParkData::$records['demo_lots'];
 $canReviewOku = oku_can_review($actor);
 if ($canReviewOku || $actor['role'] === 'admin') header('Cache-Control: private, no-store');
 $availability = $snapshot['parking_availability'] ?? null;

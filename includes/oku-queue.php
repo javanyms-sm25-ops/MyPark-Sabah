@@ -7,7 +7,7 @@ $okuRows = oku_review_rows($actor, $okuFilter);
   <?php if ($actor['role'] === 'superadmin'): ?>
     <details class="ops-oku-access">
       <summary><?= te('Manage Admin review access') ?></summary>
-      <?php foreach ($_SESSION['demo_users'] as $account): ?>
+      <?php foreach (MyParkData::$records['demo_users'] as $account): ?>
         <?php if ($account['role'] !== 'admin') continue; ?>
         <?php $granted = ($account['can_review_oku'] ?? false) === true; ?>
         <form method="post" action="admin/dashboard.php" class="ops-oku-access-row">

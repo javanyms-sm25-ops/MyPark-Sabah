@@ -35,7 +35,7 @@ function compound_matches(array $fine, string $lookupKey): bool {
 if ($isPaymentRequest) {
     $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
     $version = filter_var($_POST['version'] ?? null, FILTER_VALIDATE_INT);
-    $fine = $_SESSION['staff_fines'][$id] ?? null;
+    $fine = MyParkData::$records['staff_fines'][$id] ?? null;
 
     if (!$fine || !compound_matches($fine, $lookupKey)) {
         $error = 'Compound not found. Search for it again.';
@@ -63,7 +63,7 @@ if ($isPaymentRequest) {
             'reference' => $paid['payment_reference'],
             'plate' => $paid['plate'],
         ];
-        $_SESSION['staff_fines'][$id] = $paid;
+        MyParkData::$records['staff_fines'][$id] = $paid;
         staff_audit('fine', $id, 'paid', $actor, $fine, $paid, 'MyPark demo wallet payment');
 
         flash([
@@ -80,11 +80,11 @@ if ($isPaymentRequest) {
     http_response_code(409);
 }
 
-$results = array_filter($_SESSION['staff_fines'], fn($fine) => compound_matches($fine, $lookupKey));
+$results = array_filter(MyParkData::$records['staff_fines'], fn($fine) => compound_matches($fine, $lookupKey));
 $compoundReceiptIds = [];
 if ($canPay && $results) {
     receipt_sync();
-    foreach ($_SESSION['demo_receipts'][$actor['id']] ?? [] as $receipt) {
+    foreach (MyParkData::$records['demo_receipts'][$actor['id']] ?? [] as $receipt) {
         $details = $receipt['details'];
         if ($receipt['type'] === 'compound' && isset($details['Compound number'], $details['Payment reference'])) {
             $compoundReceiptIds[$details['Compound number']][$details['Payment reference']] = $receipt['id'];
