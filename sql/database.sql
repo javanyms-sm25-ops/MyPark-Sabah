@@ -57,6 +57,17 @@ CREATE TABLE IF NOT EXISTS member_vehicle_preferences (
         REFERENCES member_vehicles (account_scope, member_id, id)
 ) ENGINE=InnoDB;
 
+-- Maintenance photos are private and read only when a Staff member opens a record.
+CREATE TABLE IF NOT EXISTS staff_maintenance_photo_parts (
+    workspace_id VARCHAR(48) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    record_id BIGINT UNSIGNED NOT NULL,
+    part_number INT UNSIGNED NOT NULL,
+    mime VARCHAR(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    bytes MEDIUMBLOB NOT NULL,
+    PRIMARY KEY (workspace_id, record_id, part_number),
+    FOREIGN KEY (workspace_id) REFERENCES mypark_workspaces (id)
+) ENGINE=InnoDB;
+
 -- Employee attendance uses this schema along with the rest of MyPark.
 CREATE TABLE IF NOT EXISTS attendance_settings (
     scope VARCHAR(48) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
