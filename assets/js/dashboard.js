@@ -30,6 +30,7 @@
 
   const bootstrap = document.getElementById('operations-data');
   if (!bootstrap) return;
+  const autoRefresh = bootstrap.dataset.autoRefresh === 'true';
   let data = JSON.parse(bootstrap.textContent);
   const { create: tableRequest, pageLabel } = window.MyParkTableRequest;
   const tables = [], pending = new Set();
@@ -57,7 +58,7 @@
   });
   function openDialog(heading, content, confirmLabel, origin = document.activeElement) {
     dialogOrigin = origin;
-    dialogFallback = origin?.closest('.ops-panel')?.querySelector('.ops-tools .ops-button');
+    dialogFallback = origin?.closest('.ops-panel')?.querySelector('.ops-search input');
     dialog.querySelector('#ops-dialog-title').textContent = heading;
     dialog.querySelector('[data-dialog-body]').replaceChildren(content);
     const confirm = dialog.querySelector('[data-dialog-confirm]');
@@ -96,31 +97,46 @@
       try { localStorage.setItem(this.storageKey, JSON.stringify({ hidden: [...this.hidden], density: this.density, size: this.state.size })); } catch (_) { /* Never store records or tokens. */ }
     }
     changed() { this.state.page = 1; this.load(); }
-    load(focus) {
+    hasStatusDraft() {
+      return Array.from(this.tbody.querySelectorAll('.ops-status-form select'))
+        .some(select => select.value || select === document.activeElement);
+    }
+    load(focus, background = false) {
       clearTimeout(this.debounce);
+      this.debounce = null;
       this.notice.hidden = true;
       const { page, ...state } = this.state;
       const params = new URLSearchParams({ table: this.kind, ...state, row_page: page });
-      this.renderTags();
-      if (this.kind === 'reservations') parkingMap?.setSelection(state.location);
+      if (background) params.set('background', '1');
+      if (!background) {
+        this.renderTags();
+        if (this.kind === 'reservations') parkingMap?.setSelection(state.location);
+      }
       return this.request.run(async signal => {
         const response = await fetch('api/dashboard.php?' + params, { credentials: 'same-origin', cache: 'no-store', signal });
         const result = await readResponse(response);
         if (!Array.isArray(result.table?.rows)) throw new Error(translate('The table could not be updated.'));
         return result.table;
       }, pageData => {
+        if (background && (pending.size || document.querySelector('dialog[open]') || this.hasStatusDraft())) return;
         this.paged = pageData;
         this.state.page = pageData.page;
         this.appliedSort = state.sort;
         this.appliedDirection = state.dir;
-        const restoreFocus = this.table.contains(document.activeElement) || this.pager.contains(document.activeElement);
-        this.render();
-        if (restoreFocus && focus) {
-          const target = focus === 'page' ? this.pager.querySelector('[aria-current="page"]')
-            : this.thead.querySelector('[data-column="' + focus + '"] button');
+        const active = document.activeElement;
+        const inPager = this.pager.contains(active);
+        const restoreFocus = this.table.contains(active) || inPager;
+        const focusKey = focus ?? (inPager ? 'page' : active?.closest('th')?.dataset.column);
+        this.render(background);
+        if (restoreFocus && (focus || background)) {
+          const target = focusKey === 'page' ? this.pager.querySelector('[aria-current="page"]')
+            : this.thead.querySelector('[data-column="' + focusKey + '"] button');
           (target ?? this.search).focus();
         }
-      }, error => this.error(error.message, () => this.load(focus)), busy => this.loadingState(busy));
+      }, error => this.error(error.message, () => this.load(focus)), busy => {
+        this.pageBusy = busy;
+        if (!background) this.updateLoading();
+      });
     }
     build() {
       const toolbar = el('div', 'ops-toolbar'), searchWrap = el('div', 'ops-search');
@@ -163,7 +179,11 @@
         toolbar.append(this.dateGroup);
         this.syncDateRange = window.MyParkDateRange?.enhance(this.filters.from, this.filters.to, updateDates);
       }
-      const tools = el('div', 'ops-tools'); this.refresh = btn(translate('Refresh'), () => refresh(this));
+      const tools = el('div', 'ops-tools');
+      if (!autoRefresh) {
+        this.refresh = btn(translate('Refresh'), () => refresh(this));
+        tools.append(this.refresh);
+      }
       const menu = el('details', 'ops-columns'), summary = el('summary', '', translate('Columns')), choices = el('div', 'ops-column-menu'); menu.append(summary);
       this.columns.filter(c => !c.essential).forEach(c => {
         const label = el('label'), input = el('input'); input.type = 'checkbox'; input.checked = !this.hidden.has(c.key);
@@ -174,7 +194,7 @@
       document.addEventListener('click', event => { if (!menu.contains(event.target)) menu.open = false; });
       const density = el('select'); density.setAttribute('aria-label', translate('Row density'));
       [['comfortable', translate('Comfortable')], ['compact', translate('Compact')]].forEach(([v, t]) => density.add(new Option(t, v))); density.value = this.density;
-      density.addEventListener('change', () => { this.density = density.value; this.save(); this.render(); }); tools.append(this.refresh, menu, density);
+      density.addEventListener('change', () => { this.density = density.value; this.save(); this.render(); }); tools.append(menu, density);
       if (data.can_export) { this.export = btn(translate('Export filtered results (CSV)'), () => this.exportRows()); tools.append(this.export); }
       this.tags = el('div', 'ops-filter-tags'); this.notice = el('div', 'ops-notice'); this.notice.hidden = true; this.notice.setAttribute('role', 'alert');
       this.loading = el('p', 'ops-loading'); this.loading.hidden = true; this.loading.setAttribute('role', 'status');
@@ -227,13 +247,13 @@
       if (this.tags.childElementCount) this.tags.append(btn(translate('Clear filters'), () => { this.clear(); this.search.focus(); }, 'ops-link-button'));
       this.tags.hidden = !this.tags.childElementCount; this.clearSearch.hidden = !this.search.value;
     }
-    render() {
+    render(background = false) {
       const page = this.paged;
       if (!page) return;
       this.panel.dataset.density = this.density;
       const count = data[this.kind].length;
       this.panel.querySelector('[data-total]').textContent = translate('{count} records', { count });
-      this.renderTags();
+      if (!background) this.renderTags();
       const visible = this.columns.filter(c => !this.hidden.has(c.key)), header = el('tr');
       visible.forEach(c => {
         const th = el('th', (c.number ? 'ops-number ' : '') + (c.wide ? 'ops-wide' : '')); th.scope = 'col'; th.dataset.column = c.key;
@@ -308,7 +328,7 @@
       this.loading.hidden = !busy;
       this.loading.textContent = busy ? translate('Refreshing records…') : '';
       this.table.setAttribute('aria-busy', String(busy));
-      this.refresh.disabled = busy;
+      if (this.refresh) this.refresh.disabled = busy;
     }
     error(message, retry) { this.notice.replaceChildren(el('span', '', message)); if (retry) this.notice.append(btn('Retry', retry)); this.notice.hidden = false; }
     async exportRows() {
@@ -324,10 +344,10 @@
       finally { this.export.disabled = false; this.export.textContent = translate('Export filtered results (CSV)'); }
     }
   }
-  function applySnapshot(next) {
+  function applySnapshot(next, background = false) {
     if (!next || !Array.isArray(next.accounts) || !Array.isArray(next.reservations) || !next.summary || !Number.isInteger(next.revision)) throw new Error(translate('The server returned incomplete table data. Existing records have been kept.'));
     if (next.revision < data.revision) return;
-    data = next; tables.forEach(t => { t.updateOptions(); t.load(); });
+    data = next; tables.forEach(t => { t.updateOptions(); t.load(undefined, background); });
     parkingMap?.update(data.parking_availability);
     document.querySelectorAll('[data-ops-stat]').forEach(n => { const key = n.dataset.opsStat; n.textContent = key === 'revenue' ? money(data.summary[key]) : data.summary[key]; });
   }
@@ -338,21 +358,31 @@
     }
     if (!response.ok) throw new Error(translate(result?.error || 'The request could not be completed.')); return result;
   }
-  async function refresh(table) {
+  function dashboardIsBusy() {
+    return document.hidden || pending.size || document.querySelector('dialog[open]')
+      || tables.some(table => table.pageBusy || table.debounce || table.hasStatusDraft());
+  }
+  async function refresh(table, background = false) {
+    if (background && (refreshController || dashboardIsBusy())) return;
     refreshController?.abort(); const sequence = ++refreshSequence; refreshController = new AbortController();
-    setRefreshing(table); table.notice.hidden = true;
+    const controller = refreshController;
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    if (!background) { setRefreshing(table); table.notice.hidden = true; }
     try {
-      const response = await fetch('api/dashboard.php', { credentials: 'same-origin', cache: 'no-store', signal: refreshController.signal });
-      const result = await readResponse(response); if (sequence === refreshSequence) applySnapshot(result.data);
+      const url = background ? 'api/dashboard.php?background=1' : 'api/dashboard.php';
+      const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store', signal: controller.signal });
+      const result = await readResponse(response);
+      if (sequence === refreshSequence && (!background || !dashboardIsBusy())) applySnapshot(result.data, background);
     } catch (error) {
       if (sequence === refreshSequence && error.name !== 'AbortError') {
         table.error('Refresh failed. Existing records have been kept. ' + error.message, () => refresh(table));
         parkingMap?.showRefreshError();
       }
     } finally {
+      window.clearTimeout(timeout);
       if (sequence === refreshSequence) {
         refreshController = null;
-        setRefreshing();
+        if (!background) setRefreshing();
       }
     }
   }
@@ -399,7 +429,7 @@
     } catch (error) { table.error('Update failed. ' + error.message + ' Refresh records before retrying the action.', () => refresh(table)); toast(error.message, 'error'); }
     finally {
       pending.delete(key); table.render();
-      if (document.activeElement === document.body || !document.activeElement?.isConnected) (table.tbody.querySelector('[data-record-action="' + record.id + '"]') || table.refresh).focus();
+      if (document.activeElement === document.body || !document.activeElement?.isConnected) (table.tbody.querySelector('[data-record-action="' + record.id + '"]') || table.refresh || table.search).focus();
     }
   }
   document.querySelectorAll('[data-table-host]').forEach(host => tables.push(new ManagementTable(host, host.dataset.tableHost)));
@@ -415,10 +445,13 @@
       refresh: () => refresh(reservations)
     });
     parkingMap.update(data.parking_availability);
-    const refreshVisibleAvailability = () => refreshAvailability(reservations);
-    window.setInterval(refreshVisibleAvailability, 20000);
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) refreshVisibleAvailability();
-    });
+    if (!autoRefresh) {
+      const refreshVisibleAvailability = () => refreshAvailability(reservations);
+      window.setInterval(refreshVisibleAvailability, 20000);
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) refreshVisibleAvailability();
+      });
+    }
   }
+  if (autoRefresh && reservations) window.setInterval(() => refresh(reservations, true), 60000);
 }());

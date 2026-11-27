@@ -122,7 +122,8 @@ body {
 
 .theme-toggle,
 [data-theme="dark"] .theme-toggle,
-.site-header :is(.nav-toggle, .language-switcher select) {
+.site-header .nav-toggle,
+.language-switcher__trigger {
   min-height: 44px;
   border: 1px solid var(--glass-field-border);
   border-radius: 999px;
@@ -133,11 +134,12 @@ body {
 
 .site-header .nav-toggle { min-width: 44px; }
 .theme-toggle { padding-inline: 12px; }
-.site-header .language-switcher select { padding-inline-start: 12px; }
 
 .theme-toggle:hover,
 [data-theme="dark"] .theme-toggle:hover,
-.site-header :is(.nav-toggle, .language-switcher select):hover {
+.site-header .nav-toggle:hover,
+.language-switcher__trigger:hover,
+.language-switcher__menu[open] .language-switcher__trigger {
   background: var(--glass-control-hover);
   color: var(--navy);
   transform: none;

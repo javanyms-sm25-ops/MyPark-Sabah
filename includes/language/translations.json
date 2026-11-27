@@ -303,6 +303,7 @@
   "Availability based on active MyPark sessions.": {"zh-Hans":"空位数根据 MyPark 中正在进行的停车计算。","ms":"Ketersediaan berdasarkan sesi MyPark yang aktif."},
   "Last checked": {"zh-Hans":"上次查看","ms":"Semakan terakhir"},
   "Updates every 20 seconds while this page is open.": {"zh-Hans":"查看此页面时，每 20 秒更新一次。","ms":"Dikemas kini setiap 20 saat semasa halaman ini dibuka."},
+  "Updates every minute while this page is open.": {"zh-Hans":"查看此页面时，每分钟更新一次。","ms":"Dikemas kini setiap minit semasa halaman ini dibuka."},
   "Checking availability…": {"zh-Hans":"正在查看车位情况…","ms":"Sedang menyemak ketersediaan…"},
   "Availability updated.": {"zh-Hans":"车位情况已更新。","ms":"Ketersediaan telah dikemas kini."},
   "Could not refresh availability. Showing the last successful check.": {"zh-Hans":"无法更新车位情况。当前显示上次成功查看的结果。","ms":"Ketersediaan tidak dapat dikemas kini. Menunjukkan hasil semakan terakhir yang berjaya."},

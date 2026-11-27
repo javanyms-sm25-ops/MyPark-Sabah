@@ -51,9 +51,9 @@ $lots = active_parking_locations();
 $canReviewOku = oku_can_review($actor);
 if ($canReviewOku || $actor['role'] === 'admin') header('Cache-Control: private, no-store');
 $availability = $snapshot['parking_availability'] ?? null;
-$canShowMap = $actor['role'] === 'superadmin';
+$isSuperAdmin = $actor['role'] === 'superadmin';
 $mapsApiKey = $mapsId = '';
-if ($canShowMap && $availability !== null) {
+if ($isSuperAdmin && $availability !== null) {
     $mapsConfigPath = dirname(__DIR__) . '/config/maps.local.php';
     $mapsConfig = is_file($mapsConfigPath) ? require $mapsConfigPath : [];
     $mapsApiKey = trim((string)($mapsConfig['api_key'] ?? ''));
@@ -100,17 +100,17 @@ head('Dashboard');
   <?php endif; ?>
   <?php if ($availability !== null): ?>
     <section class="ops-panel" id="parking-availability" aria-labelledby="parking-availability-heading"
-      data-map-enabled="<?= $canShowMap ? 'true' : 'false' ?>" data-maps-key="<?= e($mapsApiKey) ?>" data-maps-id="<?= e($mapsId) ?>">
+      data-map-enabled="<?= $isSuperAdmin ? 'true' : 'false' ?>" data-maps-key="<?= e($mapsApiKey) ?>" data-maps-id="<?= e($mapsId) ?>">
       <div class="ops-panel-heading ops-availability-heading">
-        <h2 id="parking-availability-heading"><?= te($canShowMap ? 'Parking Availability Map' : 'Parking availability') ?></h2>
+        <h2 id="parking-availability-heading"><?= te($isSuperAdmin ? 'Parking Availability Map' : 'Parking availability') ?></h2>
         <div class="ops-availability-tools">
           <span><?= te('Last refresh') ?> <time data-availability-time datetime="<?= e($availability['refreshed_at']) ?>"><?= e($availabilityTime->format('j M Y, H:i:s')) ?> MYT</time></span>
-          <button class="ops-button" type="button" data-availability-refresh hidden><?= te('Refresh availability') ?></button>
+          <?php if (!$isSuperAdmin): ?><button class="ops-button" type="button" data-availability-refresh hidden><?= te('Refresh availability') ?></button><?php endif; ?>
         </div>
       </div>
       <p class="ops-caption">
-        <?= te($canShowMap ? 'Select a marker or location to filter the reservations below.' : 'Select a location to filter the reservations below.') ?>
-        <?= te('Updates every 20 seconds while this page is open.') ?>
+        <?= te($isSuperAdmin ? 'Select a marker or location to filter the reservations below.' : 'Select a location to filter the reservations below.') ?>
+        <?= te($isSuperAdmin ? 'Updates every minute while this page is open.' : 'Updates every 20 seconds while this page is open.') ?>
       </p>
       <p class="ops-caption" data-maps-message role="status" hidden></p>
       <p class="ops-notice" data-availability-error role="alert" hidden></p>
@@ -175,7 +175,7 @@ head('Dashboard');
   </div><?php if ($snapshot['can_export']): ?><a class="btn" href="api/export.php"><?= te('Export all reservations (CSV)') ?></a><?php endif; ?></section>
 </div>
 <dialog class="ops-dialog" id="ops-dialog" aria-labelledby="ops-dialog-title"><h2 id="ops-dialog-title"></h2><div data-dialog-body></div><div class="ops-dialog-actions"><button type="button" data-dialog-cancel><?= te('Close') ?></button><button type="button" data-dialog-confirm hidden><?= te('Confirm') ?></button></div></dialog>
-<script type="application/json" id="operations-data"><?= json_encode($snapshot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>
+<script type="application/json" id="operations-data" data-auto-refresh="<?= $isSuperAdmin ? 'true' : 'false' ?>"><?= json_encode($snapshot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>
 <?php require dirname(__DIR__) . '/includes/date-range-dialog.php'; ?>
 <script src="assets/js/dashboard-table.js" defer></script>
 <?php if ($availability !== null): ?><script src="assets/js/parking-availability-map.js" defer></script><?php endif; ?>

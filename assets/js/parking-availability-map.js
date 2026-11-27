@@ -21,8 +21,10 @@
     let maps, map, infoWindow, loadTimeout;
     let mapState = 'idle', renderedCatalog = '';
 
-    refreshButton.hidden = false;
-    refreshButton.addEventListener('click', refresh);
+    if (refreshButton) {
+      refreshButton.hidden = false;
+      refreshButton.addEventListener('click', refresh);
+    }
 
     function element(tag, className, text) {
       const node = document.createElement(tag);
@@ -244,7 +246,7 @@
       update,
       setSelection,
       setRefreshing(value) {
-        refreshButton.disabled = value;
+        if (refreshButton) refreshButton.disabled = value;
         if (value) refreshError.hidden = true;
       },
       showRefreshError() {
