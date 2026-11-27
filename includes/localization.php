@@ -57,20 +57,32 @@ function te(string $source, array $params = []): string {
 }
 
 function language_switcher(): void {
+    $selected = current_language();
     ?>
-    <form class="language-switcher" method="get" data-language-switcher>
-      <label class="validation-sr-only" for="mypark-language"><?= te('Language') ?></label>
+    <form class="language-switcher" method="get">
       <?php foreach ($_GET as $key => $value): ?>
         <?php if ($key !== 'lang' && is_string($value)): ?>
           <input type="hidden" name="<?= e($key) ?>" value="<?= e($value) ?>">
         <?php endif; ?>
       <?php endforeach; ?>
-      <select name="lang" id="mypark-language">
-        <?php foreach (MYPARK_LANGUAGES as $code => $label): ?>
-          <option value="<?= e($code) ?>" lang="<?= e($code) ?>" <?= current_language() === $code ? 'selected' : '' ?>><?= e($label) ?></option>
-        <?php endforeach; ?>
-      </select>
-      <noscript><button type="submit" class="ghost"><?= te('Apply') ?></button></noscript>
+      <details class="language-switcher__menu" data-language-switcher>
+        <summary class="language-switcher__trigger" aria-label="<?= te('Language') ?>: <?= e(MYPARK_LANGUAGES[$selected]) ?>">
+          <svg class="language-switcher__globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="9"></circle>
+            <ellipse cx="12" cy="12" rx="4" ry="9"></ellipse>
+            <path d="M3 12h18"></path>
+          </svg>
+          <span lang="<?= e($selected) ?>"><?= e(MYPARK_LANGUAGES[$selected]) ?></span>
+          <svg class="language-switcher__chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false">
+            <path d="m4 6 4 4 4-4" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </summary>
+        <ul class="language-switcher__options">
+          <?php foreach (MYPARK_LANGUAGES as $code => $label): ?>
+            <li><button class="language-switcher__option" type="submit" name="lang" value="<?= e($code) ?>" lang="<?= e($code) ?>"<?= $selected === $code ? ' aria-current="true"' : '' ?>><?= e($label) ?></button></li>
+          <?php endforeach; ?>
+        </ul>
+      </details>
     </form>
     <?php
 }

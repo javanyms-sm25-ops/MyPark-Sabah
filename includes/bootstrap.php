@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/demo-session.php';
-start_demo_session();
+start_demo_session(!defined('MYPARK_DASHBOARD_BACKGROUND'));
 require_once __DIR__ . '/localization.php';
 require_once __DIR__ . '/parking-pricing.php';
 require_once __DIR__ . '/parking-capacity.php';

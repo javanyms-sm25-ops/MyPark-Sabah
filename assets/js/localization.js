@@ -14,7 +14,23 @@
   }
 
   window.MyParkLocale = { text };
-  document.querySelectorAll('[data-language-switcher]').forEach(form => {
-    form.elements.namedItem('lang').addEventListener('change', () => form.requestSubmit());
+  document.querySelectorAll('[data-language-switcher]').forEach(menu => {
+    const trigger = menu.querySelector('summary');
+
+    document.addEventListener('click', event => {
+      if (menu.open && !menu.contains(event.target)) menu.open = false;
+    });
+
+    menu.addEventListener('focusout', event => {
+      if (event.relatedTarget && !menu.contains(event.relatedTarget)) menu.open = false;
+    });
+
+    menu.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || !menu.open) return;
+      event.preventDefault();
+      event.stopPropagation();
+      menu.open = false;
+      trigger.focus();
+    });
   });
 }());
