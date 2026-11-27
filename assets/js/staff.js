@@ -302,7 +302,7 @@
   }
   function setFieldError(input, text) {
     input.setAttribute('aria-invalid', text ? 'true' : 'false');
-    const error = document.getElementById(input.getAttribute('aria-describedby'));
+    const error = document.getElementById(input.id + '-error');
     if (error) { error.textContent = text; error.hidden = !text; }
   }
   function formFooter(form, label) {
@@ -313,6 +313,154 @@
     const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kuala_Lumpur', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).map(p => [p.type, p.value]));
     return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
   }
+  function maintenancePhotoUrl(record) {
+    return 'api/maintenance-photo.php?' + new URLSearchParams({ id: record.id, v: record.photo_version });
+  }
+  function maintenancePhotoError(file) {
+    const limit = Number(document.getElementById('staff-app').dataset.photoMaxBytes);
+    return file.size > limit ? translate('Choose a maintenance photo up to 5 MB.') : '';
+  }
+  function maintenancePhotoField(form, fields, record) {
+    const input = field(fields, 'photo', translate('Attach photo (optional)'), { type: 'file', required: false });
+    input.accept = 'image/jpeg,image/png,image/webp';
+    const group = input.parentElement;
+    group.classList.add('staff-maintenance-photo');
+    const hint = el('p', 'staff-help', translate('JPG, PNG or WebP, up to 5 MB.'));
+    hint.id = 'staff-photo-formats';
+    input.setAttribute('aria-describedby', input.getAttribute('aria-describedby') + ' ' + hint.id);
+    const preview = el('img', 'staff-maintenance-preview');
+    preview.alt = translate('Maintenance photo preview');
+    const video = el('video', 'staff-maintenance-preview');
+    video.muted = true; video.playsInline = true; video.hidden = true;
+    video.setAttribute('aria-label', translate('Live camera preview'));
+    const status = el('p', 'staff-help');
+    status.setAttribute('role', 'status');
+    status.hidden = true;
+    const savedPhoto = record?.photo_version ? maintenancePhotoUrl(record) : '';
+    let camera, captured, objectUrl, attempt = 0;
+
+    function message(text) {
+      status.textContent = text ? translate(text) : '';
+      status.hidden = !text;
+    }
+    function renderPreview(file = null) {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      objectUrl = file ? URL.createObjectURL(file) : '';
+      const src = objectUrl || savedPhoto;
+      if (src) preview.src = src;
+      else preview.removeAttribute('src');
+      preview.hidden = !src;
+      clear.hidden = !file && !input.files.length;
+    }
+    function stopCamera() {
+      attempt++;
+      camera?.getTracks().forEach(track => track.stop());
+      camera = null;
+      video.srcObject = null;
+      video.hidden = true;
+      preview.hidden = !preview.hasAttribute('src');
+      take.hidden = true;
+      cancel.hidden = true;
+      open.hidden = false;
+    }
+    const open = button(translate('Open camera'), async () => {
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+        message('Camera unavailable. Attach a saved photo instead.');
+        return;
+      }
+      const current = ++attempt;
+      open.hidden = true;
+      cancel.hidden = false;
+      message('Opening the camera…');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        if (current !== attempt || !dialog.open) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+        camera = stream;
+        video.srcObject = stream;
+        video.hidden = false;
+        preview.hidden = true;
+        await video.play();
+        if (current !== attempt) return;
+        take.disabled = false;
+        take.hidden = false;
+        message('');
+        take.focus();
+      } catch {
+        if (current !== attempt) return;
+        stopCamera();
+        message('Camera unavailable. Attach a saved photo instead.');
+        open.focus();
+      }
+    });
+    const take = button(translate('Take photo'), () => {
+      if (!video.videoWidth || !video.videoHeight) return;
+      const current = attempt;
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(1, 1600 / Math.max(video.videoWidth, video.videoHeight));
+      canvas.width = Math.round(video.videoWidth * scale);
+      canvas.height = Math.round(video.videoHeight * scale);
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      take.disabled = true;
+      canvas.toBlob(photo => {
+        if (current !== attempt) return;
+        stopCamera();
+        if (!photo) {
+          message('The camera could not take a photo. Try again or attach one.');
+          open.focus();
+          return;
+        }
+        captured = photo;
+        input.value = '';
+        setFieldError(input, '');
+        renderPreview(photo);
+        message('Photo ready to attach.');
+        open.focus();
+      }, 'image/jpeg', 0.85);
+    }, false);
+    const cancel = button(translate('Close camera'), () => { stopCamera(); message(''); open.focus(); });
+    const clear = button(translate('Clear new photo'), () => {
+      captured = null;
+      input.value = '';
+      renderPreview();
+      setFieldError(input, '');
+      message('');
+      input.focus();
+    });
+    stopCamera();
+    renderPreview();
+    const actions = el('div', 'staff-maintenance-photo-actions');
+    actions.append(open, take, cancel, clear);
+    group.append(hint, actions, status, video, preview);
+
+    input.addEventListener('change', () => {
+      stopCamera();
+      captured = null;
+      const file = input.files[0];
+      const error = file ? maintenancePhotoError(file) : '';
+      renderPreview(error ? null : file);
+      setFieldError(input, error);
+      message(file && !error ? 'Photo ready to attach.' : '');
+    });
+    form.addEventListener('formdata', event => {
+      if (captured) event.formData.set('photo', captured, 'maintenance.jpg');
+    });
+    form.addEventListener('submit', event => {
+      if (!cancel.hidden) {
+        event.preventDefault();
+        message('Take a photo or close the camera before saving.');
+      }
+    }, true);
+    dialog.addEventListener('close', () => {
+      stopCamera();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      window.removeEventListener('pagehide', stopCamera);
+    }, { once: true });
+    window.addEventListener('pagehide', stopCamera);
+  }
+
   function editRecord(kind, record, trigger) {
     if (kind === 'fine' && record && record.status !== 'unpaid') return;
     openDialog(record ? translate('Edit {code}', { code: record.code }) : translate(kind === 'fine' ? 'New Fine' : 'New maintenance record'), trigger);
@@ -331,6 +479,7 @@
       field(fields, 'lot_id', translate('Parking location'), { tag: 'select', options: [['', 'Select a location'], ...locations.map(l => [l.id, l.name])], value: record?.lot_id });
       field(fields, 'description', translate('Description'), { tag: 'textarea', maxLength: 2000, value: record?.description });
       field(fields, 'status', translate('Status'), { tag: 'select', options: Object.entries(data.maintenance_statuses), value: record?.status || 'open' });
+      maintenancePhotoField(form, fields, record);
     }
     formFooter(form, record ? translate('Save changes') : kind === 'fine' ? translate('Create fine record') : translate('Create record'));
     fields.querySelector('input:not([type="hidden"]),select,textarea')?.focus();
@@ -351,12 +500,16 @@
     formFooter(form, payment ? translate('Confirm received payment') : voiding ? translate('Void fine') : translate('Remove record'));
   }
   async function submitForm(event, form) {
+    if (event.defaultPrevented) return;
     event.preventDefault(); if (submitting) return;
     const inputs = [...form.querySelectorAll('input:not([type="hidden"]),select,textarea')];
     let invalid;
     inputs.forEach(input => { setFieldError(input, input.validity.valid ? '' : input.validationMessage); if (!input.validity.valid && !invalid) invalid = input; });
     if (invalid) { invalid.focus(); return; }
     refreshController?.abort(); ++sequence; refreshButton.disabled = false; requestStatus.hidden = true;
+    const photoInput = form.elements.namedItem('photo');
+    const photoError = photoInput?.files[0] ? maintenancePhotoError(photoInput.files[0]) : '';
+    if (photoError) { setFieldError(photoInput, photoError); photoInput.focus(); return; }
     const payload = new FormData(form); payload.set('csrf', data.csrf);
     const message = form.querySelector('.staff-form-error'); message.hidden = true;
     submitting = true; closeDialog.disabled = true; form.setAttribute('aria-busy', 'true'); form.querySelector('fieldset').disabled = true;
@@ -385,7 +538,18 @@
     fields.push(['created_by_name', translate('Created by')], ['created_at', translate('Created')], ['updated_at', translate('Updated')]);
     fields.forEach(([key, label]) => details.append(el('dt', '', label), el('dd', '', displayValue(record, key, kind) || '—')));
     if (kind === 'fine' && record.paid_at) details.append(el('dt', '', 'Paid amount retained'), el('dd', '', money(record.paid_amount_cents)), el('dt', '', 'Payment recorded'), el('dd', '', dateText(record.paid_at)));
-    dialogBody.append(details, el('h3', '', 'Audit history'));
+    dialogBody.append(details);
+    if (kind === 'maintenance' && record.photo_version) {
+      const photo = el('section', 'staff-maintenance-photo');
+      const link = el('a', 'staff-maintenance-photo-link');
+      link.href = maintenancePhotoUrl(record); link.target = '_blank'; link.rel = 'noopener noreferrer';
+      const image = el('img', 'staff-maintenance-preview');
+      image.src = link.href; image.alt = translate('Open maintenance photo in a new tab');
+      link.append(image);
+      photo.append(el('h3', '', translate('Issue photo')), link);
+      dialogBody.append(photo);
+    }
+    dialogBody.append(el('h3', '', 'Audit history'));
     const history = el('ol', 'staff-audit');
     const tracked = { plate: translate('Plate'), violation: translate('Violation'), amount_cents: translate('Amount'), occurred_at: translate('Date'), notes: translate('Notes'), status: translate('Status'), title: translate('Issue'), location: translate('Location'), description: translate('Description'), payment_reference: translate('Payment reference'), deleted_at: 'Removed at' };
     [...record.audit].reverse().forEach(entry => {

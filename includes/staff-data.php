@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/staff-leave.php';
+require_once __DIR__ . '/maintenance-photos.php';
 
 // Private parking prototype. Fines and maintenance start with no records.
 const STAFF_FINE_STATUSES = ['unpaid' => 'Unpaid', 'paid' => 'Paid', 'void' => 'Void'];
@@ -85,7 +86,7 @@ function staff_audit(string $kind, int $id, string $action, array $actor, ?array
     MyParkData::$records['staff_revision']++;
 }
 
-function staff_change(array $actor, array $input): string {
+function staff_change(array $actor, array $input, ?array $photoFile = null): string {
     staff_store();
     foreach ($input as $value) if (!is_string($value) || str_contains($value, "\0")) throw new RuntimeException('Invalid request fields.', 400);
     if (empty($_SESSION['csrf']) || !isset($input['csrf']) || !hash_equals($_SESSION['csrf'], $input['csrf'])) throw new RuntimeException('Your session token has expired. Refresh and try again.', 403);
@@ -102,8 +103,10 @@ function staff_change(array $actor, array $input): string {
         $requestId = $input['request_id'] ?? '';
         if (!preg_match('/^[a-f0-9]{32}$/', $requestId)) throw new RuntimeException('Invalid submission token. Reopen the form and try again.', 400);
         $requestKey = $actor['id'] . ':' . $requestId;
+        $photo = $kind === 'maintenance' ? maintenance_photo_upload($photoFile) : null;
         $fingerprintInput = $input;
-        unset($fingerprintInput['csrf']);
+        unset($fingerprintInput['csrf'], $fingerprintInput['photo_sha256']);
+        if ($photo !== null) $fingerprintInput['photo_sha256'] = hash('sha256', $photo['bytes']);
         ksort($fingerprintInput);
         $fingerprint = hash('sha256', json_encode($fingerprintInput, JSON_THROW_ON_ERROR));
         if (isset(MyParkData::$records['staff_requests'][$requestKey])) {
@@ -117,6 +120,10 @@ function staff_change(array $actor, array $input): string {
             'created_at' => staff_now(), 'updated_at' => staff_now(), 'created_by' => $actor['id'], 'created_by_name' => $actor['name'], 'version' => 1];
         if ($kind === 'fine') $record += ['status' => 'unpaid', 'paid_at' => null, 'payment_reference' => '', 'paid_amount_cents' => 0, 'voided_at' => null, 'void_reason' => ''];
         else $record['deleted_at'] = null;
+        if ($photo !== null) {
+            maintenance_photo_write($id, $photo);
+            $record['photo_version'] = $record['version'];
+        }
         MyParkData::$records[$store][$id] = $record;
         staff_audit($kind, $id, 'created', $actor, null, $record);
         $message = ($kind === 'fine' ? 'Fine ' : 'Maintenance record ') . $record['code'] . ' created.';
@@ -149,9 +156,15 @@ function staff_change(array $actor, array $input): string {
         $record = array_replace($record, ['status' => 'void', 'voided_at' => staff_now(), 'void_reason' => $reason]);
     } elseif ($action === 'maintenance_update') {
         $record = array_replace($record, staff_maintenance_fields($input, (int)$record['lot_id']));
+        $photo = maintenance_photo_upload($photoFile);
+        if ($photo !== null) {
+            maintenance_photo_write($id, $photo);
+            $record['photo_version'] = $record['version'] + 1;
+        }
     } elseif ($action === 'maintenance_delete') {
         $errors = []; $reason = staff_text($input, 'reason', 'Reason for removal', 500, $errors);
         if ($errors) throw new StaffValidationException($errors);
+        if (!empty($before['photo_version'])) maintenance_photo_write($id, null);
         $record['deleted_at'] = staff_now();
     }
     $record['version']++; $record['updated_at'] = staff_now();

@@ -11,7 +11,7 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $leaveSubmission = ($_POST['action'] ?? '') === 'leave_submit';
         try {
-            $message = staff_change($actor, $_POST);
+            $message = staff_change($actor, $_POST, $_FILES['photo'] ?? null);
             if ($json) staff_json(['message' => $message, 'data' => staff_snapshot($actor)]);
             flash($message);
             header('Location: ' . ($leaveSubmission ? 'staff.php#leave-requests' : 'staff.php?page=' . $page), true, $leaveSubmission ? 303 : 302);
@@ -28,15 +28,16 @@ try {
     if ($json && isset($_GET['table'])) staff_json(['table' => staff_table_page($snapshot, $page, ajax_table_query())]);
     if ($json) staff_json(['data' => $snapshot]);
 } catch (RuntimeException $error) {
-    $status = in_array($error->getCode(), [400, 401, 403, 404, 409, 422], true) ? $error->getCode() : 500;
+    $status = in_array($error->getCode(), [400, 401, 403, 404, 409, 422, 503], true) ? $error->getCode() : 500;
     if ($json) staff_json(['error' => $error->getMessage(), 'fields' => $error instanceof StaffValidationException ? $error->fields : (object)[]], $status);
     if ($status === 401) { header('Location: pages/login.php'); exit; }
     http_response_code($status); echo e($error->getMessage()); exit;
 }
-if ($page === 'dashboard') header('Cache-Control: private, no-store');
+if ($page === 'dashboard' || $page === 'maintenance') header('Cache-Control: private, no-store');
+if ($page === 'maintenance') header('Permissions-Policy: camera=(self), microphone=()');
 head($pages[$page]);
 ?>
-<div id="staff-app" data-page="<?= e($page) ?>">
+<div id="staff-app" data-page="<?= e($page) ?>"<?= $page === 'maintenance' ? ' data-photo-max-bytes="' . MAINTENANCE_PHOTO_LIMIT . '"' : '' ?>>
   <div class="staff-page-heading"><div><p class="staff-eyebrow">MY PARK · SABAH</p><h1><?= te($page === 'dashboard' ? 'Staff dashboard' : $pages[$page]) ?></h1>
     <p class="staff-muted"><?= e(['dashboard' => 'An overview of your parking records and outstanding work.', 'fines' => 'Create and manage private parking fine records.', 'vehicles' => 'Find fine and parking records for a vehicle plate.', 'maintenance' => 'Track parking location issues from report to completion.'][$page]) ?></p></div>
     <button type="button" class="staff-button staff-secondary" id="staff-refresh"><?= te('Refresh') ?></button>

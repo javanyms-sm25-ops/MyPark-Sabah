@@ -108,6 +108,26 @@
 .staff-form-error:focus { outline: 2px solid var(--red); outline-offset: 2px; }
 .staff-request-status { padding: 10px 14px; border-radius: 8px; background: var(--glass-control); color: var(--navy); font-size: 12px; }
 .staff-form-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+.staff-maintenance-photo {
+  display: grid;
+  gap: .65rem;
+  min-width: 0;
+  margin-block: .75rem;
+}
+.staff-maintenance-photo :is(input[type="file"], .staff-maintenance-preview) {
+  max-width: 100%;
+}
+.staff-maintenance-photo-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.staff-maintenance-preview {
+  display: block;
+  width: min(100%, 28rem);
+  max-height: 24rem;
+  object-fit: contain;
+  border: 1px solid var(--glass-rim);
+  border-radius: .75rem;
+  background: var(--card);
+}
+.staff-maintenance-photo-link { display: block; width: fit-content; max-width: 100%; }
 .staff-confirm-text { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
 .staff-checkbox { display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: start; column-gap: 9px; }
 .staff-checkbox label { grid-column: 2; grid-row: 1; margin: 0; font-weight: 400; }
