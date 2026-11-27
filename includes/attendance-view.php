@@ -18,22 +18,15 @@ function attendance_fields(string $action, int $id = 0): string {
     return $html;
 }
 
-function attendance_location_evidence(array $row, string $event): string {
-    if ($row[$event . '_capture'] === null) return '';
-    $status = te(ATTENDANCE_CAPTURE[$row[$event . '_capture']]);
-    $html = '<p>' . $status . '</p>';
-    if ($row[$event . '_accuracy'] !== null) {
-        $html .= '<p>' . te('Distance') . ' · ' . e($row[$event . '_distance']) . ' m<br>' .
-            te('GPS Accuracy') . ' · ' . e($row[$event . '_accuracy']) . ' m</p>';
-    }
-    if ($row[$event . '_lat'] !== null) {
-        $html .= '<p>' . te('Reported coordinates') . ' · ' . e(attendance_coordinates($row, $event)) . '</p>';
-    } elseif ($row[$event . '_capture'] === 'captured') {
-        $html .= '<p>' . te('Reported coordinates have expired.') . '</p>';
-    }
-    return $html;
+function attendance_distance_label(float $metres): string {
+    return $metres >= 1000 ? number_format($metres / 1000, 2) . ' km' : number_format(round($metres)) . ' m';
 }
 
 function attendance_coordinates(array $row, string $event): string {
-    return $row[$event . '_lat'] === null ? '—' : sprintf('%.5F, %.5F', $row[$event . '_lat'], $row[$event . '_lng']);
+    return sprintf('%.6F, %.6F', $row[$event . '_lat'], $row[$event . '_lng']);
+}
+
+function attendance_location_map_url(array $row, string $event): ?string {
+    if ($row[$event . '_lat'] === null || $row[$event . '_lng'] === null) return null;
+    return 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode(attendance_coordinates($row, $event));
 }

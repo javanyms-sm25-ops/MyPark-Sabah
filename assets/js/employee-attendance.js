@@ -16,28 +16,59 @@
     update();
   }
 
-  const getLocation = () => new Promise((resolve) => {
+  const preferredAccuracyMetres = 25;
+
+  const getLocation = (requiredAccuracy, signal, showRefining) => new Promise((resolve) => {
+    const geolocation = window.isSecureContext ? navigator.geolocation : null;
+    if (!geolocation) {
+      resolve({ status: 'failed', message: 'locationUnavailable' });
+      return;
+    }
+
+    const targetAccuracy = Math.min(preferredAccuracyMetres, requiredAccuracy);
+    let best;
+    let watchId;
+    let refineTimer;
     let finished = false;
-    const finish = (status, coords) => {
+
+    const finish = (result) => {
       if (finished) return;
       finished = true;
-      clearTimeout(timer);
-      resolve({ status, coords });
+      if (watchId !== undefined) geolocation.clearWatch(watchId);
+      clearTimeout(deadline);
+      clearTimeout(refineTimer);
+      signal.removeEventListener('abort', abort);
+      resolve(result);
     };
-    // The browser's timeout does not include time spent waiting for permission.
-    const timer = setTimeout(() => finish('failed'), 12000);
+    const bestReading = () => finish(best
+      ? { status: 'captured', coords: best }
+      : { status: 'failed', message: 'locationFailed' });
+    const abort = () => finish({ status: 'skipped' });
+
+    // Stop after a fixed window even if the permission prompt stays open.
+    const deadline = setTimeout(bestReading, 40000);
+    signal.addEventListener('abort', abort, { once: true });
     try {
-      if (!navigator.geolocation) {
-        finish('failed');
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        ({ coords }) => finish('captured', coords),
-        ({ code }) => finish(code === 1 ? 'denied' : 'failed'),
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-      );
+      watchId = geolocation.watchPosition(({ coords }) => {
+        if (finished || !Number.isFinite(coords.accuracy) || coords.accuracy < 0 || coords.accuracy > 1000000
+            || !Number.isFinite(coords.latitude) || Math.abs(coords.latitude) > 90
+            || !Number.isFinite(coords.longitude) || Math.abs(coords.longitude) > 180) return;
+        const previousAccuracy = best?.accuracy ?? Infinity;
+        if (coords.accuracy <= previousAccuracy) {
+          best = coords;
+          if (best.accuracy <= targetAccuracy) {
+            bestReading();
+            return;
+          }
+          if (best.accuracy < previousAccuracy) showRefining(best.accuracy);
+        }
+        // Give the device a little longer after the first reading.
+        refineTimer ??= setTimeout(bestReading, 12000);
+      }, ({ code }) => {
+        if (code === 1) finish({ status: 'denied', message: 'locationDenied' });
+      }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
     } catch {
-      finish('failed');
+      bestReading();
     }
   });
 
@@ -54,15 +85,73 @@
     status.textContent = message;
   };
 
-  document.querySelectorAll('[data-attendance-location]').forEach((form) => {
+  const locationCapture = document.querySelector('[data-attendance-location-messages]');
+  locationCapture?.querySelectorAll('[data-attendance-location]').forEach((form) => {
+    const submit = form.querySelector('button[type="submit"]');
+    const review = form.querySelector('[data-submit-without-location]');
+    const cameraControls = form.querySelectorAll('[data-start-camera], [data-cancel-camera]');
+    const submitLabel = submit.textContent;
+    const messages = locationCapture.dataset;
+    const requiredAccuracy = Number(form.dataset.locationAccuracy);
+    let busy = false;
+    let locationRequest;
+    const accuracyStatus = (template, accuracy) => template
+      .replace('{accuracy}', String(Math.ceil(accuracy)))
+      .replace('{limit}', String(requiredAccuracy));
+
+    const setBusy = (value) => {
+      busy = value;
+      submit.disabled = value;
+      review.disabled = value;
+      cameraControls.forEach(button => { button.disabled = value; });
+    };
+    const reset = () => {
+      locationRequest?.abort();
+      locationRequest = null;
+      setBusy(false);
+      applyLocation(form, { status: 'skipped' });
+      submit.textContent = submitLabel;
+      review.hidden = true;
+    };
+    const save = () => {
+      setBusy(true);
+      setStatus(form, messages.submitting);
+      form.submit();
+    };
+
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      if (form.getAttribute('aria-busy') === 'true') return;
-      form.setAttribute('aria-busy', 'true');
-      form.querySelector('button').disabled = true;
-      setStatus(form, form.dataset.locationWorking);
-      applyLocation(form, await getLocation());
-      form.submit();
+      if (busy || (form.elements.photo && !form.elements.photo.value)) return;
+      const request = new AbortController();
+      locationRequest = request;
+      review.hidden = true;
+      setBusy(true);
+      setStatus(form, messages.locationWorking);
+      const location = await getLocation(requiredAccuracy, request.signal,
+        accuracy => setStatus(form, accuracyStatus(messages.locationRefining, accuracy)));
+      if (request.signal.aborted) return;
+      locationRequest = null;
+      applyLocation(form, location);
+      const captured = location.status === 'captured';
+      if (captured && location.coords.accuracy <= requiredAccuracy) {
+        save();
+        return;
+      }
+
+      setBusy(false);
+      submit.textContent = messages.retryLocation;
+      review.hidden = false;
+      setStatus(form, captured ? accuracyStatus(messages.locationApproximate, location.coords.accuracy) : messages[location.message]);
+      submit.focus();
+    });
+
+    review.addEventListener('click', () => {
+      if (!busy && !review.hidden && form.reportValidity()) save();
+    });
+    cameraControls.forEach(button => button.addEventListener('click', reset));
+    window.addEventListener('pagehide', () => {
+      reset();
+      setStatus(form, '');
     });
   });
 
@@ -75,19 +164,13 @@
     const cancel = form.querySelector('[data-cancel-camera]');
     const submit = form.querySelector('[data-submit-photo]');
     let camera;
-    let gps;
     let attempt = 0;
-    let lastLocationAt = 0;
     const stopCamera = () => {
       camera?.getTracks().forEach((track) => track.stop());
       camera = null;
       video.srcObject = null;
       video.hidden = true;
       take.hidden = true;
-    };
-    const refreshLocation = () => {
-      lastLocationAt = Date.now();
-      return getLocation();
     };
     start.hidden = false;
     start.addEventListener('click', async () => {
@@ -100,8 +183,6 @@
       setStatus(form, form.dataset.cameraWorking);
       try {
         if (!navigator.mediaDevices?.getUserMedia) throw new Error('Camera unavailable');
-        // Ask for location only as part of this attendance action.
-        gps = refreshLocation();
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
         if (current !== attempt) {
           stream.getTracks().forEach((track) => track.stop());
@@ -136,9 +217,8 @@
       setStatus(form, '');
       start.focus();
     });
-    take.addEventListener('click', async () => {
+    take.addEventListener('click', () => {
       if (!video.videoWidth || !video.videoHeight) return;
-      const current = attempt;
       const canvas = document.createElement('canvas');
       const scale = Math.min(1, 1200 / Math.max(video.videoWidth, video.videoHeight));
       canvas.width = Math.round(video.videoWidth * scale);
@@ -153,21 +233,6 @@
       start.hidden = false;
       submit.focus();
       setStatus(form, form.dataset.photoReady);
-      if ((await gps).status !== 'captured' && current === attempt && !submit.disabled) {
-        setStatus(form, form.dataset.photoReady + ' ' + form.dataset.locationWarning);
-      }
-    });
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if (!form.elements.photo.value || submit.disabled) return;
-      form.setAttribute('aria-busy', 'true');
-      submit.disabled = true;
-      start.disabled = true;
-      cancel.disabled = true;
-      setStatus(form, form.dataset.submitting);
-      const location = Date.now() - lastLocationAt > 60000 ? await refreshLocation() : await gps;
-      applyLocation(form, location);
-      form.submit();
     });
     window.addEventListener('pagehide', () => {
       attempt++;
@@ -177,12 +242,7 @@
       submit.hidden = true;
       preview.hidden = true;
       preview.removeAttribute('src');
-      start.disabled = false;
-      cancel.disabled = false;
-      submit.disabled = false;
       form.elements.photo.value = '';
-      form.removeAttribute('aria-busy');
-      setStatus(form, '');
     });
   }
 

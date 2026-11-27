@@ -39,7 +39,8 @@ try {
             };
             flash($message);
             $back = $calendarView ? array_filter(array_intersect_key($_GET, array_flip(['view', 'month', 'workday'])), 'is_string') : [];
-            header('Location: ' . attendance_report_links($back, $page, ['shift' => $shiftId]) . '#shift-attendance', true, 303);
+            $section = in_array($action, ['check_in', 'check_out', 'exception'], true) ? '#attendance-locations' : '#shift-attendance';
+            header('Location: ' . attendance_report_links($back, $page, ['shift' => $shiftId]) . $section, true, 303);
             exit;
         } catch (RuntimeException $failure) {
             $error = attendance_error($failure);
@@ -82,7 +83,15 @@ head('My Attendance');
     </div>
   </div>
   <?php if ($error !== ''): ?><p class="attendance-notice" role="alert"><?= te($error) ?></p><?php endif; ?>
-  <section class="staff-card" id="shift-attendance" aria-labelledby="shift-attendance-heading">
+  <section class="staff-card" id="shift-attendance" aria-labelledby="shift-attendance-heading" data-attendance-location-messages
+    data-location-working="<?= te('Getting your current location. Allow access if your browser asks.') ?>"
+    data-location-refining="<?= te('Location found with ±{accuracy} m accuracy. Looking for a more precise reading…') ?>"
+    data-location-approximate="<?= te('Best reading: ±{accuracy} m. This shift requires ±{limit} m or better. Retry outdoors or send the approximate location for review.') ?>"
+    data-location-denied="<?= te('Location access is blocked. Allow it in your browser and device settings, then try again, or submit for review.') ?>"
+    data-location-failed="<?= te('Your device could not get a location. Move to a spot with a better signal and try again, or submit for review.') ?>"
+    data-location-unavailable="<?= te('Location is unavailable in this browser or connection. Open MyPark over HTTPS or on localhost, or submit for review.') ?>"
+    data-retry-location="<?= te('Retry location') ?>"
+    data-submitting="<?= te('Saving attendance…') ?>">
     <div class="attendance-heading">
       <div><h2 id="shift-attendance-heading"><?= te($selected && $selected['shift_date'] !== $today ? 'Shift Attendance' : 'Today’s Attendance') ?></h2>
         <p><?= e($actor['name']) ?> · <?= e(attendance_staff_id($actor['id'])) ?></p></div>
@@ -95,14 +104,19 @@ head('My Attendance');
         $requests = attendance_query($db, 'SELECT * FROM attendance_requests WHERE shift_id = ? ORDER BY id DESC', [$row['id']])->fetchAll();
         require __DIR__ . '/includes/attendance-detail.php';
       ?>
-      <?php if (attendance_can_check_in($row, $now)): ?>
-        <form method="post" class="attendance-controls" data-attendance-camera
-          data-location-working="<?= te('Getting your location…') ?>"
+      <?php
+        $canCheckIn = attendance_can_check_in($row, $now);
+        $canCheckOut = attendance_can_check_out($row, $now);
+        $locationAccuracy = $canCheckIn || $canCheckOut ? ($row['accuracy_m'] ?? attendance_settings($db)['accuracy_m']) : null;
+      ?>
+      <?php if ($canCheckIn || $canCheckOut): ?>
+        <p class="attendance-location-note"><?= te('MyPark asks your device for its current location when you submit a check-in or check-out.') ?></p>
+      <?php endif; ?>
+      <?php if ($canCheckIn): ?>
+        <form method="post" class="attendance-controls" data-attendance-camera data-attendance-location data-location-accuracy="<?= e($locationAccuracy) ?>"
           data-camera-working="<?= te('Opening the camera…') ?>"
           data-camera-failed="<?= te('Camera unavailable. Request an exception below or allow camera access and try again.') ?>"
-          data-location-warning="<?= te('Location is unavailable. You can submit and an Admin will review it.') ?>"
-          data-photo-ready="<?= te('Photo ready. Submit your check-in or retake the photo.') ?>"
-          data-submitting="<?= te('Saving attendance…') ?>">
+          data-photo-ready="<?= te('Photo ready. Submit your check-in to record your location.') ?>">
           <?= attendance_fields('check_in', $row['id']) ?>
           <input type="hidden" name="photo">
           <button type="button" class="staff-button" data-start-camera data-retake="<?= te('Retake photo') ?>" hidden><?= te('Check In') ?></button>
@@ -112,6 +126,7 @@ head('My Attendance');
             <button class="staff-button" type="button" data-take-photo hidden><?= te('Capture photo') ?></button>
             <button class="staff-button staff-secondary" type="button" data-cancel-camera hidden><?= te('Cancel camera') ?></button>
             <button class="staff-button" type="submit" data-submit-photo hidden><?= te('Submit check-in') ?></button>
+            <button class="staff-button staff-secondary" type="button" data-submit-without-location hidden><?= te('Submit for review') ?></button>
           </div>
           <p data-capture-status role="status" hidden></p>
           <noscript><p><?= te('Enable JavaScript to take a photo, or request an exception below.') ?></p></noscript>
@@ -119,17 +134,25 @@ head('My Attendance');
         <details class="attendance-details">
           <summary><?= te('Camera unavailable? Request an exception') ?></summary>
           <p><?= te('Your check-in time will be recorded and sent for review.') ?></p>
-          <form method="post" class="attendance-controls" data-attendance-location data-location-working="<?= te('Getting your location…') ?>">
+          <form method="post" class="attendance-controls" data-attendance-location data-location-accuracy="<?= e($locationAccuracy) ?>">
             <?= attendance_fields('exception', $row['id']) ?>
             <label><?= te('Reason') ?><textarea name="reason" maxlength="500" required></textarea></label>
-            <button class="staff-button"><?= te('Send check-in for review') ?></button><p data-capture-status role="status" hidden></p>
+            <div class="attendance-actions">
+              <button class="staff-button" type="submit"><?= te('Send check-in for review') ?></button>
+              <button class="staff-button staff-secondary" type="button" data-submit-without-location hidden><?= te('Submit for review') ?></button>
+            </div>
+            <p data-capture-status role="status" hidden></p>
           </form>
         </details>
       <?php endif; ?>
-      <?php if (attendance_can_check_out($row, $now)): ?>
-        <form method="post" class="attendance-controls" data-attendance-location data-location-working="<?= te('Getting your location…') ?>">
+      <?php if ($canCheckOut): ?>
+        <form method="post" class="attendance-controls" data-attendance-location data-location-accuracy="<?= e($locationAccuracy) ?>">
           <?= attendance_fields('check_out', $row['id']) ?>
-          <button class="staff-button"><?= te('Check Out') ?></button><p data-capture-status role="status" hidden></p>
+          <div class="attendance-actions">
+            <button class="staff-button" type="submit"><?= te('Check Out') ?></button>
+            <button class="staff-button staff-secondary" type="button" data-submit-without-location hidden><?= te('Submit for review') ?></button>
+          </div>
+          <p data-capture-status role="status" hidden></p>
           <noscript><p><?= te('Location cannot be captured without JavaScript. Your check-out will be sent for review.') ?></p></noscript>
         </form>
       <?php endif; ?>
