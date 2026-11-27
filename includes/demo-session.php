@@ -1,5 +1,46 @@
 <?php
 
+const MYPARK_REMEMBER_LOGIN_SECONDS = 30 * 86400;
+const MYPARK_LOGIN_IDLE_SECONDS = 24 * 60;
+
+function demo_cookie_options(): array {
+    return [
+        'path' => '/',
+        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ];
+}
+
+function start_demo_login(string $passwordHash, bool $remember): bool {
+    if (!session_regenerate_id(true)) return false;
+
+    $now = time();
+    $expires = $remember ? $now + MYPARK_REMEMBER_LOGIN_SECONDS : 0;
+    $token = bin2hex(random_bytes(32));
+    if (!setcookie(session_name() . 'Auth', $token, ['expires' => $expires] + demo_cookie_options())) {
+        return false;
+    }
+
+    $_SESSION['demo_login'] = [
+        'token_hash' => hash('sha256', $token),
+        'password_fingerprint' => hash('sha256', $passwordHash),
+        'expires' => $expires,
+    ];
+    $_SESSION['demo_last_active'] = $now;
+    unset($_SESSION['csrf']);
+    return true;
+}
+
+function clear_demo_login(): void {
+    unset($_SESSION['user'], $_SESSION['mypark_account_key'], $_SESSION['csrf'], $_SESSION['demo_login'], $_SESSION['demo_last_active']);
+    setcookie(session_name() . 'Auth', '', ['expires' => 1] + demo_cookie_options());
+}
+
+function demo_login_matches_password(array $session, string $passwordHash): bool {
+    return hash_equals($session['demo_login']['password_fingerprint'] ?? '', hash('sha256', $passwordHash));
+}
+
 function start_demo_session(bool $trackActivity = true): void {
     $now = time();
     $lifetime = 31 * 86400;
@@ -38,12 +79,7 @@ function start_demo_session(bool $trackActivity = true): void {
 
     session_name($name);
     session_save_path($savePath);
-    $cookie = [
-        'path' => '/',
-        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-        'httponly' => true,
-        'samesite' => 'Lax',
-    ];
+    $cookie = demo_cookie_options();
     if (!session_start([
         'use_cookies' => 1,
         'use_only_cookies' => 1,
@@ -68,11 +104,18 @@ function start_demo_session(bool $trackActivity = true): void {
         $_SESSION['demo_cookie_refreshed_at'] = $now;
     }
 
-    // Keep the browser's records available while expiring idle sign-ins separately.
+    // The persistent workspace cookie still opens the workspace after sign-out.
+    // A separate credential controls whether the user is signed in.
     if (isset($_SESSION['user'])) {
-        if ($now - ($_SESSION['demo_last_active'] ?? $now) >= 1440) {
-            unset($_SESSION['user'], $_SESSION['mypark_account_key'], $_SESSION['csrf'], $_SESSION['demo_last_active']);
-        } elseif ($trackActivity) {
+        $login = $_SESSION['demo_login'] ?? null;
+        $token = $_COOKIE[$name . 'Auth'] ?? null;
+        $expires = $login['expires'] ?? 0;
+        $lastActive = $_SESSION['demo_last_active'] ?? 0;
+        $expired = $expires > 0 ? $now >= $expires : $now - $lastActive >= MYPARK_LOGIN_IDLE_SECONDS;
+        if ($expired || !is_string($token)
+            || !hash_equals($login['token_hash'] ?? '', hash('sha256', $token))) {
+            clear_demo_login();
+        } elseif ($trackActivity && $expires === 0) {
             $_SESSION['demo_last_active'] = $now;
         }
     }

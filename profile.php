@@ -12,7 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['oku_action'])) {
 
 $fromParking = ($_GET['from'] ?? '') === 'parking';
 $bookingContext = ($_GET['from'] ?? '') === 'booking' ? ['from' => 'booking'] + parking_resume_fields($_GET) : ($fromParking ? ['from' => 'parking'] : []);
-$vehiclesPage = 'profile.php' . ($bookingContext ? '?' . http_build_query($bookingContext) : '');
+$profilePage = 'profile.php' . ($bookingContext ? '?' . http_build_query($bookingContext) : '');
+$editProfilePage = 'profile.php?' . http_build_query($bookingContext + ['edit' => '1']);
+$editingProfile = ($_GET['edit'] ?? '') === '1';
+$profileError = '';
+$name = me()['name'];
+$phone = me()['phone'] ?? '';
 $editor = is_string($_GET['vehicle_edit'] ?? null) ? $_GET['vehicle_edit'] : '';
 $vehicleError = '';
 $vehicleFormInput = null;
@@ -34,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vehicle_action'])) {
             exit;
         }
         flash($updated['message']);
-        header('Location: ' . $vehiclesPage . '#my-vehicles', true, 303);
+        header('Location: ' . $profilePage . '#my-vehicles', true, 303);
         exit;
     } catch (InvalidArgumentException | RuntimeException $error) {
         $vehicleError = $error->getMessage();
@@ -70,7 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vehicle_action'])) {
         }
     }
     if ($error) {
-        flash('Profile update failed: ' . $error);
+        $profileError = $error;
+        $editingProfile = true;
+        http_response_code(422);
     } else {
         $_SESSION['user']['name'] = $name;
         $_SESSION['user']['phone'] = $phone;
@@ -85,14 +92,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vehicle_action'])) {
         unset($account);
         MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
         flash('Profile updated.');
+        header('Location: ' . $profilePage, true, 303);
+        exit;
     }
-    header('Location: profile.php');
-    exit;
 }
 $vehicles = [];
 $defaultVehicle = null;
-if (me()['role'] === 'user') {
-    header('Cache-Control: private, no-store');
+header('Cache-Control: private, no-store');
+if (me()['role'] === 'user' && !$editingProfile) {
     try {
         $vehicleState = saved_vehicle_state(me()['id']);
         $vehicles = $vehicleState['vehicles'];
@@ -102,35 +109,100 @@ if (me()['role'] === 'user') {
         http_response_code(503);
     }
 }
-$profilePhoto = me()['photo'] ?? '';
-head('Profile');
+$profile = me();
+$profilePhoto = $profile['photo'] ?? '';
+$profileRole = match ($profile['role']) {
+    'user' => 'Member',
+    'superadmin' => 'Super Admin',
+    default => ucfirst($profile['role']),
+};
+preg_match('/[\p{L}\p{N}]/u', $profile['name'], $profileInitial);
+head($editingProfile ? 'Edit profile' : 'Profile');
 ?>
-<h1><?= te('My profile') ?></h1>
-<form method="post" enctype="multipart/form-data" class="card narrow">
+<link rel="stylesheet" href="assets/css/profile.css">
+<div class="profile-page">
+<?php if ($editingProfile): ?>
+<h1 class="profile-page-title"><?= te('Edit profile') ?></h1>
+<form method="post" action="<?= e($editProfilePage) ?>" enctype="multipart/form-data" class="card profile-editor">
   <input type="hidden" name="csrf" value="<?= csrf() ?>">
-  <div class="profile-photo-drop" data-photo-drop>
-    <img class="avatar" alt="<?= te('Profile photo') ?>" <?php if ($profilePhoto): ?>src="<?= e($profilePhoto) ?>"<?php else: ?>hidden<?php endif; ?>>
-    <label for="profilePhoto"><?= te('Profile photo') ?></label>
-    <p class="hint" id="profilePhotoHint"><?= te('Drag and drop a JPG, PNG or WebP image here.') ?></p>
-    <input id="profilePhoto" type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="user"
-      aria-describedby="profilePhotoHint profilePhotoFeedback">
-    <p class="field-feedback" id="profilePhotoFeedback" aria-live="polite" aria-atomic="true"></p>
+  <?php if ($profileError !== ''): ?>
+    <p class="profile-editor-error" role="alert"><?= te($profileError) ?></p>
+  <?php endif; ?>
+  <section class="profile-photo-editor" data-photo-drop aria-labelledby="profile-photo-title">
+      <div class="profile-avatar-frame">
+        <img class="profile-avatar" data-photo-preview alt="<?= te('Profile photo') ?>" width="80" height="80"
+          <?php if ($profilePhoto): ?>src="<?= e($profilePhoto) ?>"<?php else: ?>hidden<?php endif; ?>>
+        <span class="profile-avatar-initial" data-photo-initial aria-hidden="true" <?= $profilePhoto ? 'hidden' : '' ?>><?= e(strtoupper($profileInitial[0] ?? 'P')) ?></span>
+      </div>
+      <div class="profile-photo-content">
+        <h2 id="profile-photo-title"><?= te('Profile photo') ?></h2>
+        <div class="profile-photo-controls">
+          <input class="validation-sr-only" id="profilePhoto" type="file" name="photo" accept="image/jpeg,image/png,image/webp"
+            aria-describedby="profilePhotoHint profilePhotoFeedback">
+          <label for="profilePhoto" class="btn btn-secondary profile-photo-action"><?= te('Choose photo') ?></label>
+          <button type="button" class="ghost profile-photo-action" data-rotate hidden><?= te('Rotate photo') ?></button>
+        </div>
+        <p class="profile-photo-hint" id="profilePhotoHint"><?= te('JPG, PNG or WebP, up to 2 MB.') ?> <span class="profile-drop-hint"><?= te('You can also drag and drop a photo here.') ?></span></p>
+        <p class="profile-photo-filename" data-photo-filename role="status"></p>
+        <p class="field-feedback" id="profilePhotoFeedback" aria-live="polite" aria-atomic="true"></p>
+      </div>
+  </section>
+  <section class="profile-edit-details" aria-labelledby="profile-details-title">
+    <h2 id="profile-details-title"><?= te('Account details') ?></h2>
+    <div class="profile-fields">
+      <div class="profile-field">
+        <label for="profile-name"><?= te('Name') ?></label>
+        <input id="profile-name" name="name" value="<?= e($name) ?>" autocomplete="name" minlength="2" maxlength="100" required>
+      </div>
+      <div class="profile-field">
+        <label for="profile-phone"><?= te('Phone') ?></label>
+        <input id="profile-phone" type="tel" name="phone" value="<?= e($phone) ?>" autocomplete="tel" maxlength="50">
+      </div>
+    </div>
+  </section>
+  <div class="profile-save">
+    <a class="btn btn-secondary" href="<?= e($profilePage) ?>"><?= te('Cancel') ?></a>
+    <button type="submit"><?= te('Save profile') ?></button>
   </div>
-  <label><?= te('Name') ?><input name="name" value="<?= e(me()['name']) ?>" minlength="2" maxlength="100" required></label>
-  <label><?= te('Email') ?><input value="<?= e(me()['email']) ?>" disabled></label>
-  <p class="email-code-back"><a href="pages/change-email.php"><?= te('Change email address') ?></a></p>
-  <label><?= te('Phone') ?><input name="phone" value="<?= e(me()['phone'] ?? '') ?>" maxlength="50"></label>
-  <div class="row"><button type="button" data-rotate><?= te('Rotate photo') ?></button><button><?= te('Save profile') ?></button></div>
 </form>
-<?php if (me()['role'] === 'user'): ?>
-  <?php require __DIR__ . '/includes/oku-profile.php'; ?>
+<?php else: ?>
+<h1 class="profile-page-title"><?= te('My profile') ?></h1>
+<section class="profile-hero" aria-labelledby="profile-identity">
+  <div class="profile-avatar-frame">
+    <?php if ($profilePhoto): ?>
+      <img class="profile-avatar" src="<?= e($profilePhoto) ?>" width="96" height="96" alt="<?= te('Profile photo') ?>">
+    <?php else: ?>
+      <span class="profile-avatar-initial" aria-hidden="true"><?= e(strtoupper($profileInitial[0] ?? 'P')) ?></span>
+    <?php endif; ?>
+  </div>
+  <div class="profile-identity">
+    <h2 id="profile-identity"><?= e($profile['name']) ?></h2>
+    <span class="profile-role"><?= te($profileRole) ?></span>
+  </div>
+  <a class="btn profile-edit-link" href="<?= e($editProfilePage) ?>"><?= te('Edit profile') ?></a>
+</section>
+<div class="profile-overview<?= $profile['role'] === 'user' ? ' profile-overview--member' : '' ?>">
+  <section class="card profile-details-card" aria-labelledby="profile-details-title">
+    <h2 id="profile-details-title"><?= te('Account details') ?></h2>
+    <dl class="profile-info">
+      <div><dt><?= te('Name') ?></dt><dd><?= e($profile['name']) ?></dd></div>
+      <div><dt><?= te('Phone') ?></dt><dd><?= $phone !== '' ? e($phone) : te('Not added') ?></dd></div>
+      <div>
+        <dt><?= te('Email') ?></dt>
+        <dd><?= e($profile['email']) ?></dd>
+      </div>
+    </dl>
+    <a class="profile-email-link" href="pages/change-email.php"><?= te('Change email address') ?> <span aria-hidden="true">→</span></a>
+  </section>
+<?php if ($profile['role'] === 'user'): ?>
+  <div class="profile-member-tools">
   <?php
     $editVehicle = $vehicles[$editor] ?? null;
     $editing = $editor === 'new' || $editVehicle !== null;
     $initialVehicle = $vehicleFormInput ?? $editVehicle ?? ['plate' => '', 'name' => ''];
     $editorUrl = 'profile.php?' . http_build_query($bookingContext + ['vehicle_edit' => $editor]) . '#vehicle-editor';
   ?>
-  <section class="card narrow" id="my-vehicles" aria-labelledby="my-vehicles-title">
+  <section class="card profile-vehicles-card" id="my-vehicles" aria-labelledby="my-vehicles-title">
     <div class="vehicle-toolbar">
       <h2 id="my-vehicles-title"><?= te('My vehicles') ?></h2>
       <a class="btn" href="<?= e('profile.php?' . http_build_query($bookingContext + ['vehicle_edit' => 'new']) . '#vehicle-editor') ?>"><?= te('Add vehicle') ?></a>
@@ -151,11 +223,11 @@ head('Profile');
         <input id="profile-vehicle-name" name="vehicle_name" value="<?= e($initialVehicle['name']) ?>" maxlength="40">
         <div class="parking-actions">
           <button><?= te('Save') ?></button>
-          <a class="vehicle-secondary-link" href="<?= e($vehiclesPage . '#my-vehicles') ?>"><?= te('Cancel') ?></a>
+          <a class="vehicle-secondary-link" href="<?= e($profilePage . '#my-vehicles') ?>"><?= te('Cancel') ?></a>
         </div>
       </form>
     <?php endif; ?>
-    <?php if (!$vehicles): ?><p><?= te('No saved vehicles yet.') ?></p><?php endif; ?>
+    <?php if (!$vehicles): ?><p class="profile-empty-state"><?= te('No saved vehicles yet.') ?></p><?php endif; ?>
     <?php if ($vehicles): ?>
       <ul class="vehicle-list">
         <?php foreach ($vehicles as $vehicleId => $vehicle): ?>
@@ -168,7 +240,7 @@ head('Profile');
             </div>
             <div class="parking-actions">
               <a class="vehicle-secondary-link" href="<?= e('profile.php?' . http_build_query($bookingContext + ['vehicle_edit' => $vehicleId]) . '#vehicle-editor') ?>" aria-label="<?= te('Edit {plate}', ['plate' => $vehicle['plate']]) ?>"><?= te('Edit') ?></a>
-              <form method="post" action="<?= e($vehiclesPage . '#my-vehicles') ?>" class="parking-actions">
+              <form method="post" action="<?= e($profilePage . '#my-vehicles') ?>" class="parking-actions">
                 <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
                 <input type="hidden" name="vehicle_id" value="<?= e($vehicleId) ?>">
                 <?php if (!$isDefault): ?>
@@ -182,6 +254,11 @@ head('Profile');
       </ul>
     <?php endif; ?>
   </section>
+  <?php require __DIR__ . '/includes/oku-profile.php'; ?>
+  </div>
 <?php endif; ?>
+</div>
+<?php endif; ?>
+</div>
 <script src="assets/js/vehicles.js" defer></script>
 <?php foot(showChatbot: me()['role'] !== 'user'); ?>

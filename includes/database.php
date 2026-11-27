@@ -159,7 +159,8 @@ final class MyParkData {
                 $accounts = self::load($database, $workspace, ['demo_users'])['demo_users'] ?? [];
             }
             foreach ($accounts as $account) {
-                if ($account['id'] === $user['id'] && $account['role'] === $user['role'] && !$account['blocked']) {
+                if ($account['id'] === $user['id'] && $account['role'] === $user['role'] && !$account['blocked']
+                    && demo_login_matches_password($session, $account['password'])) {
                     $database->commit();
                     return ['role' => $account['role'], 'lots' => array_values($data['demo_lots'] ?? []),
                         'bookings' => $data['demo_bookings'] ?? []];

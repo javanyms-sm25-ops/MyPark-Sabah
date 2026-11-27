@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['password'] ?? '',
             $_POST['confirm'] ?? ''
         );
-        if ((me()['id'] ?? null) === $accountId) unset($_SESSION['user'], $_SESSION['demo_last_active']);
+        if ((me()['id'] ?? null) === $accountId) clear_demo_login();
         unset($_SESSION['csrf']);
         session_regenerate_id(true);
         flash('Password updated. Sign in with your new password.');

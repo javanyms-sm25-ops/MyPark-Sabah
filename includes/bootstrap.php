@@ -43,6 +43,16 @@ foreach (MyParkData::$records['demo_lots'] as $key => $lot) {
 }
 MyParkData::$records['demo_bookings'] ??= [];
 complete_expired_bookings();
+
+if (isset($_SESSION['user'])) {
+    $user = $_SESSION['user'];
+    $account = MyParkData::$records['demo_users'][$_SESSION['mypark_account_key'] ?? ''] ?? null;
+    if (!$account || $account['id'] !== $user['id'] || $account['role'] !== $user['role'] || $account['blocked']
+        || !demo_login_matches_password($_SESSION, $account['password'])) {
+        clear_demo_login();
+    }
+}
+
 function e(mixed $value): string {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
@@ -82,7 +92,7 @@ function require_login(string $loginPath = 'pages/login.php'){
             return;
         }
     }
-    unset($_SESSION['user'], $_SESSION['mypark_account_key']);
+    clear_demo_login();
     http_response_code(403); exit('Your account is no longer available. Please sign in again.');
 }
 function require_customer_wallet(): void {

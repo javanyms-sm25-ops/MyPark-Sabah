@@ -59,6 +59,10 @@
   --home-disabled-text: var(--glass-hero-muted);
 }
 
+[data-theme="dark"] .home-hero__actions {
+  --home-action-hover: var(--navy-hover);
+}
+
 :is(.home-hero__actions, .promo-panel__actions) .btn {
   display: inline-flex;
   align-items: center;

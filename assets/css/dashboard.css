@@ -94,6 +94,7 @@
 .ops-notice { display: flex; align-items: center; gap: 12px; justify-content: space-between; margin: 0 20px 14px; padding: 12px; border: 1px solid var(--red); background: var(--glass-error-bg); border-radius: 8px; color: var(--red); font-size: 13px; overflow-wrap: anywhere; }
 .ops-loading { padding: 8px 20px; margin: 0; color: var(--navy); font-size: 13px; background: var(--glass-control); }
 .ops-table-scroll { width: 100%; max-width: 100%; overflow: auto; max-height: 680px; border-top: 1px solid #e0e7ef; }
+[data-theme="dark"] .ops-table-scroll { border-top-color: var(--border); }
 .ops-table-scroll:focus-visible { outline: 2px solid var(--glass-focus); outline-offset: -2px; }
 .operations-page .ops-table { display: table; width: 100%; min-width: 740px; margin: 0; border: 0; border-collapse: collapse; border-radius: 0; table-layout: auto; box-shadow: none; background: var(--card); }
 #reservation-management .ops-table { min-width: 1080px; }

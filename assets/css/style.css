@@ -45,8 +45,8 @@
 }
 
 [data-theme="dark"] {
-  --skeleton-base: #2c4058;
-  --skeleton-shine: rgb(161 191 220 / 10%);
+  --skeleton-base: var(--glass-control);
+  --skeleton-shine: var(--glass-highlight);
 }
 
 .page-loading main :is(.card, .wallet-balance, .dashboard-wallet, .table-wrap) {
@@ -349,7 +349,7 @@ header {
 }
 
 [data-theme="dark"] .site-nav a.nav-active {
-  background: #173655;
+  background: var(--glass-tab-surface);
   color: var(--navy);
   box-shadow: inset 0 -2px 0 var(--navy);
 }
@@ -645,7 +645,7 @@ button.ghost {
 .login-form .login-field,
 .login-form .password-field { margin: 0 0 22px; }
 .login-form label { display: block; margin: 0 0 8px; font-size: 14px; line-height: 20px; font-weight: 500; }
-.login-form input:not([type="hidden"]) {
+.login-form input:not([type="hidden"], [type="checkbox"]) {
   display: block;
   width: 100%;
   min-width: 0;
@@ -665,7 +665,7 @@ button.ghost {
 }
 .login-form .password-field__control > input { padding-right: 56px; }
 .login-form input::placeholder { color: #737d8c; opacity: 1; font-size: 16px; }
-.login-form input:not([type="hidden"]):focus {
+.login-form input:not([type="hidden"], [type="checkbox"]):focus {
   outline: none;
   border-color: #123b6d;
   box-shadow: 0 0 0 3px rgb(18 59 109 / 12%);
@@ -698,7 +698,42 @@ button.ghost {
 .login-form .password-field__toggle:hover { color: #35465c; background: transparent; transform: none; }
 .login-form .password-field__toggle svg { width: 20px; height: 20px; }
 .login-form a { color: #123b6d; }
-.login-form .login-forgot { margin: -10px 0 22px; text-align: right; font-size: 14px; }
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 14px;
+  margin: -8px 0 12px;
+}
+
+.login-form .login-remember,
+.login-form .login-forgot {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+}
+
+.login-form .login-remember {
+  gap: 9px;
+  cursor: pointer;
+}
+
+.login-remember input[type="checkbox"] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.login-remember input[type="checkbox"]:focus:not(:focus-visible) {
+  outline: none;
+  border-color: var(--border);
+}
 .login-form .login-error {
   display: flex;
   align-items: flex-start;
@@ -735,7 +770,8 @@ button.ghost {
 .login-form .login-submit:hover { background: #194979; transform: none; }
 .login-form .login-submit:disabled { cursor: wait; background: #294d78; }
 .login-form .login-signup { margin: 20px 0 0; text-align: center; font-size: 14px; line-height: 21px; }
-.login-form :is(.login-forgot, .login-signup) a,
+.login-form .login-forgot,
+.login-form .login-signup a,
 .password-reset-resend button {
   font-size: 14px;
   font-weight: 600;
@@ -1676,8 +1712,8 @@ button.ghost {
 }
 
 [data-theme="dark"] .dashboard-hero {
-  background: linear-gradient(120deg, #173655, #165267);
-  color: var(--text);
+  background: var(--glass-hero);
+  color: var(--glass-on-hero);
 }
 
 [data-theme="dark"] .dashboard-hero__content h1,
@@ -1688,17 +1724,17 @@ button.ghost {
 }
 
 [data-theme="dark"] .dashboard-hero__content .btn {
-  background: #83d3f5;
-  color: #102234;
+  background: var(--navy);
+  color: var(--button-text);
 }
 
 [data-theme="dark"] .dashboard-hero__content .btn:hover {
-  background: #aeddf1;
+  background: var(--navy-hover);
 }
 
 [data-theme="dark"] .dashboard-wallet {
-  background: #192f48;
-  border-color: #566f88;
+  background: var(--glass-hero-detail);
+  border-color: var(--glass-hero-rim);
 }
 
 [data-theme="dark"] .dashboard-wallet .dashboard-wallet__label,
@@ -1708,8 +1744,8 @@ button.ghost {
 
 /* The Botpress launcher image stays in place when the site theme changes. */
 [data-theme="dark"] .bpFabContainer {
-  background-color: #1a293c !important;
-  box-shadow: inset 0 0 0 1px #566f88, 0 4px 12px rgb(0 0 0 / 24%);
+  background-color: var(--card) !important;
+  box-shadow: inset 0 0 0 1px var(--glass-field-border), var(--shadow);
 }
 
 @media (max-width: 800px) {
@@ -2648,49 +2684,6 @@ header:has(.notification-menu[open]) {
 
 /* ---------- 8. Profile, support and ticket ---------- */
 
-.profile-photo-drop {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  gap: 6px;
-  padding: 14px;
-  text-align: center;
-  border: 1px dashed var(--muted-text);
-  border-radius: 12px;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.profile-photo-drop.is-dragover {
-  background: var(--light-blue);
-  border-color: var(--navy);
-}
-
-.profile-photo-drop :is(label, .hint, input, .field-feedback) {
-  margin: 0;
-}
-
-.profile-photo-drop input {
-  min-width: 0;
-}
-
-.profile-photo-drop .avatar[hidden] {
-  display: none;
-}
-
-.profile-photo-drop .field-feedback:empty {
-  position: absolute;
-}
-
-.avatar {
-  display: block;
-  width: 96px;
-  height: 96px;
-  margin: 10px 0;
-  object-fit: cover;
-  border-radius: 50%;
-  transition: transform 0.2s ease;
-}
-
 .chat {
   max-width: 700px;
   max-height: 440px;
@@ -2774,7 +2767,6 @@ footer a:hover {
   border-radius: 8px;
 }
 
-.oku-profile-card h2,
 .oku-verification-card h1 {
   margin-top: 0;
 }

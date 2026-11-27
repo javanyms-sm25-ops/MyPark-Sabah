@@ -52,42 +52,49 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --background: #0d192a;
-  --card: #17283f;
-  --text: #eef5fc;
-  --muted-text: #bdcede;
-  --navy: #a6ddf6;
-  --navy-hover: #cef0ff;
-  --light-blue: #223b54;
-  --blue: #9bdaf3;
-  --green: #91e1bb;
-  --red: #ffadb8;
-  --border: #38516b;
-  --button-text: #102641;
-  --shadow: 0 3px 9px rgb(4 11 22 / 18%), 0 12px 32px rgb(4 11 22 / 24%);
-  --shadow-hover: 0 18px 38px rgb(4 11 22 / 43%);
+  --background: #080f20;
+  --card: #111c32;
+  --text: #eff4ff;
+  --muted-text: #b4c3dc;
+  --navy: #80adff;
+  --navy-hover: #a9c9ff;
+  --brand-cyan: var(--navy);
+  --light-blue: #1c2e50;
+  --blue: #a4c5ff;
+  --green: #95e4bb;
+  --red: #ffb0bc;
+  --border: #2d4366;
+  --button-text: #08152c;
+  --shadow: 0 3px 8px rgb(2 6 18 / 24%), 0 12px 32px rgb(2 6 18 / 32%);
+  --shadow-hover: 0 18px 38px rgb(2 6 18 / 48%);
 
-  --glass-page-glow: rgb(38 100 147 / 29%);
-  --glass-rim: #3d5872;
-  --glass-highlight: rgb(162 215 250 / 15%);
-  --glass-header: #152840;
-  --glass-control: #203a54;
-  --glass-control-hover: #2c4a65;
-  --glass-field-border: #7791ac;
-  --glass-focus: #a4def7;
-  --glass-panel: linear-gradient(155deg, #1c324c, var(--card) 66%);
-  --glass-tab-surface: #254764;
-  --glass-success-bg: #193e36;
-  --glass-warning-bg: #48341d;
+  --glass-page-glow: rgb(41 83 180 / 27%);
+  --glass-rim: #2b4062;
+  --glass-highlight: rgb(167 195 255 / 14%);
+  --glass-header: #0f1a30;
+  --glass-control: #192a46;
+  --glass-control-hover: #253c63;
+  --glass-field-border: #617da6;
+  --glass-focus: #a4c5ff;
+  --glass-panel: linear-gradient(155deg, #162540, var(--card) 70%);
+  --glass-tab-surface: #233b65;
+  --glass-success-bg: #16372f;
+  --glass-warning-bg: #40301d;
   --glass-warning-text: #ffdc9f;
-  --glass-error-bg: #482932;
-  --glass-ocean-start: #102340;
-  --glass-ocean-end: #184265;
-  --glass-ocean-glow: rgb(31 153 181 / 40%);
-  --glass-ocean-reflection: rgb(74 139 220 / 24%);
-  --glass-hero-rim: rgb(170 229 255 / 34%);
-  --glass-hero-panel: #153552;
-  --glass-hero-detail: #102944;
+  --glass-error-bg: #412431;
+  --glass-ocean-start: #0c162d;
+  --glass-ocean-end: #182f67;
+  --glass-ocean-glow: rgb(55 111 238 / 29%);
+  --glass-ocean-reflection: rgb(54 95 219 / 24%);
+  --glass-hero-muted: #d2dff7;
+  --glass-hero-accent: #accbff;
+  --glass-hero-rim: rgb(147 182 255 / 32%);
+  --glass-hero-panel: #233e70;
+  --glass-hero-detail: #101e39;
+}
+
+[data-theme="dark"] .site-header .site-nav a.nav-active {
+  color: var(--glass-hero-accent);
 }
 
 body {
@@ -326,7 +333,7 @@ button.ghost:hover {
 .login-form .login-demo { border-color: var(--border); }
 .login-form a { color: var(--navy); }
 
-.login-form input:not([type="hidden"]),
+.login-form input:not([type="hidden"], [type="checkbox"]),
 .password-field__control > input {
   border-color: var(--glass-field-border);
   background: var(--card);
@@ -335,7 +342,7 @@ button.ghost:hover {
 
 .login-form input::placeholder { color: var(--muted-text); }
 
-.login-form input:not([type="hidden"]):focus,
+.login-form input:not([type="hidden"], [type="checkbox"]):focus,
 .password-field__control > input:focus,
 .registration-form input:focus {
   outline: 2px solid var(--glass-focus);

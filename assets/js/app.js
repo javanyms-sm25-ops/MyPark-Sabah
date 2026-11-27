@@ -398,11 +398,15 @@
   const photoDrop = document.querySelector('[data-photo-drop]');
   if (photoDrop) {
     const photoInput = photoDrop.querySelector('input[type="file"]');
-    const preview = photoDrop.querySelector('.avatar');
+    const preview = photoDrop.querySelector('[data-photo-preview]');
+    const initial = photoDrop.querySelector('[data-photo-initial]');
+    const filename = photoDrop.querySelector('[data-photo-filename]');
+    const rotate = photoDrop.querySelector('[data-rotate]');
     const feedback = photoDrop.querySelector('.field-feedback');
     const savedPhoto = preview.getAttribute('src');
     let previewUrl = null;
     let rotation = 0;
+    rotate.hidden = preview.hidden;
 
     function validatePhoto(files) {
       if (files.length > 1) return 'Choose one photo at a time.';
@@ -427,6 +431,9 @@
       if (source) preview.src = source;
       else preview.removeAttribute('src');
       preview.hidden = !source;
+      initial.hidden = Boolean(source);
+      rotate.hidden = !source;
+      filename.textContent = file?.name ?? '';
       rotation = 0;
       preview.style.transform = '';
     });
@@ -454,7 +461,7 @@
       photoInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
-    photoInput.form.querySelector('[data-rotate]').addEventListener('click', function () {
+    rotate.addEventListener('click', function () {
       if (preview.hidden) return;
       rotation += 90;
       preview.style.transform = 'rotate(' + rotation + 'deg)';

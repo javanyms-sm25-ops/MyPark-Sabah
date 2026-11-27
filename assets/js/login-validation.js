@@ -11,6 +11,7 @@
     return form.elements.namedItem(name);
   });
   const submitButton = form.querySelector('.login-submit');
+  const rememberMe = form.elements.namedItem('remember_me');
   const submitLabel = form.querySelector('[data-submit-label]');
   const spinner = form.querySelector('.login-spinner');
   const requestError = document.getElementById('login-request-error');
@@ -65,6 +66,7 @@
   function setSubmitting(value) {
     submitting = value;
     submitButton.disabled = value;
+    rememberMe.disabled = value;
     spinner.hidden = !value;
     submitLabel.textContent = value ? translate('Signing in…') : translate('Sign in');
     status.textContent = value ? translate('Signing in…') : '';
