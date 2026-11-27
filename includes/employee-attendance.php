@@ -140,8 +140,13 @@ function attendance_gps(array $fields, array $shift, array $settings): array {
         throw new RuntimeException('Invalid GPS reading. Try again or request a review.', 422);
     }
     $distance = attendance_distance((float)$shift['lot_lat'], (float)$shift['lot_lng'], $latitude, $longitude);
-    $zone = $accuracy > $settings['accuracy_m'] ? 'uncertain'
-        : ($distance > $settings['radius_m'] ? 'outside' : 'within');
+    $radius = $settings['radius_m'];
+    $zone = match (true) {
+        $accuracy > $settings['accuracy_m'] => 'uncertain',
+        $distance + $accuracy <= $radius => 'within',
+        $distance - $accuracy > $radius => 'outside',
+        default => 'uncertain',
+    };
     return [$latitude, $longitude, $accuracy, round($distance, 1), $capture, $zone];
 }
 

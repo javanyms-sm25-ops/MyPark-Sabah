@@ -8,24 +8,71 @@
   <div><dt><?= te('Check In') ?></dt><dd><?= e(attendance_clock($in)) ?> <?= attendance_badge(attendance_punctuality($row)) ?></dd></div>
   <div><dt><?= te('Check Out') ?></dt><dd><?= e(attendance_clock($out)) ?></dd></div>
   <div><dt><?= te('Working duration') ?></dt><dd><?= e(attendance_duration($row)) ?></dd></div>
-  <div><dt><?= te('Check-in location') ?></dt><dd><?= attendance_badge($row['in_zone']) ?></dd></div>
-  <div><dt><?= te('Check-out location') ?></dt><dd><?= attendance_badge($row['out_zone']) ?></dd></div>
 </dl>
+<div class="attendance-location-grid" id="attendance-locations">
+  <?php foreach (['in' => 'Check-in location', 'out' => 'Check-out location'] as $event => $label):
+    $mapUrl = attendance_location_map_url($row, $event);
+    $capture = $row[$event . '_capture'];
+    $zone = $row[$event . '_zone'];
+    $accuracy = $row[$event . '_accuracy'];
+    $distance = $row[$event . '_distance'];
+  ?>
+    <div class="attendance-location-card">
+      <div class="attendance-heading">
+        <h3><?= te($label) ?></h3>
+        <?php if ($zone !== null): ?><?= attendance_badge($zone) ?><?php endif; ?>
+      </div>
+      <?php if ($mapUrl): ?>
+        <?php if ($zone === 'within'): ?>
+          <p class="attendance-location-place"><?= te('Near {location}', ['location' => $row['lot_name']]) ?></p>
+        <?php elseif ($accuracy !== null && $accuracy > $row['accuracy_m']): ?>
+          <p class="attendance-location-place"><?= te('Approximate location') ?></p>
+        <?php endif; ?>
+        <?php if ($distance !== null || $accuracy !== null): ?>
+          <dl class="attendance-location-metrics">
+            <?php if ($distance !== null): ?>
+              <div><dt><?= te('From assigned location') ?></dt><dd><?= e(attendance_distance_label($distance)) ?></dd></div>
+            <?php endif; ?>
+            <?php if ($accuracy !== null): ?>
+              <div><dt><?= te('Estimated accuracy') ?></dt><dd>±<?= e(attendance_distance_label(ceil($accuracy))) ?></dd></div>
+            <?php endif; ?>
+          </dl>
+        <?php endif; ?>
+        <a class="btn btn-secondary attendance-map-link" href="<?= e($mapUrl) ?>" target="_blank" rel="noopener noreferrer"
+          aria-label="<?= te('View on Google Maps') ?> · <?= te($label) ?>"><?= te('View on Google Maps') ?></a>
+      <?php else: ?>
+        <p class="attendance-location-note"><?= te(match ($capture) {
+          'captured' => 'The map pin has expired.',
+          null => 'No location recorded yet.',
+          default => ATTENDANCE_CAPTURE[$capture] ?? 'Location not recorded',
+        }) ?></p>
+      <?php endif; ?>
+    </div>
+  <?php endforeach; ?>
+</div>
 <details class="attendance-details" <?= $actor['role'] === 'staff' && !isset($_GET['shift']) && !isset($shiftId) ? '' : 'open' ?>>
   <summary><?= te('View Attendance Details') ?></summary>
   <div class="attendance-evidence">
     <div>
       <h3><?= te('Original check-in evidence') ?></h3>
-      <p><?= e($row['lot_name']) ?> · <?= e(attendance_clock($row['checked_in'])) ?> MYT</p>
+      <?php if ($row['checked_in'] !== null): ?><p><?= e(attendance_clock($row['checked_in'])) ?> MYT</p><?php endif; ?>
       <?php if ($row['photo_available']): ?>
         <img class="attendance-preview" src="<?= e($photoUrl) ?>" alt="<?= te('Check-in photo') ?>" loading="lazy">
       <?php else: ?><p><?= te('No stored photo for this shift.') ?></p><?php endif; ?>
-      <?= attendance_location_evidence($row, 'in') ?>
+      <?php if (attendance_location_map_url($row, 'in')): ?>
+        <p class="attendance-location-note"><?= te('Reported coordinates') ?> · <?= e(attendance_coordinates($row, 'in')) ?></p>
+      <?php endif; ?>
     </div>
     <div>
       <h3><?= te('Original check-out evidence') ?></h3>
-      <p><?= e(attendance_clock($row['checked_out'])) ?> MYT</p>
-      <?= attendance_location_evidence($row, 'out') ?>
+      <?php if ($row['checked_out'] !== null): ?>
+        <p><?= e(attendance_clock($row['checked_out'])) ?> MYT</p>
+        <?php if (attendance_location_map_url($row, 'out')): ?>
+          <p class="attendance-location-note"><?= te('Reported coordinates') ?> · <?= e(attendance_coordinates($row, 'out')) ?></p>
+        <?php endif; ?>
+      <?php else: ?>
+        <p class="attendance-location-note"><?= te('No check-out recorded yet.') ?></p>
+      <?php endif; ?>
     </div>
   </div>
 </details>

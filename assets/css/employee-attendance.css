@@ -68,6 +68,44 @@
   margin: 0;
   font-weight: 600;
 }
+.attendance-location-grid {
+  scroll-margin-top: 6rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: .75rem;
+}
+.attendance-location-card {
+  display: grid;
+  min-width: 0;
+  gap: .75rem;
+  align-content: start;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: .85rem;
+  background: var(--card);
+}
+.attendance-location-card h3 { font-size: 1rem; }
+.attendance-location-place { font-weight: 600; }
+.attendance-location-metrics {
+  display: grid;
+  gap: .5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+  margin: 0;
+}
+.attendance-location-metrics > div {
+  padding: .55rem .7rem;
+  border-radius: .55rem;
+  background: var(--light-blue);
+}
+.attendance-location-metrics dt,
+.attendance-location-note { color: var(--muted-text); }
+.attendance-location-metrics dt { font-size: .85rem; }
+.attendance-location-metrics dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.attendance-map-link { justify-self: start; }
 .attendance-summary dd { font-size: 1.5rem; }
 .attendance-summary > div { background: var(--light-blue); }
 .attendance-controls,
