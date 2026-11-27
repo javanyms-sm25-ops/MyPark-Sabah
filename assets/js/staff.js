@@ -553,8 +553,10 @@
     const history = el('ol', 'staff-audit');
     const tracked = { plate: translate('Plate'), violation: translate('Violation'), amount_cents: translate('Amount'), occurred_at: translate('Date'), notes: translate('Notes'), status: translate('Status'), title: translate('Issue'), location: translate('Location'), description: translate('Description'), payment_reference: translate('Payment reference'), deleted_at: 'Removed at' };
     [...record.audit].reverse().forEach(entry => {
-      const item = el('li'); item.append(el('strong', '', ({ created: 'Created', update: 'Updated', paid: 'Payment recorded', void: 'Voided', delete: 'Removed' })[entry.action] || entry.action), el('p', 'staff-muted', dateText(entry.at) + ' · ' + entry.actor_name));
-      if (entry.reason) item.append(el('p', '', entry.reason));
+      const actorName = entry.actor_id === 4 && entry.actor_name === 'Demo Member' ? 'Parking Member' : entry.actor_name;
+      const reason = entry.action === 'paid' && entry.reason === 'MyPark demo wallet payment' ? 'MyPark wallet payment' : entry.reason;
+      const item = el('li'); item.append(el('strong', '', ({ created: 'Created', update: 'Updated', paid: 'Payment recorded', void: 'Voided', delete: 'Removed' })[entry.action] || entry.action), el('p', 'staff-muted', dateText(entry.at) + ' · ' + actorName));
+      if (reason) item.append(el('p', '', translate(reason)));
       if (entry.before) {
         const changes = el('ul');
         Object.entries(tracked).forEach(([key, label]) => {

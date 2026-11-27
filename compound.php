@@ -64,7 +64,7 @@ if ($isPaymentRequest) {
             'plate' => $paid['plate'],
         ];
         MyParkData::$records['staff_fines'][$id] = $paid;
-        staff_audit('fine', $id, 'paid', $actor, $fine, $paid, 'MyPark demo wallet payment');
+        staff_audit('fine', $id, 'paid', $actor, $fine, $paid, 'MyPark wallet payment');
 
         flash([
             'title' => 'Payment confirmed',
@@ -139,7 +139,7 @@ head($title);
 
   <?php if ($canPay): ?>
     <div class="compound-wallet">
-      <span><?= te('Demo wallet balance') ?> <strong><?= staff_money($balanceCents) ?></strong></span>
+      <span><?= te('Wallet balance') ?> <strong><?= staff_money($balanceCents) ?></strong></span>
       <a class="btn btn-secondary" href="wallet.php"><?= te('Top up wallet') ?></a>
       <a class="btn btn-secondary" href="receipts.php?type=compound"><?= te('View compound receipts') ?></a>
     </div>
@@ -168,7 +168,7 @@ head($title);
 
             <?php if ($canPay && $fine['status'] === 'unpaid'): ?>
               <form method="post" action="<?= e($lookupUrl) ?>"
-                data-compound-payment="<?= te('Pay {amount} for {compound} from your demo wallet?', ['amount' => staff_money($fine['amount_cents']), 'compound' => $fine['code']]) ?>">
+                data-compound-payment="<?= te('Pay {amount} for {compound} from your wallet?', ['amount' => staff_money($fine['amount_cents']), 'compound' => $fine['code']]) ?>">
                 <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
                 <input type="hidden" name="id" value="<?= $fine['id'] ?>">
                 <input type="hidden" name="version" value="<?= $fine['version'] ?>">

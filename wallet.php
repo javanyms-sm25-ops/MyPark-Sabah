@@ -23,8 +23,15 @@ $amountError = te('Enter an amount from RM 1.00 to RM 500.00, with up to two dec
 head('Wallet');
 ?>
 
-<p class="eyebrow"><?= te('MyPark WALLET') ?></p>
-<h1><?= te('My wallet') ?></h1>
+<div class="wallet-page">
+<div class="wallet-page__heading">
+  <div>
+    <p class="eyebrow"><?= te('MyPark WALLET') ?></p>
+    <h1><?= te('My wallet') ?></h1>
+    <p class="wallet-page__intro"><?= te('Manage your balance and review recent wallet activity.') ?></p>
+  </div>
+  <a class="btn btn-secondary wallet-page__receipts" href="receipts.php?type=topup"><?= te('View wallet top-up receipts') ?></a>
+</div>
 <?php if ($topupReceiptUrl): ?>
   <div class="payment-confirmation" id="topup-result">
     <p role="status"><?= te('Your top-up is in your wallet.') ?></p>
@@ -33,10 +40,16 @@ head('Wallet');
 <?php endif; ?>
 
 <div class="wallet-layout">
-  <section class="wallet-balance fade-in">
-    <small><?= te('Available balance') ?></small>
+  <section class="wallet-balance fade-in" aria-labelledby="wallet-balance-title">
+    <div class="wallet-balance__topline">
+      <span class="wallet-balance__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 9h18M16 14h2"/><path d="M6 6V4h12"/></svg>
+      </span>
+      <span class="wallet-balance__account"><?= te('MyPark wallet') ?></span>
+    </div>
+    <small id="wallet-balance-title"><?= te('Available balance') ?></small>
     <b>RM <?= number_format($wallet['balance'], 2) ?></b>
-    <span><?= te('Use demo credit to') ?> <a href="compound.php"><?= te('pay compounds') ?></a>.</span>
+    <span><?= te('Use your wallet balance to') ?> <a href="compound.php"><?= te('pay compounds') ?></a>.</span>
   </section>
 
   <section class="card wallet-topup" id="bookingTopup" aria-labelledby="wallet-topup-title">
@@ -58,7 +71,7 @@ head('Wallet');
       <a class="btn btn-secondary" href="find_parking.php"><?= te('Find parking') ?></a>
     <?php endif; ?>
     <?php if (!$parkingReview || $shortfall > 0): ?>
-    <p class="muted"><?= te('Pay with PayPal Sandbox at checkout.') ?></p>
+    <p class="muted wallet-topup__intro"><?= te('Choose an amount to continue to PayPal Sandbox checkout.') ?></p>
     <form method="post" action="checkout.php">
       <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
       <?php if ($parking): ?><input type="hidden" name="parking" value="<?= e($parking['topup']) ?>"><?php endif; ?>
@@ -81,8 +94,13 @@ head('Wallet');
   </section>
 </div>
 
-<h2><?= te('Wallet activity') ?></h2>
-<p><a class="btn" href="receipts.php?type=topup"><?= te('View wallet top-up receipts') ?></a></p>
+<section class="wallet-activity" aria-labelledby="wallet-activity-title">
+  <div class="wallet-activity__heading">
+    <div>
+      <h2 id="wallet-activity-title"><?= te('Recent activity') ?></h2>
+      <p class="muted"><?= te('A record of wallet top-ups and payments.') ?></p>
+    </div>
+  </div>
 <?php
 $transactionTypes = ['topup' => 'Top up', 'parking' => 'Parking booking', 'compound' => 'Compounds'];
 $view = ajax_table_view('wallet-activity', $transactions, [
@@ -133,4 +151,7 @@ ajax_table_begin($view);
   </table>
 </div>
 
-<?php ajax_table_end($view); foot(); ?>
+<?php ajax_table_end($view); ?>
+</section>
+</div>
+<?php foot(); ?>

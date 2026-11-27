@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/includes/bootstrap.php';
 require_login();
+const SUPPORT_AUTO_REPLY = 'Your message is saved for this session. Live support is unavailable.';
 $_SESSION['demo_chat'] ??= [];
 MyParkData::$records['demo_reviews'] ??= [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -20,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Message failed. Enter a message of up to 2,000 characters.');
         } else {
             $_SESSION['demo_chat'][] = ['by' => me()['name'], 'text' => $message, 'at' => date('H:i')];
-            $_SESSION['demo_chat'][] = ['by' => 'MyPark Support (demo)', 'text' => 'Your message is saved in this demo session. Live agent support is not connected yet.', 'at' => date('H:i')];
+            $_SESSION['demo_chat'][] = ['by' => 'MyPark Support', 'text' => SUPPORT_AUTO_REPLY, 'at' => date('H:i')];
         }
     }
     header('Location: support.php');
@@ -29,10 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 head('Support');
 ?>
 <h1><?= te('Parking support') ?></h1>
-<p class="muted"><?= te('Prototype chat. Live agent connection can be enabled in the final backend.') ?></p>
+<p class="muted"><?= te(SUPPORT_AUTO_REPLY) ?></p>
 <section class="card chat" id="chat">
   <?php foreach ($_SESSION['demo_chat'] as $message): ?>
-    <p><b><?= e($message['by']) ?></b> <small><?= e($message['at']) ?></small><br><?= e($message['text']) ?></p>
+    <?php $legacyReply = $message['by'] === 'MyPark Support (demo)' && $message['text'] === 'Your message is saved in this demo session. Live agent support is not connected yet.'; ?>
+    <p><b><?= e($legacyReply ? 'MyPark Support' : $message['by']) ?></b> <small><?= e($message['at']) ?></small><br><?= $legacyReply || ($message['by'] === 'MyPark Support' && $message['text'] === SUPPORT_AUTO_REPLY) ? te(SUPPORT_AUTO_REPLY) : e($message['text']) ?></p>
   <?php endforeach; ?>
   <form method="post">
     <input type="hidden" name="csrf" value="<?= csrf() ?>">

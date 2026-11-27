@@ -96,7 +96,7 @@ head('Login');
   <button class="login-submit" type="submit"><span class="login-spinner" aria-hidden="true" hidden></span><span data-submit-label><?= te('Sign in') ?></span></button>
   <span class="validation-sr-only" id="login-status" role="status" aria-live="polite"></span>
   <p class="login-signup"><?= te('Don’t have an account?') ?> <a href="pages/register.php"><?= te('Sign up') ?></a></p>
-  <details class="login-demo"><summary><?= te('Demo accounts') ?></summary><p class="hint">Superadmin: superadmin@park.com / super123<br>Admin: admin@park.com / admin123<br>Staff: staff@park.com / staff123<br>Member: user@park.com / user123</p></details>
+  <details class="login-demo"><summary><?= te('Test accounts') ?></summary><p class="hint">Superadmin: superadmin@park.com / super123<br>Admin: admin@park.com / admin123<br>Staff: staff@park.com / staff123<br>Member: user@park.com / user123</p></details>
 
 </form>
 

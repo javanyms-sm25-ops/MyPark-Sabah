@@ -16,8 +16,14 @@ MyParkData::$records['demo_users'] ??= [
  ['id'=>1,'name'=>'Super Admin','email'=>'superadmin@park.com','password'=>password_hash('super123',PASSWORD_DEFAULT),'role'=>'superadmin','blocked'=>false],
  ['id'=>2,'name'=>'Parking Admin','email'=>'admin@park.com','password'=>password_hash('admin123',PASSWORD_DEFAULT),'role'=>'admin','blocked'=>false],
  ['id'=>3,'name'=>'Parking Staff','email'=>'staff@park.com','password'=>password_hash('staff123',PASSWORD_DEFAULT),'role'=>'staff','blocked'=>false],
- ['id'=>4,'name'=>'Demo Member','email'=>'user@park.com','password'=>password_hash('user123',PASSWORD_DEFAULT),'role'=>'user','blocked'=>false]
+ ['id'=>4,'name'=>'Parking Member','email'=>'user@park.com','password'=>password_hash('user123',PASSWORD_DEFAULT),'role'=>'user','blocked'=>false]
 ];
+foreach (MyParkData::$records['demo_users'] as $key => $member) {
+    if ($member['id'] === 4 && $member['email'] === 'user@park.com' && $member['name'] === 'Demo Member') {
+        MyParkData::$records['demo_users'][$key]['name'] = 'Parking Member';
+        break;
+    }
+}
 $tawauMarket = [
     'id' => 3,
     'name' => 'Tawau Tanjung Market',
@@ -50,6 +56,8 @@ if (isset($_SESSION['user'])) {
     if (!$account || $account['id'] !== $user['id'] || $account['role'] !== $user['role'] || $account['blocked']
         || !demo_login_matches_password($_SESSION, $account['password'])) {
         clear_demo_login();
+    } elseif ($account['id'] === 4 && $account['name'] === 'Parking Member' && $user['name'] === 'Demo Member') {
+        $_SESSION['user']['name'] = $account['name'];
     }
 }
 
@@ -278,7 +286,7 @@ function foot(bool $showChatbot = true): void {
       </main>
       <footer>
         <section><b>MyPark Sabah</b><p><?= te('Simple parking across Sabah.') ?></p></section>
-        <section><b><?= te('Contact') ?></b><p>support@mypark-sabah.demo<br>+60 88 000 000</p></section>
+        <section><b><?= te('Contact') ?></b><p>+60 88 000 000</p></section>
         <section><b><?= te('Help') ?></b><p><a href="support.php"><?= te('Customer support') ?></a><br><a href="profile.php"><?= te('My profile') ?></a></p></section>
       </footer>
       <div id="toast-stack" class="pe-toast-stack" role="region" aria-label="<?= te('Notifications') ?>"></div>

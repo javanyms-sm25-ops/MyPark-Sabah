@@ -71,7 +71,7 @@ head($pages[$page]);
       <p class="staff-help"><?= te('Exact plate match; spaces, hyphens and letter case are ignored.') ?></p></form></section>
     <div id="staff-lookup-results" aria-live="polite"><p class="staff-empty"><?= te('Enter a plate number to view related records.') ?></p></div>
   <?php endif; ?>
-  <noscript><p class="staff-error-banner"><?= te('Enable JavaScript to manage these records. No demo fines or maintenance records have been added.') ?></p></noscript>
+  <noscript><p class="staff-error-banner"><?= te('Enable JavaScript to manage these records.') ?></p></noscript>
 </div>
 <dialog class="staff-dialog" id="staff-dialog" aria-labelledby="staff-dialog-title">
   <div class="staff-dialog-header"><h2 id="staff-dialog-title"></h2><button type="button" class="staff-button staff-secondary" id="staff-dialog-close"><?= te('Close') ?></button></div>

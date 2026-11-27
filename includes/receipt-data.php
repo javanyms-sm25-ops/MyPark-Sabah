@@ -72,9 +72,10 @@ function receipt_amount_label(array $receipt): string {
 function receipt_payment_note(array $receipt): string {
     $paid = isset($receipt['details']['Payment method']);
     return match ($receipt['type']) {
-        'parking' => $paid ? 'Paid with MyPark demo wallet.' : 'Demo booking. No payment was collected.',
-        'topup' => $paid ? 'PayPal Sandbox transaction.' : 'Demo transaction.',
-        default => 'Demo transaction.',
+        'parking' => $paid ? 'Paid with MyPark wallet.' : 'No payment was collected.',
+        'topup' => $paid ? 'PayPal Sandbox transaction.' : 'Test transaction.',
+        'compound' => $paid ? 'Paid with MyPark wallet.' : 'Test transaction.',
+        default => 'Test transaction.',
     };
 }
 
@@ -154,7 +155,7 @@ function receipt_sync(): void {
             'Parking ends' => receipt_time(booking_expiry($booking) ?? $start->getTimestamp() + $booking['hours'] * 3600),
             'Duration' => $booking['hours'] . ($booking['hours'] === 1 ? ' hour' : ' hours'),
         ];
-        if (($booking['paid_amount_cents'] ?? 0) > 0) $details['Payment method'] = 'MyPark demo wallet';
+        if (($booking['paid_amount_cents'] ?? 0) > 0) $details['Payment method'] = 'MyPark wallet';
         receipt_add($booking, $booking['user_id'], 'parking', (int) round($booking['fee'] * 100), $details, $oldest);
     }
     unset($booking);
@@ -167,7 +168,7 @@ function receipt_sync(): void {
             $details = $type === 'compound' ? [
                 'Compound number' => $transaction['compound'],
                 'Payment reference' => $transaction['reference'],
-                'Payment method' => 'MyPark demo wallet',
+                'Payment method' => 'MyPark wallet',
             ] : (!empty($transaction['reference']) ? [
                 'Payment reference' => $transaction['reference'],
                 'Payment method' => 'PayPal Sandbox',

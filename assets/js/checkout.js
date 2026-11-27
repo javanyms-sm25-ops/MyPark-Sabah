@@ -7,9 +7,15 @@
   const button = document.getElementById('paypal-button');
   const cardContainer = document.getElementById('paypal-card');
   const cardButton = document.getElementById('paypal-card-button');
+  const methodChoices = document.getElementById('checkout-methods');
   const translate = window.MyParkLocale?.text ?? (message => message);
   const successUrl = checkout.dataset.successUrl || 'wallet.php';
   let busy = false;
+
+  function setBusy(value) {
+    busy = value;
+    methodChoices.disabled = value;
+  }
 
   function showStatus(message) {
     status.textContent = translate(message);
@@ -38,9 +44,17 @@
       return true;
     } catch (error) {
       showStatus(error.message);
-      busy = false;
+      setBusy(false);
       return false;
     }
+  }
+
+  async function createOrderId() {
+    const result = await request('create');
+    if (typeof result.orderId !== 'string' || !result.orderId.length) {
+      throw new Error('PayPal did not return a valid order ID.');
+    }
+    return result.orderId;
   }
 
   async function initialize() {
@@ -77,11 +91,11 @@
           } else {
             showStatus(message);
           }
-          busy = false;
+          setBusy(false);
         },
         onError() {
           showStatus('PayPal could not complete this payment. Please try again.');
-          busy = false;
+          setBusy(false);
         },
       };
 
@@ -89,19 +103,14 @@
         visibleElement.hidden = false;
         paymentButton.addEventListener('click', async () => {
           if (busy) return;
-          busy = true;
+          setBusy(true);
           showStatus('Opening PayPal…');
           try {
-            const orderPromise = request('create').then(result => {
-              if (typeof result.orderId !== 'string' || result.orderId.length === 0) {
-                throw new Error('PayPal did not return a valid order ID.');
-              }
-              return { orderId: result.orderId };
-            });
+            const orderPromise = createOrderId().then(orderId => ({ orderId }));
             await session.start({ presentationMode: 'auto' }, orderPromise);
           } catch (error) {
             showStatus(error.message);
-            busy = false;
+            setBusy(false);
           }
         });
       }
@@ -109,7 +118,8 @@
       if (methods.isEligible('paypal')) {
         attachPayment(button, sdk.createPayPalOneTimePaymentSession(callbacks));
       }
-      if (methods.isEligible('card')) {
+      async function setupGuestCard() {
+        if (!methods.isEligible('card')) return;
         let cardConfirmation;
         const cardSession = await sdk.createPayPalGuestOneTimePaymentSession({
           ...callbacks,
@@ -123,9 +133,16 @@
         });
         attachPayment(cardButton, cardSession, cardContainer);
       }
-      showStatus(button.hidden && cardContainer.hidden
-        ? 'PayPal payment methods are unavailable for this account or amount.'
-        : '');
+
+      status.textContent = '';
+      try {
+        await setupGuestCard();
+      } catch {
+        cardContainer.hidden = true;
+      }
+      if (button.hidden && cardContainer.hidden) {
+        showStatus('PayPal payment methods are unavailable for this account or amount.');
+      }
     } catch (error) {
       showStatus(error.message || 'PayPal could not load. Refresh the page and try again.');
     }

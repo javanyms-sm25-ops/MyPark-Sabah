@@ -88,7 +88,7 @@ head('Dashboard');
     <div class="card"><small><?= te('Parking locations') ?></small><b data-ops-stat="lots"><?= $snapshot['summary']['lots'] ?></b></div>
     <div class="card"><small><?= te('Reservations') ?></small><b data-ops-stat="reservations"><?= $snapshot['summary']['reservations'] ?></b></div>
     <div class="card"><small><?= te('Active stays') ?></small><b data-ops-stat="active"><?= $snapshot['summary']['active'] ?></b></div>
-    <div class="card"><small><?= te('Demo revenue') ?></small><b data-ops-stat="revenue">RM <?= number_format($snapshot['summary']['revenue'], 2) ?></b></div>
+    <div class="card"><small><?= te('Parking revenue') ?></small><b data-ops-stat="revenue">RM <?= number_format($snapshot['summary']['revenue'], 2) ?></b></div>
   </div>
   <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
     <section class="ops-panel" aria-labelledby="attendance-heading">

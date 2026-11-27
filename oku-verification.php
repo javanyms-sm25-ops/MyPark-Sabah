@@ -58,7 +58,7 @@ head('OKU Parking Verification');
         <input type="hidden" name="MAX_FILE_SIZE" value="<?= OKU_MAX_PROOF_BYTES ?>">
         <label for="oku-proof"><?= te('OKU parking proof') ?></label>
         <input type="file" id="oku-proof" name="oku_proof" accept="<?= e(implode(',', array_keys(OKU_PROOF_TYPES))) ?>" aria-describedby="oku-proof-help" required>
-        <p class="hint" id="oku-proof-help"><?= te('Demo only. Upload a fictional JPG, PNG or WebP image up to 2 MB.') ?></p>
+        <p class="hint" id="oku-proof-help"><?= te('For testing, upload a sample JPG, PNG or WebP image up to 2 MB.') ?></p>
         <button type="submit"><?= te($okuStatus === 'rejected' ? 'Resubmit proof for review' : 'Submit proof for review') ?></button>
       </form>
     <?php endif; ?>

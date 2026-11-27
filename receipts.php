@@ -201,7 +201,8 @@ head('Digital receipts');
         <div><dt><?= te('Receipt number') ?></dt><dd><?= e($receipt['number']) ?></dd></div>
         <div><dt><?= te('Date (Malaysia time)') ?></dt><dd><time datetime="<?= e(date(DATE_ATOM, $receipt['at'])) ?>"><?= e(receipt_time($receipt['at'])) ?></time></dd></div>
         <?php foreach ($receipt['details'] as $label => $value): ?>
-          <div><dt><?= te($label) ?></dt><dd><?= e($value) ?></dd></div>
+          <?php if ($label === 'Payment method' && $value === 'MyPark demo wallet') $value = 'MyPark wallet'; ?>
+          <div><dt><?= te($label) ?></dt><dd><?= $label === 'Payment method' ? te($value) : e($value) ?></dd></div>
         <?php endforeach; ?>
         <div class="receipt-total"><dt><?= te(receipt_amount_label($receipt)) ?></dt><dd><?= e(receipt_money($receipt['amount_cents'])) ?></dd></div>
       </dl>
