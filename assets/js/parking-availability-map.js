@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  function mount(section, { selectLocation, refresh }) {
+  function mount(section, { selectLocation }) {
     const translate = window.MyParkLocale?.text ?? (message => message);
     const dateFormat = new Intl.DateTimeFormat(document.documentElement.lang || 'en-MY', {
       dateStyle: 'medium', timeStyle: 'medium', timeZone: 'Asia/Kuala_Lumpur'
@@ -11,7 +11,6 @@
     const layout = canvas.parentElement;
     const list = section.querySelector('[data-availability-locations]');
     const time = section.querySelector('[data-availability-time]');
-    const refreshButton = section.querySelector('[data-availability-refresh]');
     const mapMessage = section.querySelector('[data-maps-message]');
     const refreshError = section.querySelector('[data-availability-error]');
     const markers = new Map();
@@ -20,11 +19,6 @@
     let selectedId = '', openId = '', positionsKey = '';
     let maps, map, infoWindow, loadTimeout;
     let mapState = 'idle', renderedCatalog = '';
-
-    if (refreshButton) {
-      refreshButton.hidden = false;
-      refreshButton.addEventListener('click', refresh);
-    }
 
     function element(tag, className, text) {
       const node = document.createElement(tag);
@@ -245,9 +239,8 @@
     return {
       update,
       setSelection,
-      setRefreshing(value) {
-        if (refreshButton) refreshButton.disabled = value;
-        if (value) refreshError.hidden = true;
+      clearRefreshError() {
+        refreshError.hidden = true;
       },
       showRefreshError() {
         if (!refreshError.hidden) return;

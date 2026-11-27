@@ -38,12 +38,9 @@ if ($page === 'maintenance') header('Permissions-Policy: camera=(self), micropho
 head($pages[$page]);
 ?>
 <div id="staff-app" data-page="<?= e($page) ?>"<?= $page === 'maintenance' ? ' data-photo-max-bytes="' . MAINTENANCE_PHOTO_LIMIT . '"' : '' ?>>
-  <div class="staff-page-heading"><div><p class="staff-eyebrow">MY PARK · SABAH</p><h1><?= te($page === 'dashboard' ? 'Staff dashboard' : $pages[$page]) ?></h1>
+  <div class="staff-page-heading"><div><p class="staff-eyebrow">MY PARK · SABAH</p><h1 id="staff-page-title" tabindex="-1"><?= te($page === 'dashboard' ? 'Staff dashboard' : $pages[$page]) ?></h1>
     <p class="staff-muted"><?= e(['dashboard' => 'An overview of your parking records and outstanding work.', 'fines' => 'Create and manage private parking fine records.', 'vehicles' => 'Find fine and parking records for a vehicle plate.', 'maintenance' => 'Track parking location issues from report to completion.'][$page]) ?></p></div>
-    <button type="button" class="staff-button staff-secondary" id="staff-refresh"><?= te('Refresh') ?></button>
   </div>
-  <p class="staff-request-status" id="staff-request-status" role="status" hidden></p>
-  <div class="staff-error-banner" id="staff-page-error" role="alert" hidden><span></span><button type="button" class="staff-button staff-secondary" id="staff-retry"><?= te('Retry') ?></button></div>
   <?php if ($page === 'dashboard'): ?>
     <section class="staff-stats" aria-label="Staff statistics">
       <article><span><?= te('Total fines') ?></span><strong data-summary="total_fines"><?= $snapshot['summary']['total_fines'] ?></strong><small><?= te('All fine records, including voids') ?></small></article>

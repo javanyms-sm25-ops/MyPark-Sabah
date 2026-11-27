@@ -5,7 +5,7 @@ function staff_head(string $title): void {
     try { $actor = staff_actor(); }
     catch (RuntimeException $error) { http_response_code($error->getCode()); exit(e($error->getMessage())); }
     $page = match (basename($_SERVER['SCRIPT_NAME'] ?? '')) {
-        'profile.php', 'change-email.php' => 'profile', 'receipts.php' => 'receipts', 'staff-attendance.php' => 'attendance',
+        'profile.php', 'change-email.php', 'change-password.php' => 'profile', 'receipts.php' => 'receipts', 'staff-attendance.php' => 'attendance',
         default => is_string($_GET['page'] ?? null) ? $_GET['page'] : 'dashboard',
     };
     $profile = $page === 'profile';
@@ -19,7 +19,7 @@ function staff_head(string $title): void {
     <!doctype html><html lang="<?= e(current_language()) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
     <?php if (defined('MYPARK_ADMIN_PAGE') || defined('MYPARK_AUTH_PAGE')): ?><base href="../"><?php endif; ?>
     <title><?= te($title) ?> · MyPark Sabah</title>
-    <link rel="icon" type="image/png" sizes="64x64" href="assets/images/favicon.png">
+    <link rel="icon" type="image/png" sizes="1254x1254" href="assets/images/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="assets/js/theme.js"></script>

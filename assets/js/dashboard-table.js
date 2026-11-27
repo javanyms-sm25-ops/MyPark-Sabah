@@ -34,12 +34,45 @@
     return { rows: rows.slice(start, start + size), page, pages, total: rows.length, label };
   }
   function pageNumbers(page, pages) {
-    const chosen = [...new Set([1, pages, page - 1, page, page + 1])].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
-    const result = [];
-    chosen.forEach((n, i) => { if (i && n - chosen[i - 1] > 1) result.push('…'); result.push(n); });
-    return result;
+    const range = (start, length) => Array.from({ length }, (_, index) => start + index);
+    if (pages <= 7) return range(1, pages);
+    if (page <= 4) return [...range(1, 5), '…', pages];
+    if (page >= pages - 3) return [1, '…', ...range(pages - 4, 5)];
+    return [1, '…', page - 1, page, page + 1, '…', pages];
   }
-  const api = { filterSort, paginate, pageNumbers };
+  function renderPager(container, { page, pages }, goToPage) {
+    const translate = root.MyParkLocale?.text ?? (message => message);
+    function button(label, target, direction) {
+      const item = container.ownerDocument.createElement('button');
+      item.type = 'button';
+      item.className = direction ? 'pagination__item pagination__' + direction : 'pagination__item';
+      item.textContent = label;
+      item.disabled = target < 1 || target > pages;
+      item.addEventListener('click', () => {
+        if (!item.disabled && target !== page) goToPage(target);
+      });
+      return item;
+    }
+    const items = pageNumbers(page, pages).map(number => {
+      if (number === '…') {
+        const gap = container.ownerDocument.createElement('span');
+        gap.className = 'pagination__gap';
+        gap.textContent = number;
+        gap.setAttribute('aria-hidden', 'true');
+        return gap;
+      }
+      const item = button(String(number), number);
+      item.setAttribute('aria-label', root.MyParkLocale?.text('Page {page}', { page: number }) ?? `Page ${number}`);
+      if (number === page) item.setAttribute('aria-current', 'page');
+      return item;
+    });
+    container.replaceChildren(
+      button(translate('Back'), page - 1, 'back'),
+      ...items,
+      button(translate('Next'), page + 1, 'next')
+    );
+  }
+  const api = { filterSort, paginate, pageNumbers, renderPager };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MyParkTableData = api;
 }(globalThis));

@@ -6,7 +6,7 @@ require_once __DIR__ . '/report-libraries/pdf/tfpdf.php';
 class MyParkAttendancePdf extends tFPDF {
     private const FONT_DIRECTORY = __DIR__ . '/report-libraries/pdf/font/unifont/';
 
-    public function __construct(private readonly string $reportTitle, private readonly string $period) {
+    public function __construct(private string $reportTitle, private string $period) {
         parent::__construct('L', 'mm', 'A4');
         $this->SetMargins(12, 10, 12);
         $this->SetAutoPageBreak(false);

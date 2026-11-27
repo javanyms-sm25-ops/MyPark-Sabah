@@ -83,7 +83,8 @@
         if (!nextResults || !nextOrder) throw new Error(translate('The table could not be updated.'));
         return { nextResults, nextOrder };
       }, ({ nextResults, nextOrder }) => {
-        const restore = results.contains(document.activeElement);
+        const active = document.activeElement;
+        const restore = results.contains(active);
         results.replaceWith(nextResults);
         results = nextResults;
         order.value = nextOrder.value;
@@ -96,6 +97,7 @@
         history.replaceState(history.state, '', current);
         if (restore && focusSort) results.querySelector('[data-table-sort="' + CSS.escape(focusSort) + '"]')?.focus();
         if (restore && focusPage) (results.querySelector('[aria-current="page"]') ?? search).focus();
+        if (restore && active.matches('[data-table-size]')) results.querySelector('[data-table-size]')?.focus({ preventScroll: true });
         table.dispatchEvent(new CustomEvent('mypark:table-updated', { bubbles: true }));
       }, () => { failure.hidden = false; }, setBusy);
     }
@@ -116,8 +118,8 @@
       clearTimeout(timer);
       timer = setTimeout(() => refresh(formParams()), 300);
     });
-    form.addEventListener('change', event => {
-      if (event.target.matches('[data-table-change]')) refresh(formParams());
+    table.addEventListener('change', event => {
+      if (event.target.matches('[data-table-change]') && event.target.form === form) refresh(formParams());
     });
     table.addEventListener('click', event => {
       const page = event.target.closest('[data-table-page]');

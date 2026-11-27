@@ -136,6 +136,7 @@ function complete_expired_bookings(): void {
     if ($changed) MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
 }
 function cancel_booking(int $id, int $userId): void {
+    if (!can_cancel_own_parking()) throw new RuntimeException('Reservation status updates automatically.', 403);
     complete_expired_bookings();
     foreach (MyParkData::$records['demo_bookings'] as &$booking) {
         if ($booking['id'] !== $id || $booking['user_id'] !== $userId) continue;
@@ -151,6 +152,9 @@ function cancel_booking(int $id, int $userId): void {
         return;
     }
     throw new RuntimeException('Booking not found.', 404);
+}
+function can_cancel_own_parking(): bool {
+    return in_array(me()['role'] ?? '', ['user', 'staff'], true);
 }
 function require_admin(){require_login();if(!in_array(me()['role'],['admin','superadmin'],true)){http_response_code(403);exit('Forbidden');}}
 function flash(string|array|null $message = null): string|array|null {
@@ -217,7 +221,7 @@ function head(string $title): void {
         unset($links['dashboard.php']);
         $links = [
             'admin/dashboard.php' => 'Dashboard',
-            'admin/add-parking-location.php' => 'Parking',
+            'admin/parking-locations.php' => 'Parking',
         ] + $links;
         $links['admin/employee-attendance.php'] = 'Attendance';
     }
@@ -230,7 +234,7 @@ function head(string $title): void {
       <?php if (defined('MYPARK_ADMIN_PAGE') || defined('MYPARK_AUTH_PAGE')): ?><base href="../"><?php endif; ?>
       <meta name="viewport" content="width=device-width,initial-scale=1">
       <title><?= te($title) ?> - MyPark Sabah</title>
-      <link rel="icon" type="image/png" sizes="64x64" href="assets/images/favicon.png">
+      <link rel="icon" type="image/png" sizes="1254x1254" href="assets/images/favicon.png">
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">

@@ -4,182 +4,128 @@ require dirname(__DIR__) . '/includes/bootstrap.php';
 require dirname(__DIR__) . '/includes/dashboard-data.php';
 
 header('Cache-Control: private, no-store');
-try {
-    $actor = ops_actor();
-    if (!in_array($actor['role'], ['admin', 'superadmin'], true)) {
-        throw new RuntimeException('Only an administrator can manage parking locations.', 403);
-    }
-} catch (RuntimeException $error) {
-    if ($error->getCode() === 401) {
-        header('Location: ../pages/login.php');
-        exit;
-    }
-    http_response_code(403);
-    exit(te($error->getMessage()));
-}
-
+$actor = ops_parking_location_actor();
 $page = 'admin/add-parking-location.php';
-$canDelete = $actor['role'] === 'superadmin';
-$lots = active_parking_locations();
 $isPost = $_SERVER['REQUEST_METHOD'] === 'POST';
 if ($isPost) check_csrf();
-$action = $isPost ? ($_POST['action'] ?? 'add_lot') : match (true) {
-    isset($_GET['edit']) => 'update_lot',
-    isset($_GET['delete']) => 'delete_lot',
-    default => 'add_lot',
-};
-$requestedId = $isPost ? ($_POST['id'] ?? null) : match ($action) {
-    'update_lot' => $_GET['edit'],
-    'delete_lot' => $_GET['delete'],
-    default => null,
-};
-$id = filter_var($requestedId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-$selected = array_column($lots, null, 'id')[$id] ?? null;
+if ($isPost && ($_POST['action'] ?? '') === 'delete_lot') {
+    header('Location: parking-locations.php', true, 307);
+    exit;
+}
+if (!$isPost && isset($_GET['delete']) && !isset($_GET['edit'])) {
+    header('Location: parking-locations.php?' . http_build_query(['delete' => $_GET['delete']]), true, 302);
+    exit;
+}
+
+$action = $isPost ? ($_POST['action'] ?? 'add_lot') : (isset($_GET['edit']) ? 'update_lot' : 'add_lot');
+$editing = $action === 'update_lot';
+$id = filter_var($isPost ? ($_POST['id'] ?? null) : ($_GET['edit'] ?? null), FILTER_VALIDATE_INT,
+    ['options' => ['min_range' => 1]]);
+$selected = $editing ? (array_column(active_parking_locations(), null, 'id')[$id] ?? null) : null;
+$showForm = $action === 'add_lot' || $selected !== null;
 $errorMessage = '';
 try {
-    if (!in_array($action, ['add_lot', 'update_lot', 'delete_lot'], true)) {
+    if (!$showForm) {
+        if ($editing) throw new RuntimeException('Parking location unavailable.', 404);
         throw new RuntimeException('Unknown operation.', 400);
     }
     if ($isPost) {
-        flash(ops_mutate($actor, $_POST + ['action' => 'add_lot']));
-        $next = $action === 'add_lot' ? 'dashboard.php#parking-locations' : 'add-parking-location.php#location-list';
-        header('Location: ' . $next, true, 303);
+        flash(ops_mutate($actor, $_POST + ['action' => 'add_lot'], $_FILES['photo'] ?? null));
+        header('Location: parking-locations.php', true, 303);
         exit;
-    }
-    if ($action === 'delete_lot' && !$canDelete) {
-        throw new RuntimeException('Only Super Admin can delete parking locations.', 403);
-    }
-    if ($action !== 'add_lot' && !$selected) {
-        throw new RuntimeException('Parking location unavailable.', 404);
     }
 } catch (RuntimeException $error) {
     http_response_code($error->getCode() ?: 500);
     $errorMessage = $error->getMessage();
 }
 
-$editing = $action === 'update_lot' && $selected !== null;
-$confirming = $action === 'delete_lot' && $canDelete && $selected !== null;
-$deletePrompt = 'Delete {location}? It will be removed from the map and booking options. Past records will remain available.';
-$fields = ['name' => '', 'city' => '', 'address' => '', 'capacity' => '', 'lat' => '', 'lng' => ''];
-if ($editing) $fields = array_replace($fields, array_intersect_key($selected, $fields));
-if ($isPost && ($action === 'add_lot' || $editing)) {
-    $fields = array_replace($fields, array_intersect_key($_POST, $fields));
-}
+$fields = ['name' => '', 'city' => '', 'address' => '', 'capacity' => '', 'oku_capacity' => 0, 'lat' => '', 'lng' => ''];
+if ($selected !== null) $fields = array_replace($fields, array_intersect_key($selected, $fields));
+if ($isPost) $fields = array_replace($fields, array_intersect_key($_POST, $fields));
 $capacityMessage = t(OPS_PARKING_SPACES_ERROR, ['max' => number_format(OPS_MAX_PARKING_SPACES)]);
 $capacityError = $errorMessage === $capacityMessage;
+$okuCapacityError = $errorMessage === OPS_OKU_CAPACITY_ERROR;
 $title = $editing ? 'Edit parking location' : 'Add parking location';
+$photo = $selected === null ? null : parking_location_photo_src($selected);
 $mapsPath = dirname(__DIR__) . '/config/maps.local.php';
 $mapsConfig = is_file($mapsPath) ? require $mapsPath : [];
 head($title);
 ?>
 <link rel="stylesheet" href="assets/css/dashboard.css">
+<link rel="stylesheet" href="assets/css/profile.css">
 <div class="operations-page">
   <div class="ops-location-page-links">
-    <a class="btn btn-secondary" href="admin/dashboard.php#parking-locations"><?= te('Back to Dashboard') ?></a>
-    <a class="btn btn-secondary" href="<?= e($page) ?>#location-list"><?= te('Parking locations') ?></a>
+    <a class="btn btn-secondary" href="admin/parking-locations.php"><?= te('Back to parking locations') ?></a>
   </div>
   <h1><?= te($title) ?></h1>
-  <?php if ($errorMessage !== '' && !$confirming && !$capacityError): ?><p class="error" role="alert"><?= te($errorMessage) ?></p><?php endif; ?>
-  <form class="card ops-location-form" id="location-form" method="post" action="<?= e($page) ?>"
-        data-maps-key="<?= e(trim((string)($mapsConfig['api_key'] ?? ''))) ?>"
-        data-map-id="<?= e(trim((string)($mapsConfig['map_id'] ?? '')) ?: 'DEMO_MAP_ID') ?>">
-    <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-    <input type="hidden" name="action" value="<?= $editing ? 'update_lot' : 'add_lot' ?>">
-    <?php if ($editing): ?><input type="hidden" name="id" value="<?= e($id) ?>"><?php endif; ?>
-    <input type="hidden" name="lat" value="<?= e($fields['lat']) ?>">
-    <input type="hidden" name="lng" value="<?= e($fields['lng']) ?>">
-    <div class="ops-location-fields">
-      <label><?= te('Name') ?><input name="name" value="<?= e($fields['name']) ?>" required></label>
-      <label><?= te('City') ?><input name="city" value="<?= e($fields['city']) ?>" required></label>
-      <label><?= te('Address') ?><input name="address" value="<?= e($fields['address']) ?>" required></label>
-      <div>
-        <label for="location-capacity"><?= te('Spaces') ?></label>
-        <input id="location-capacity" name="capacity" type="number" min="1" max="<?= OPS_MAX_PARKING_SPACES ?>" step="1"
-               value="<?= e($fields['capacity']) ?>" required aria-describedby="location-capacity-feedback"
-               <?= $capacityError ? 'aria-invalid="true"' : '' ?>>
-        <p class="field-feedback" id="location-capacity-feedback" aria-live="polite"
-           data-message="<?= e($capacityMessage) ?>"><?= $capacityError ? e($capacityMessage) : '' ?></p>
-      </div>
-    </div>
-    <section aria-labelledby="location-position-heading">
-      <h2 id="location-position-heading"><?= te('Map position') ?></h2>
-      <div class="ops-place-search" data-place-search hidden>
-        <div data-place-search-input></div>
-        <p class="hint" data-place-search-status role="status"></p>
-      </div>
-      <p class="hint" data-location-map-status role="status"><?= te('Choose a location on the map.') ?></p>
-      <div class="ops-location-map" data-location-map role="region" aria-label="<?= te('Parking map') ?>" hidden></div>
-    </section>
-    <div class="ops-location-submit">
-      <?php if ($editing): ?><a class="btn btn-secondary" href="<?= e($page) ?>#location-list"><?= te('Cancel') ?></a><?php endif; ?>
-      <button type="submit"<?= $fields['lat'] === '' || $fields['lng'] === '' ? ' disabled' : '' ?>><?= te($editing ? 'Save changes' : 'Add location') ?></button>
-    </div>
-  </form>
-  <section class="ops-panel ops-location-list" id="location-list" aria-labelledby="location-list-heading">
-    <div class="ops-panel-heading">
-      <h2 id="location-list-heading"><?= te('Parking locations') ?></h2>
-      <span class="ops-count"><?= te('{count} records', ['count' => count($lots)]) ?></span>
-    </div>
-    <?php
-    $cities = array_unique(array_filter(array_column($lots, 'city'), 'strlen'));
-    natcasesort($cities);
-    $view = ajax_table_view('parking-locations', $lots, [
-        'name' => 'Name', 'city' => 'City', 'address' => 'Address', 'capacity' => 'Spaces', 'actions' => 'Actions',
-    ], [
-        'filter' => ['label' => 'City', 'field' => 'city', 'choices' => ['' => 'All cities'] + array_combine($cities, $cities)],
-        'values' => static fn(array $lot) => $lot + ['capacity' => parking_lot_capacity($lot)],
-        'search_label' => 'Search parking locations', 'empty' => 'No parking locations yet.', 'numeric' => ['capacity'],
-    ]);
-    ajax_table_begin($view);
-    ?>
-    <div class="ops-table-scroll" tabindex="0" role="region" aria-labelledby="location-list-heading">
-      <table class="ops-table">
-        <?php ajax_table_head($view); ?>
-        <tbody>
-          <?php foreach ($view['rows'] as $lot): ?>
-            <tr>
-              <td><?= e($lot['name']) ?></td>
-              <td><?= e($lot['city'] ?? '') ?></td>
-              <td><?= e($lot['address'] ?? '') ?></td>
-              <td class="ajax-table-number"><?= e(parking_lot_capacity($lot) ?? '—') ?></td>
-              <td data-column="actions">
-                <div class="ops-row-actions">
-                  <a class="ops-button" href="<?= e($page) ?>?edit=<?= e($lot['id']) ?>#location-form"><?= te('Edit') ?></a>
-                  <?php if ($canDelete): ?>
-                    <button class="ops-button ops-location-delete-trigger" type="button" aria-haspopup="dialog"
-                            data-delete-location="<?= e($lot['id']) ?>"
-                            data-delete-prompt="<?= te($deletePrompt, ['location' => $lot['name']]) ?>"><?= te('Delete') ?></button>
-                  <?php endif; ?>
-                </div>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-          <?php ajax_table_empty($view); ?>
-        </tbody>
-      </table>
-    </div>
-    <?php ajax_table_end($view); ?>
-  </section>
-</div>
-<?php if ($canDelete && $lots): ?>
-  <dialog class="ops-dialog ops-location-delete-dialog" id="location-delete"
-          aria-labelledby="location-delete-heading" aria-describedby="location-delete-message"
-          <?= $confirming ? 'data-reopen' : '' ?>>
-    <h2 id="location-delete-heading"><?= te('Delete parking location') ?></h2>
-    <p id="location-delete-message"><?= $confirming ? te($deletePrompt, ['location' => $selected['name']]) : '' ?></p>
-    <?php if ($confirming && $errorMessage !== ''): ?>
-      <p class="error" role="alert" data-location-delete-error><?= te($errorMessage) ?></p>
-    <?php endif; ?>
-    <form method="post" action="<?= e($page) ?>">
+  <?php if ($errorMessage !== '' && !$capacityError && !$okuCapacityError): ?><p class="error" role="alert"><?= te($errorMessage) ?></p><?php endif; ?>
+  <?php if ($showForm): ?>
+    <form class="card ops-location-form" id="location-form" method="post" action="<?= e($page) ?>" enctype="multipart/form-data"
+          data-maps-key="<?= e(trim((string)($mapsConfig['api_key'] ?? ''))) ?>"
+          data-map-id="<?= e(trim((string)($mapsConfig['map_id'] ?? '')) ?: 'DEMO_MAP_ID') ?>">
       <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-      <input type="hidden" name="action" value="delete_lot">
-      <input type="hidden" name="id" value="<?= $confirming ? e($id) : '' ?>">
-      <div class="ops-dialog-actions">
-        <button type="button" data-location-delete-cancel autofocus><?= te('Cancel') ?></button>
-        <button class="ops-location-confirm-button" type="submit"><?= te('Delete location') ?></button>
+      <input type="hidden" name="action" value="<?= $editing ? 'update_lot' : 'add_lot' ?>">
+      <?php if ($editing): ?><input type="hidden" name="id" value="<?= e($id) ?>"><?php endif; ?>
+      <input type="hidden" name="lat" value="<?= e($fields['lat']) ?>">
+      <input type="hidden" name="lng" value="<?= e($fields['lng']) ?>">
+      <section class="profile-photo-editor ops-location-photo" data-photo-drop aria-labelledby="location-photo-heading">
+        <div class="profile-avatar-frame">
+          <img class="profile-avatar" data-photo-preview alt="<?= te('Parking location photo') ?>"
+            <?php if ($photo !== null): ?>src="<?= e($photo) ?>"<?php else: ?>hidden<?php endif; ?>>
+          <span class="profile-avatar-initial" data-photo-initial aria-hidden="true" <?= $photo !== null ? 'hidden' : '' ?>>P</span>
+        </div>
+        <div class="profile-photo-content">
+          <h2 id="location-photo-heading"><?= te('Parking location photo') ?></h2>
+          <div class="profile-photo-controls">
+            <input class="validation-sr-only" id="location-photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp"
+              aria-describedby="location-photo-hint location-photo-feedback">
+            <label for="location-photo" class="btn btn-secondary profile-photo-action"><?= te($photo === null ? 'Choose photo' : 'Change photo') ?></label>
+          </div>
+          <p class="profile-photo-hint" id="location-photo-hint"><?= te('JPG, PNG or WebP, up to 2 MB.') ?>
+            <span class="profile-drop-hint"><?= te('You can also drag and drop a photo here.') ?></span>
+          </p>
+          <p class="profile-photo-filename" data-photo-filename role="status"></p>
+          <p class="field-feedback" id="location-photo-feedback" aria-live="polite" aria-atomic="true"></p>
+        </div>
+      </section>
+      <div class="ops-location-fields">
+        <label><?= te('Name') ?><input name="name" value="<?= e($fields['name']) ?>" required></label>
+        <label><?= te('City') ?><input name="city" value="<?= e($fields['city']) ?>" required></label>
+        <label><?= te('Address') ?><input name="address" value="<?= e($fields['address']) ?>" required></label>
+        <div>
+          <label for="location-capacity"><?= te('Total spaces') ?></label>
+          <input id="location-capacity" name="capacity" type="number" min="1" max="<?= OPS_MAX_PARKING_SPACES ?>" step="1"
+                 value="<?= e($fields['capacity']) ?>" required aria-describedby="location-capacity-feedback"
+                 <?= $capacityError ? 'aria-invalid="true"' : '' ?>>
+          <p class="field-feedback" id="location-capacity-feedback" aria-live="polite"
+             data-message="<?= e($capacityMessage) ?>"><?= $capacityError ? e($capacityMessage) : '' ?></p>
+        </div>
+        <div>
+          <label for="location-oku-capacity"><?= te('OKU bays') ?></label>
+          <input id="location-oku-capacity" name="oku_capacity" type="number" min="0" max="<?= OPS_MAX_PARKING_SPACES ?>" step="1"
+                 value="<?= e($fields['oku_capacity']) ?>" required
+                 aria-describedby="location-oku-capacity-hint location-oku-capacity-feedback"
+                 <?= $okuCapacityError ? 'aria-invalid="true"' : '' ?>>
+          <p class="hint" id="location-oku-capacity-hint"><?= te('OKU bays are included in the total number of spaces.') ?></p>
+          <p class="field-feedback" id="location-oku-capacity-feedback" aria-live="polite"
+             data-message="<?= te(OPS_OKU_CAPACITY_ERROR) ?>"><?= $okuCapacityError ? te(OPS_OKU_CAPACITY_ERROR) : '' ?></p>
+        </div>
+      </div>
+      <section aria-labelledby="location-position-heading">
+        <h2 id="location-position-heading"><?= te('Map position') ?></h2>
+        <div class="ops-place-search" data-place-search hidden>
+          <div data-place-search-input></div>
+          <p class="hint" data-place-search-status role="status"></p>
+        </div>
+        <p class="hint" data-location-map-status role="status"><?= te('Choose a location on the map.') ?></p>
+        <div class="ops-location-map" data-location-map role="region" aria-label="<?= te('Parking map') ?>" hidden></div>
+      </section>
+      <div class="ops-location-submit">
+        <?php if ($editing): ?><a class="btn btn-secondary" href="admin/parking-locations.php"><?= te('Cancel') ?></a><?php endif; ?>
+        <button type="submit"<?= $fields['lat'] === '' || $fields['lng'] === '' ? ' disabled' : '' ?>><?= te($editing ? 'Save changes' : 'Add location') ?></button>
       </div>
     </form>
-  </dialog>
-<?php endif; ?>
+  <?php endif; ?>
+</div>
 <script src="assets/js/add-parking-location.js" defer></script>
 <?php foot(); ?>

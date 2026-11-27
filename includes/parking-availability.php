@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/parking-capacity.php';
 
-/** A changed catalog needs a page refresh to show current location details. */
+/** Fingerprint the location details that are rendered in the Find Parking list. */
 function parking_availability_catalog_version(array $lots): string {
     $catalog = array_map(static fn(array $lot): array => [
         $lot['id'], $lot['name'], $lot['city'] ?? '', $lot['address'] ?? '',

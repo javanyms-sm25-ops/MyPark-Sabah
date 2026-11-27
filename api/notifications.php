@@ -8,12 +8,13 @@ if (!me()) {
     exit('{}');
 }
 require_login('../pages/login.php');
-if (me()['role'] === 'staff') {
+$account = me();
+if ($account['role'] === 'staff') {
     http_response_code(403);
     exit('{}');
 }
 
-$userId = me()['id'];
+$userId = $account['id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
     if (($_POST['action'] ?? '') === 'read') {
@@ -24,6 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif (($_POST['action'] ?? '') === 'zone') {
+        if ($account['role'] !== 'user') {
+            http_response_code(403);
+            exit('{}');
+        }
         $zoneId = filter_var($_POST['lot_id'] ?? null, FILTER_VALIDATE_INT);
         if ($zoneId === false || !isset(parking_alert_zones()[$zoneId])) {
             http_response_code(422);
@@ -40,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit('{}');
 }
 
-$items = parking_notification_items($userId);
+$items = parking_notification_items($account);
 $unread = array_filter($items, fn($notice) => !$notice['read']);
 $statuses = array_column(MyParkData::$records['demo_bookings'], 'status', 'id');
 $now = time();

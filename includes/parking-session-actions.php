@@ -1,5 +1,5 @@
 <a class="btn" href="ticket.php?id=<?= e($booking['id']) ?>"><?= te('Ticket') ?></a>
-<?php if ($status === 'active'):
+<?php if ($status === 'active' && can_cancel_own_parking()):
     $deadline = booking_cancellation_deadline($booking);
     $canCancel = $deadline !== null && time() < $deadline;
     $cancelHintId = 'parking-cancel-policy-' . $booking['id'];

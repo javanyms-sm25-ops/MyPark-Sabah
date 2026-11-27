@@ -1,9 +1,9 @@
 <?php
-$notices = parking_notification_items($user['id']);
+$notices = parking_notification_items($user);
 $unread = count(array_filter($notices, fn($notice) => !$notice['read']));
 ?>
 <details class="notification-menu" data-notification-menu data-user="<?= e($user['id']) ?>" data-csrf="<?= e(csrf()) ?>"
-  data-zones="<?= e(json_encode(array_values(parking_alert_zones()), JSON_THROW_ON_ERROR)) ?>">
+  <?php if ($user['role'] === 'user'): ?>data-zones="<?= e(json_encode(array_values(parking_alert_zones()), JSON_THROW_ON_ERROR)) ?>"<?php endif; ?>>
   <summary class="notification-trigger" aria-label="<?= $unread ? te('Parking notifications ({count} unread)', ['count' => $unread]) : te('Parking notifications') ?>">
     <span aria-hidden="true">🔔</span>
     <span class="notification-badge" aria-hidden="true" <?= $unread ? '' : 'hidden' ?>></span>

@@ -95,6 +95,7 @@
   window.addEventListener('pageshow', event => { if (event.persisted) refresh(); });
   document.addEventListener('visibilitychange', refresh);
 
+  if (!menu.hasAttribute('data-zones')) return;
   const zones = JSON.parse(menu.dataset.zones);
   const geolocation = navigator.geolocation;
   const toggle = document.querySelector('[data-location-alert-toggle]');

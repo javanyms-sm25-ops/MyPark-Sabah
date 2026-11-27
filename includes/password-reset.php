@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/email-otp.php';
+require_once __DIR__ . '/account-password.php';
 
 function password_reset_account_index(string $email): ?int {
     foreach (MyParkData::$records['demo_users'] as $index => $account) {
@@ -71,15 +72,7 @@ function password_reset_complete(string $password, string $confirmation): int {
     }
     $index = password_reset_target_index($pending);
 
-    if (preg_match_all('/./us', $password) < 8) {
-        throw new RuntimeException('Password must be at least 8 characters.', 422);
-    }
-    if (strlen($password) > 72) {
-        throw new RuntimeException('Password must be no more than 72 bytes (some characters use more than one byte).', 422);
-    }
-    if ($password !== $confirmation) {
-        throw new RuntimeException('Passwords do not match.', 422);
-    }
+    validate_new_account_password($password, $confirmation);
 
     MyParkData::$records['demo_users'][$index]['password'] = password_hash($password, PASSWORD_DEFAULT);
     unset($_SESSION['password_reset_pending'], $_SESSION['failures'][$pending['email']]);

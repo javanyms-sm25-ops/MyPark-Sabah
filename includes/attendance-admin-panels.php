@@ -1,15 +1,31 @@
 <?php if (in_array($tab, ['overview', 'records', 'exceptions'], true)): ?>
+  <?php
+    $filterValues = $filters;
+    if (($tabFilters['from'] ?? '') === '' && ($tabFilters['to'] ?? '') === '') {
+        $filterValues['from'] = $filterValues['to'] = '';
+    }
+  ?>
   <section class="ops-panel attendance-panel" id="attendance-report" aria-labelledby="report-heading">
     <div class="attendance-heading">
-      <div><h2 id="report-heading"><?= te($tab === 'overview' ? 'Attendance Overview' : $tabs[$tab]) ?></h2>
-        <?php if ($report): ?><p class="muted"><?= te('Updated') ?> · <?= e(attendance_clock($now)) ?> MYT</p><?php endif; ?>
+      <div><h2 id="report-heading"><?= te(match ($tab) {
+        'records' => 'Attendance Records', 'exceptions' => 'Attendance Exceptions', default => 'Attendance Overview',
+      }) ?></h2>
+        <?php if ($report): ?><p class="muted">
+          <time datetime="<?= e($filters['from']) ?>"><?= e(date('j M Y', strtotime($filters['from']))) ?></time>
+          <?php if ($filters['from'] !== $filters['to']): ?>
+            – <time datetime="<?= e($filters['to']) ?>"><?= e(date('j M Y', strtotime($filters['to']))) ?></time>
+          <?php endif; ?>
+        </p><?php endif; ?>
       </div>
-      <a class="btn btn-secondary" href="<?= e(attendance_report_links($filters, $page, ['tab' => $tab])) ?>#attendance-report"><?= te('Refresh') ?></a>
     </div>
+    <?php if ($report && $tab === 'overview'): ?>
+      <?php attendance_report_summary_tiles($report['summary'], true); ?>
+      <?php if (!$report['rows']): ?><p class="attendance-empty"><?= te('No attendance records match these filters.') ?></p><?php endif; ?>
+    <?php endif; ?>
     <form method="get" action="<?= e($page) ?>#attendance-report" class="attendance-controls" data-date-range data-date-range-require-both>
       <input type="hidden" name="tab" value="<?= e($tab) ?>">
       <div class="attendance-fields">
-        <?php attendance_report_filter_fields($filters, $staff, $locations, true, $tab === 'exceptions'); ?>
+        <?php attendance_report_filter_fields($filterValues, $staff, $locations, true, $tab === 'exceptions'); ?>
       </div>
       <div class="attendance-actions">
         <button type="submit" class="btn" data-date-range-submit="visible"><?= te('Apply filters') ?></button>
@@ -20,12 +36,8 @@
           ['tab' => $tab, 'from' => date('Y-m-d', strtotime('first day of last month', $now)),
            'to' => date('Y-m-d', strtotime('last day of last month', $now))])) ?>#attendance-report"><?= te('Last month') ?></a>
       </div>
-      <small><?= te('Leave both dates blank to view today’s report.') ?> <?= te('Times shown are Malaysia time (MYT).') ?></small>
+      <small><?= te('Leave both dates blank to view today’s report.') ?></small>
     </form>
-    <?php if ($report && $tab === 'overview'): ?>
-      <?php attendance_report_summary_tiles($report['summary']); attendance_performance_help(); ?>
-      <?php if (!$report['rows']): ?><p class="attendance-empty"><?= te('No attendance records match these filters.') ?></p><?php endif; ?>
-    <?php endif; ?>
   </section>
 <?php endif; ?>
 
@@ -73,6 +85,8 @@
           'location' => 'By parking location', 'custom' => 'Custom date range',
         ]), $reportType); ?>
         <?php attendance_select('format', 'File format', ATTENDANCE_REPORT_FORMATS, $format); ?>
+      </div>
+      <div class="attendance-fields">
         <?php attendance_report_filter_fields($filters, $staff, $locations, false, true); ?>
       </div>
       <p class="muted"><?= te('Daily, weekly, and monthly reports use the start date to select a day, Monday–Sunday week, or calendar month.') ?></p>
@@ -151,7 +165,6 @@
       <?php attendance_performance_help(); ?>
     </section>
   <?php endif; ?>
-  <?php if ($super): require __DIR__ . '/attendance-report-policy-view.php'; endif; ?>
 <?php endif; ?>
 
 <?php if ($report && in_array($tab, ['records', 'exceptions', 'reports'], true)): ?>

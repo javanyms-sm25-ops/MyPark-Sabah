@@ -12,7 +12,6 @@ require_once __DIR__ . '/includes/parking-availability.php';
 require_once __DIR__ . '/includes/oku-verification.php';
 
 $canBook = can_use_customer_wallet(me());
-$showOkuHelp = $canBook && !oku_is_approved(me()['id']);
 $query = $_GET['q'] ?? '';
 $query = is_string($query) && mb_check_encoding($query, 'UTF-8') ? mb_substr(trim($query), 0, 120, 'UTF-8') : '';
 $availableOnly = ($_GET['available'] ?? '') === '1';
@@ -35,17 +34,25 @@ foreach ($lots as $lot) {
     $locations[] = ['lot' => $lot, 'bays' => $bays, 'search' => $searchText, 'matches' => $matches];
 }
 
-$checkedAt = new DateTimeImmutable();
+$catalogVersion = parking_availability_catalog_version($lots);
+header('Cache-Control: private, no-store');
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET' && ($_GET['_locations'] ?? '') === '1') {
+    header('Content-Type: text/html; charset=utf-8');
+    header('X-MyPark-Parking-Locations: ' . $catalogVersion);
+    require __DIR__ . '/includes/find-parking-list.php';
+    exit;
+}
+
+$showOkuHelp = $canBook && !oku_is_approved(me()['id']);
 $mapsConfigPath = __DIR__ . '/config/maps.local.php';
 $mapsConfig = is_file($mapsConfigPath) ? require $mapsConfigPath : [];
 
-header('Cache-Control: private, no-store');
 head('Find parking');
 ?>
 <link rel="stylesheet" href="assets/css/find-parking.css">
 <h1><?= te('Find parking') ?></h1>
 <div class="find-parking<?= $okuOnly ? ' is-oku-search' : '' ?>" data-find-parking
-     data-catalog-version="<?= e(parking_availability_catalog_version($lots)) ?>"
+     data-catalog-version="<?= e($catalogVersion) ?>"
      data-maps-key="<?= e(trim($mapsConfig['api_key'] ?? '')) ?>"
      data-map-id="<?= e($mapsConfig['map_id'] ?? 'DEMO_MAP_ID') ?>">
   <section class="find-parking-search card" aria-label="<?= te('Search parking locations') ?>">
@@ -87,13 +94,8 @@ head('Find parking');
       <?php endif; ?>
     </form>
     <div class="find-parking-tools">
-      <p class="find-parking-note">
-        <?= te('Availability based on active MyPark sessions.') ?>
-        <span><?= te('Last checked') ?> <time data-parking-checked-at datetime="<?= e($checkedAt->format(DATE_ATOM)) ?>"><?= e($checkedAt->format('g:i:s A')) ?> MYT</time></span>
-        <span data-parking-auto-update hidden><?= te('Updates every 20 seconds while this page is open.') ?></span>
-      </p>
       <div class="find-parking-tool-actions">
-        <button type="submit" class="btn btn-secondary" form="find-parking-filters" data-refresh-parking><?= te('Apply filters') ?></button>
+        <noscript><button type="submit" class="btn btn-secondary" form="find-parking-filters"><?= te('Apply filters') ?></button></noscript>
         <button type="button" class="btn btn-secondary" data-use-location aria-controls="find-parking-map find-parking-list" hidden><?= te('Use my location') ?></button>
       </div>
     </div>
@@ -118,7 +120,7 @@ head('Find parking');
       <div class="card find-parking-empty" data-parking-empty <?= $visibleCount ? 'hidden' : '' ?>>
         <div data-parking-empty-default>
           <h3><?= te($lots ? 'No matching parking locations.' : 'No parking locations yet.') ?></h3>
-          <?php if ($lots): ?><p class="find-parking-note"><?= te('Try a different search or clear your filters.') ?></p><?php endif; ?>
+          <p class="find-parking-note" <?= $lots ? '' : 'hidden' ?>><?= te('Try a different search or clear your filters.') ?></p>
         </div>
         <?php if ($canBook): ?>
           <div data-favourites-empty hidden>
@@ -132,66 +134,7 @@ head('Find parking');
           </div>
         <?php endif; ?>
       </div>
-      <ul class="find-parking-list" id="find-parking-list">
-        <?php foreach ($locations as $location): ?>
-          <?php
-          ['lot' => $lot, 'bays' => $bays, 'search' => $searchText, 'matches' => $matches] = $location;
-          $lat = filter_var($lot['lat'] ?? null, FILTER_VALIDATE_FLOAT);
-          $lng = filter_var($lot['lng'] ?? null, FILTER_VALIDATE_FLOAT);
-          $hasPosition = $lat !== false && $lng !== false && abs($lat) <= 90 && abs($lng) <= 180;
-          ?>
-          <li class="find-parking-location" data-parking-location="<?= e($lot['id']) ?>"
-              data-search="<?= e($searchText) ?>" data-regular-available="<?= e($bays['regular']['available']) ?>"
-              data-oku-capacity="<?= e($bays['oku']['capacity']) ?>" data-oku-available="<?= e($bays['oku']['available']) ?>"
-              <?php if ($hasPosition): ?>data-lat="<?= e($lat) ?>" data-lng="<?= e($lng) ?>"<?php endif; ?>
-              <?= $matches ? '' : 'hidden' ?>>
-            <div class="find-parking-location-heading">
-              <h3><?= e($lot['name']) ?></h3>
-              <?php if ($canBook): ?>
-                <button type="button" class="find-parking-favourite" data-wish="<?= e($lot['id']) ?>" aria-pressed="false"
-                        aria-label="<?= te('Favourite {location}', ['location' => $lot['name']]) ?>" hidden>♡</button>
-              <?php endif; ?>
-            </div>
-            <p class="find-parking-address"><?= e(implode(' · ', array_filter([$lot['address'] ?? '', $lot['city'] ?? '']))) ?></p>
-            <?php if ($hasPosition): ?><p class="find-parking-distance" data-parking-distance hidden></p><?php endif; ?>
-            <dl class="find-parking-availability">
-              <div data-parking-capacity-unknown <?= $bays['regular']['capacity'] === null ? '' : 'hidden' ?>>
-                <dt><?= te('Parking availability') ?></dt>
-                <dd class="find-parking-status"><?= te('Capacity unavailable') ?></dd>
-              </div>
-              <?php foreach (['regular' => 'Regular bays', 'oku' => 'OKU bays'] as $type => $label):
-                  $bay = $bays[$type];
-                  $state = match (true) {
-                      !$bay['capacity'] => 'none',
-                      $bay['available'] === 0 => 'full',
-                      default => 'available',
-                  };
-                  $status = match ($state) {
-                      'none' => t('Not offered'),
-                      'full' => t('Full'),
-                      default => t('{count} available', ['count' => $bay['available']]),
-                  };
-              ?>
-                <div data-parking-bay="<?= e($type) ?>" <?= $bay['capacity'] === null ? 'hidden' : '' ?>>
-                  <dt><?= te($label) ?><?php if ($type === 'oku'): ?><span data-parking-oku-rate <?= $bay['capacity'] > 0 ? '' : 'hidden' ?>> · <?= te('Free') ?></span><?php endif; ?></dt>
-                  <dd class="find-parking-status" data-bay-status="<?= e($state) ?>"><?= e($status) ?></dd>
-                </div>
-              <?php endforeach; ?>
-            </dl>
-            <p class="find-parking-rate"><?= te('Regular parking') ?> · <?= e(parking_price_label()) ?></p>
-            <div class="find-parking-actions">
-              <?php if ($canBook): ?>
-                <a class="btn" href="<?= e('parking-details.php?' . http_build_query(['lot_id' => $lot['id']] + ($okuOnly ? ['bay_type' => 'oku'] : []))) ?>"
-                   data-select-parking><?= te('Select location') ?></a>
-              <?php endif; ?>
-              <?php if ($hasPosition): ?>
-                <button class="btn btn-secondary" type="button" data-show-on-map aria-pressed="false"
-                        aria-controls="find-parking-map" hidden><?= te('Show on map') ?></button>
-              <?php endif; ?>
-            </div>
-          </li>
-        <?php endforeach; ?>
-      </ul>
+      <?php require __DIR__ . '/includes/find-parking-list.php'; ?>
     </div>
   </section>
 

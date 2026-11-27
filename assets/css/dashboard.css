@@ -71,23 +71,17 @@
 .ops-icon svg { width: 100%; height: 100%; }
 .ops-search > .ops-icon { position: absolute; left: 12px; top: 12px; pointer-events: none; color: var(--muted-text); }
 .ops-panel button, .ops-dialog button { font-family: inherit; transform: none; }
-.ops-panel .ops-button, .ops-columns summary, .ops-dialog button { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 6px 10px; border: 1px solid var(--glass-field-border); border-radius: 9px; background: var(--glass-control); color: var(--navy); font-size: 13px; font-weight: 500; line-height: 20px; text-decoration: none; cursor: pointer; white-space: nowrap; transition: background-color 120ms ease; }
-.ops-panel .ops-button:hover, .ops-columns summary:hover, .ops-dialog button:hover { background: var(--glass-control-hover); transform: none; }
+.ops-panel .ops-button, .ops-dialog button { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 6px 10px; border: 1px solid var(--glass-field-border); border-radius: 9px; background: var(--glass-control); color: var(--navy); font-size: 13px; font-weight: 500; line-height: 20px; text-decoration: none; cursor: pointer; white-space: nowrap; transition: background-color 120ms ease; }
+.ops-panel .ops-button:hover, .ops-dialog button:hover { background: var(--glass-control-hover); transform: none; }
 .ops-panel .ops-button:disabled { opacity: 0.5; cursor: not-allowed; }
-.ops-panel button:focus-visible, .ops-columns summary:focus-visible, .ops-dialog button:focus-visible { outline: 2px solid var(--glass-focus); outline-offset: 2px; }
+.ops-panel button:focus-visible, .ops-dialog button:focus-visible { outline: 2px solid var(--glass-focus); outline-offset: 2px; }
 .ops-panel .ops-search-clear { position: absolute; right: 6px; top: 4px; min-height: 32px; padding: 4px; background: transparent; color: var(--muted-text); font-size: 11px; font-weight: 500; transform: none; }
 .ops-dates { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .ops-dates > div { display: flex; align-items: center; gap: 6px; }
 .ops-dates label { margin: 0; font-size: 12px; color: var(--muted-text); }
 .ops-dates input { max-width: 148px; font-size: 12px; }
 .ops-panel .ops-dates .date-range-trigger { width: auto; min-height: 40px; margin: 0; font-size: 0.8rem; }
-.ops-tools > select, .ops-tools > .ops-button, .ops-columns summary { min-height: 40px; }
-.ops-columns { position: relative; }
-.ops-columns summary { list-style: none; }
-.ops-columns summary::-webkit-details-marker { display: none; }
-.ops-column-menu { position: absolute; left: 0; top: calc(100% + 6px); z-index: 15; padding: 10px; min-width: 180px; max-width: 250px; border: 1px solid var(--glass-field-border); border-radius: 8px; background: var(--card); box-shadow: 0 8px 24px rgb(18 59 109 / 12%); }
-.ops-column-menu label { display: flex; align-items: center; gap: 10px; margin: 0; padding: 7px; font-size: 13px; }
-.ops-column-menu input { width: 16px; height: 16px; min-height: 16px; padding: 0; accent-color: var(--navy); }
+.ops-tools > .ops-button { min-height: 40px; }
 .ops-filter-tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 20px 14px; }
 .ops-panel .ops-filter-tag { max-width: 100%; min-height: 30px; padding: 4px 9px; border: 1px solid var(--glass-rim); border-radius: 6px; background: var(--glass-control); color: var(--navy); font-size: 12px; font-weight: 400; white-space: normal; overflow-wrap: anywhere; text-align: left; }
 .ops-panel .ops-link-button { min-height: 30px; padding: 4px 6px; background: transparent; color: var(--navy); font-size: 12px; text-decoration: underline; }
@@ -133,22 +127,14 @@
 .ops-badge--active { background: var(--glass-success-bg); color: var(--green); }
 .ops-badge--blocked, .ops-badge--cancelled { background: var(--glass-error-bg); color: var(--red); }
 .ops-badge--completed { background: var(--glass-tab-surface); color: var(--navy); }
-.ops-row-actions, .ops-status-form { display: flex; align-items: center; gap: 6px; margin: 0; }
+.ops-row-actions { display: flex; align-items: center; gap: 6px; margin: 0; }
 .operations-page .ops-table [data-column="actions"] { text-align: right; }
 .ops-row-actions { justify-content: flex-end; }
 .ops-row-actions .ops-button { min-height: 32px; padding: 5px 8px; font-size: 12px; }
-.ops-status-form select { width: 128px; height: 32px; min-height: 32px; padding: 4px 6px; font-size: 12px; }
-.ops-panel[data-density="compact"] .ops-table td { height: 44px; padding-top: 6px; padding-bottom: 6px; }
 .ops-table td.ops-empty { height: 150px; text-align: center; padding: 32px 16px; white-space: normal; }
 .ops-empty strong { display: block; margin-bottom: 12px; font-weight: 500; }
-.ops-table-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 20px; min-height: 64px; }
-.ops-result-count { margin: 0; margin-right: auto; color: var(--muted-text); font-size: 12px; }
-.ops-page-size { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; color: var(--muted-text); }
-.ops-page-size select { min-height: 32px; height: 32px; padding: 4px 7px; font-size: 12px; }
-.ops-pager { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
-.ops-pager .ops-button { min-width: 32px; min-height: 32px; padding: 5px 8px; font-size: 12px; }
-.ops-pager [aria-current="page"] { background: var(--navy); color: var(--button-text); border-color: var(--navy); }
-.ops-ellipsis { color: var(--muted-text); padding: 0 3px; }
+.ops-table-footer { padding: 14px 20px; min-height: 64px; }
+.ops-result-count { margin: 0; font-size: 12px; }
 .ops-dialog { width: min(540px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 24px; border: 1px solid var(--glass-field-border); border-radius: 18px; background: var(--glass-panel); color: var(--text); box-shadow: var(--shadow-hover); }
 .ops-dialog::backdrop { background: rgb(17 34 55 / 40%); }
 .ops-dialog h2 { margin: 0 0 18px; font-size: 20px; color: var(--text); }
@@ -158,20 +144,7 @@
 .ops-details dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .ops-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
 .ops-dialog [data-dialog-confirm] { background: var(--navy); color: var(--button-text); border-color: var(--navy); }
-.operations-page .ops-add-location { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; align-items: end; }
-.ops-add-location h2 { grid-column: 1 / -1; margin: 0; font-size: 18px; }
-.ops-add-location label { margin: 0; }
-
-#parking-locations { scroll-margin-top: 6rem; }
-.ops-location-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-.ops-location-heading h2, .ops-location-form h2 { margin: 0; }
+.ops-location-form h2 { margin: 0; }
 .ops-location-form {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
@@ -180,6 +153,10 @@
 }
 .ops-location-fields { display: grid; gap: 14px; }
 .ops-location-form label { margin: 0; }
+.ops-location-photo { grid-column: 1 / -1; }
+.ops-location-photo .profile-avatar-frame { width: clamp(64px, 12vw, 120px); border-radius: 8px; }
+.ops-location-photo h2 { font-size: 1.15rem; }
+.ops-location-photo .profile-photo-filename { overflow-wrap: anywhere; }
 .ops-location-fields input[aria-invalid="true"] { border-color: var(--red); }
 .ops-location-fields .field-feedback:empty { margin: 0; }
 .ops-place-search {
@@ -242,9 +219,60 @@
 .ops-location-submit button:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 #location-form, #location-list { scroll-margin-top: 6rem; }
 .ops-location-page-links { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.ops-location-list .ops-panel-heading { justify-content: space-between; }
+.ops-location-list .ops-panel-heading h1 { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); }
 .operations-page .ops-location-list .ops-table { min-width: 580px; }
 .ops-location-list .ops-table td { overflow-wrap: anywhere; white-space: normal; }
 .ops-location-list .ops-table :is(th, td):nth-child(4) { text-align: right; font-variant-numeric: tabular-nums; }
+.ops-location-identity {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.ops-panel .ops-location-thumb {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 42px;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--glass-rim);
+  border-radius: 7px;
+  background: var(--glass-control);
+  color: var(--muted-text);
+}
+button.ops-location-thumb { cursor: zoom-in; }
+.ops-location-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ops-location-preview {
+  width: min(900px, calc(100% - 28px));
+  padding: clamp(12px, 3vw, 20px);
+  background: var(--card);
+}
+.ops-location-preview-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.ops-location-preview-heading h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.ops-location-preview-image {
+  display: block;
+  width: 100%;
+  max-height: 70dvh;
+  object-fit: contain;
+  border-radius: 7px;
+}
 .ops-location-list .ops-location-delete-trigger { color: var(--red); }
 .ops-location-delete-dialog {
   width: min(460px, calc(100% - 32px));
@@ -260,7 +288,6 @@
 @media (max-width: 720px) {
   .ops-location-form { grid-template-columns: minmax(0, 1fr); }
 }
-.ops-reports h2 { margin: 0 0 14px; }
 .ops-panel [hidden], .ops-dialog [hidden] { display: none; }
 .ops-availability-heading { justify-content: space-between; }
 .ops-availability-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; color: var(--muted-text); font-size: 13px; }
@@ -299,8 +326,7 @@
 .operations-page .ops-oku-table td { white-space: normal; overflow-wrap: anywhere; }
 .ops-oku-decision label { margin: 8px 0; }
 .ops-oku-decision textarea { display: block; width: min(100%, 22rem); margin-top: 4px; padding: 8px; color: inherit; background: var(--card); border: 1px solid var(--glass-field-border); border-radius: 7px; font: inherit; resize: vertical; }
-.ops-oku-capacity-hint { grid-column: 1 / -1; margin: 0; }
-#oku-verification, #oku-bay-capacity { scroll-margin-top: 120px; }
+#oku-verification { scroll-margin-top: 120px; }
 .ops-map-canvas .ops-availability-details { min-width: min(200px, 50vw); }
 @media (max-width: 760px) {
   .ops-page-intro { flex-basis: 100%; }

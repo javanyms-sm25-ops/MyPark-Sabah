@@ -8,7 +8,7 @@ $okuCapacityAction = ($_POST['action'] ?? '') === 'set_oku_capacity';
 $leaveReviewAction = ($_POST['action'] ?? '') === 'leave_review';
 $redirect = match (true) {
     $okuReviewAction => 'dashboard.php?oku_status=' . oku_queue_filter($_POST['oku_status'] ?? null) . '#oku-verification',
-    $okuCapacityAction => 'dashboard.php#oku-bay-capacity',
+    $okuCapacityAction => 'parking-locations.php',
     $leaveReviewAction => 'attendance.php',
     default => 'dashboard.php',
 };
@@ -47,13 +47,12 @@ try {
     foot();
     exit;
 }
-$lots = active_parking_locations();
 $canReviewOku = oku_can_review($actor);
 if ($canReviewOku || $actor['role'] === 'admin') header('Cache-Control: private, no-store');
 $availability = $snapshot['parking_availability'] ?? null;
 $isSuperAdmin = $actor['role'] === 'superadmin';
 $mapsApiKey = $mapsId = '';
-if ($isSuperAdmin && $availability !== null) {
+if ($availability !== null) {
     $mapsConfigPath = dirname(__DIR__) . '/config/maps.local.php';
     $mapsConfig = is_file($mapsConfigPath) ? require $mapsConfigPath : [];
     $mapsApiKey = trim((string)($mapsConfig['api_key'] ?? ''));
@@ -100,16 +99,15 @@ head('Dashboard');
   <?php endif; ?>
   <?php if ($availability !== null): ?>
     <section class="ops-panel" id="parking-availability" aria-labelledby="parking-availability-heading"
-      data-map-enabled="<?= $isSuperAdmin ? 'true' : 'false' ?>" data-maps-key="<?= e($mapsApiKey) ?>" data-maps-id="<?= e($mapsId) ?>">
+      data-map-enabled="true" data-maps-key="<?= e($mapsApiKey) ?>" data-maps-id="<?= e($mapsId) ?>">
       <div class="ops-panel-heading ops-availability-heading">
-        <h2 id="parking-availability-heading"><?= te($isSuperAdmin ? 'Parking Availability Map' : 'Parking availability') ?></h2>
+        <h2 id="parking-availability-heading"><?= te('Parking Availability Map') ?></h2>
         <div class="ops-availability-tools">
           <span><?= te('Last refresh') ?> <time data-availability-time datetime="<?= e($availability['refreshed_at']) ?>"><?= e($availabilityTime->format('j M Y, H:i:s')) ?> MYT</time></span>
-          <?php if (!$isSuperAdmin): ?><button class="ops-button" type="button" data-availability-refresh hidden><?= te('Refresh availability') ?></button><?php endif; ?>
         </div>
       </div>
       <p class="ops-caption">
-        <?= te($isSuperAdmin ? 'Select a marker or location to filter the reservations below.' : 'Select a location to filter the reservations below.') ?>
+        <?= te('Select a marker or location to filter the reservations below.') ?>
         <?= te($isSuperAdmin ? 'Updates every minute while this page is open.' : 'Updates every 20 seconds while this page is open.') ?>
       </p>
       <p class="ops-caption" data-maps-message role="status" hidden></p>
@@ -131,51 +129,36 @@ head('Dashboard');
     <p class="ops-caption"><?= te('Only Super Admin can block or unblock accounts.') ?></p>
     <div data-table-host="accounts"><p class="ops-initial"><?= te('Preparing account table…') ?></p></div>
   </section>
-  <noscript><p class="card">Enable JavaScript to search and manage these tables. Existing records are shown below.</p>
-    <div class="ops-table-scroll"><table><thead><tr><th><?= te('Member') ?></th><th><?= te('Location') ?></th><th><?= te('Plate') ?></th><th><?= te('Status') ?></th></tr></thead><tbody>
-    <?php foreach ($snapshot['reservations'] as $booking): ?><tr><td><?= e($booking['user']) ?></td><td><?= e($booking['lot']) ?></td><td><?= e($booking['plate']) ?></td><td><?= te($booking['status']) ?></td></tr><?php endforeach; ?>
-    <?php if (!$snapshot['reservations']): ?><tr><td colspan="4"><?= te('No reservations yet') ?></td></tr><?php endif; ?>
-    </tbody></table></div>
-    <div class="ops-table-scroll"><table><thead><tr><th><?= te('Name') ?></th><th><?= te('Email') ?></th><th><?= te('Role') ?></th><th><?= te('Status') ?></th></tr></thead><tbody>
-    <?php foreach ($snapshot['accounts'] as $account): ?><tr><td><?= e($account['name']) ?></td><td><?= e($account['email']) ?></td><td><?= te($account['role_label']) ?></td><td><?= te($account['status']) ?></td></tr><?php endforeach; ?>
-    </tbody></table></div>
+  <noscript>
+    <p class="card"><?= te('Enable JavaScript to manage these records.') ?></p>
+    <?php foreach ([
+        'reservations' => ['Reservation Management', ['user' => 'Member', 'lot' => 'Location', 'plate' => 'Plate', 'status' => 'Status'], 'No reservations yet'],
+        'accounts' => ['Account Management', ['name' => 'Name', 'email' => 'Email', 'role_label' => 'Role', 'status' => 'Status'], 'No accounts yet'],
+    ] as $kind => [$heading, $columns, $empty]): ?>
+      <section class="ops-panel">
+        <div class="ops-panel-heading"><h2><?= te($heading) ?></h2></div>
+        <?php $view = ajax_table_view($kind, $snapshot[$kind], $columns, ['empty' => $empty]); ?>
+        <?php ajax_table_begin($view); ?>
+        <div class="ops-table-scroll">
+          <table class="ops-table" aria-label="<?= te($heading) ?>">
+            <?php ajax_table_head($view); ?>
+            <tbody>
+              <?php foreach ($view['rows'] as $row): ?>
+                <tr><?php foreach (array_keys($columns) as $field): ?>
+                  <td><?= in_array($field, ['role_label', 'status'], true) ? te($row[$field]) : e($row[$field]) ?></td>
+                <?php endforeach; ?></tr>
+              <?php endforeach; ?>
+              <?php ajax_table_empty($view); ?>
+            </tbody>
+          </table>
+        </div>
+        <?php ajax_table_end($view); ?>
+      </section>
+    <?php endforeach; ?>
   </noscript>
-  <section id="parking-locations" aria-labelledby="parking-locations-heading">
-    <div class="ops-location-heading">
-      <h2 id="parking-locations-heading"><?= te('Parking locations') ?></h2>
-      <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
-        <a href="admin/add-parking-location.php" class="btn"><?= te('Add parking location') ?></a>
-      <?php endif; ?>
-    </div>
-    <div class="lot-grid">
-      <?php foreach ($lots as $lot): $capacity = parking_lot_capacity($lot); ?>
-        <article class="card"><h3><?= e($lot['name']) ?></h3><p><?= e($lot['city']) ?> · <?= e(parking_price_label()) ?> · <?= $capacity === null ? te('Capacity unavailable') : te('{count} spaces', ['count' => $capacity]) ?></p></article>
-      <?php endforeach; ?>
-    </div>
-  </section>
-  <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
-    <form method="post" action="admin/dashboard.php" class="card ops-add-location" id="oku-bay-capacity">
-      <h2><?= te('Set OKU bay allocation') ?></h2>
-      <p class="hint ops-oku-capacity-hint"><?= te('OKU bays are reserved within the location’s existing total capacity.') ?></p>
-      <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-      <input type="hidden" name="action" value="set_oku_capacity">
-      <label><?= te('Location') ?>
-        <select name="id" required>
-          <?php foreach ($lots as $lot): ?>
-            <option value="<?= e($lot['id']) ?>"><?= e($lot['name']) ?> · <?= te('OKU bays: {count}', ['count' => parking_bay_counts($lot, [])['oku']['capacity'] ?? '—']) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </label>
-      <label><?= te('OKU bays') ?><input type="number" name="oku_capacity" min="0" step="1" required></label>
-      <button type="submit"><?= te('Save bay allocation') ?></button>
-    </form>
-  <?php endif; ?>
-  <section class="card ops-reports"><h2><?= te('Reservation reports') ?></h2><div class="stats">
-    <?php foreach (['active', 'completed', 'cancelled'] as $status): ?><div><small><?= te(ucfirst($status)) ?></small><b data-ops-stat="<?= $status ?>"><?= $snapshot['summary'][$status] ?></b></div><?php endforeach; ?>
-  </div><?php if ($snapshot['can_export']): ?><a class="btn" href="api/export.php"><?= te('Export all reservations (CSV)') ?></a><?php endif; ?></section>
 </div>
 <dialog class="ops-dialog" id="ops-dialog" aria-labelledby="ops-dialog-title"><h2 id="ops-dialog-title"></h2><div data-dialog-body></div><div class="ops-dialog-actions"><button type="button" data-dialog-cancel><?= te('Close') ?></button><button type="button" data-dialog-confirm hidden><?= te('Confirm') ?></button></div></dialog>
-<script type="application/json" id="operations-data" data-auto-refresh="<?= $isSuperAdmin ? 'true' : 'false' ?>"><?= json_encode($snapshot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>
+<script type="application/json" id="operations-data" data-fast-availability="<?= $actor['role'] === 'admin' ? 'true' : 'false' ?>"><?= json_encode($snapshot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>
 <?php require dirname(__DIR__) . '/includes/date-range-dialog.php'; ?>
 <script src="assets/js/dashboard-table.js" defer></script>
 <?php if ($availability !== null): ?><script src="assets/js/parking-availability-map.js" defer></script><?php endif; ?>

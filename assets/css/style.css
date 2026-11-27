@@ -1848,22 +1848,6 @@ main > table {
   overflow-x: auto;
 }
 
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin: 10px 0;
-}
-
-.pagination button {
-  padding: 6px 12px;
-}
-
-.pagination button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
 .wallet {
   background: linear-gradient(135deg, #173b68, #2c85b2);
   color: #ffffff;

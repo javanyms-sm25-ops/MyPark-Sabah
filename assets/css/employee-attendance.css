@@ -193,14 +193,18 @@
   --attendance-review-text: #ffd5b0;
 }
 
-.employee-attendance .attendance-banner > .attendance-actions > .btn:not(.btn-secondary) {
-  background: var(--brand-cyan);
-  color: var(--brand-navy);
+.attendance-page-header {
+  padding-block: .5rem;
 }
 
-.employee-attendance .attendance-banner > .attendance-actions > .btn:not(.btn-secondary):hover {
-  background: var(--glass-hero-accent);
+.attendance-page-header h1 { font-size: clamp(1.75rem, 3.5vw, 2.4rem); }
+.employee-attendance .attendance-page-header .ops-subtitle {
+  color: var(--muted-text);
+  margin-top: .3rem;
 }
+
+.attendance-more-filters { grid-column: 1 / -1; }
+.attendance-back { justify-self: start; }
 
 .attendance-tabs {
   position: static;
@@ -232,7 +236,6 @@
 }
 
 .attendance-quick-date { padding-block: .5rem; }
-.attendance-pager { margin-top: .25rem; }
 
 .attendance-secondary-metrics {
   display: grid;
@@ -428,6 +431,7 @@
 @media (max-width: 560px) {
   .attendance-tabs { gap: .2rem; }
   .attendance-tabs a { padding-inline: .65rem; }
+  .attendance-page-header .attendance-actions { width: 100%; }
   .attendance-calendar-day { min-height: 46px; }
   .attendance-day-name { display: none; }
   .attendance-calendar-day::after {

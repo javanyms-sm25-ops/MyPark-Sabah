@@ -1,6 +1,6 @@
 .ajax-table { min-width: 0; }
 .ajax-table [hidden] { display: none; }
-.ajax-table-tools, .ajax-table-footer, .ajax-table-pages, .ajax-table-error {
+.ajax-table-tools, .ajax-table-error {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -11,17 +11,92 @@
 .ajax-table-tools :is(input, select) { min-height: 40px; margin: 0; max-width: 100%; }
 .ajax-table-tools .ajax-table-search { flex: 1 1 210px; max-width: 340px; }
 .ajax-table-tools .ajax-table-search input { width: 100%; }
-.ajax-table-tools .ajax-table-size { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: 13px; }
-.ajax-table-tools .ajax-table-size select { width: auto; }
 .ajax-table-results { min-width: 0; }
 .ajax-table [data-table-results][aria-busy="true"] { cursor: progress; }
-.ajax-table-footer { justify-content: space-between; font-size: 13px; color: var(--muted-text); }
-.ajax-table-pages { gap: 5px; }
-.ajax-table-pages :is(a, span) { padding: 5px 8px; border-radius: 6px; }
-.ajax-table-pages a { color: var(--navy); text-decoration: none; }
-.ajax-table-pages a:hover { background: var(--glass-control-hover); }
-.ajax-table-pages [aria-current="page"] { background: var(--navy); color: var(--button-text); }
-.ajax-table-pages span[aria-disabled] { opacity: .55; }
+.table-footer {
+  container: table-footer / inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 12px;
+  color: var(--muted-text);
+  font-size: 13px;
+}
+.table-footer > .pagination { justify-self: center; justify-content: center; }
+.table-footer > .table-page-size { justify-self: end; }
+.table-footer .table-page-size, .table-footer .table-page-size > label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  font: inherit;
+}
+.table-page-size { flex-wrap: wrap; justify-content: flex-end; }
+.table-footer .table-page-size select {
+  width: auto;
+  min-height: 32px;
+  margin: 0;
+  padding: 4px 7px;
+  font-size: 12px;
+}
+@container table-footer (max-width: 660px) {
+  .table-footer > .pagination { grid-column: 1 / -1; grid-row: 2; }
+  .table-footer > .table-page-size { grid-column: 2 / -1; grid-row: 1; }
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.pagination > .pagination__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-inline-size: 24px;
+  min-block-size: 26px;
+  padding: 2px 6px;
+  border: 1px solid var(--glass-field-border);
+  border-radius: 3px;
+  background: var(--glass-control);
+  color: var(--navy);
+  box-shadow: none;
+  font-family: inherit;
+  font-size: .7rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transform: none;
+}
+.pagination > :is(.pagination__back, .pagination__next) { padding-inline: 8px; }
+.pagination > .pagination__item:hover { background: var(--glass-control-hover); transform: none; }
+.pagination > .pagination__item[aria-current="page"] {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--button-text);
+  font-weight: 600;
+}
+.pagination > .pagination__item:is(:disabled, [aria-disabled="true"]) {
+  border-color: var(--glass-rim);
+  background: var(--glass-control);
+  color: var(--muted-text);
+  opacity: 1;
+  cursor: not-allowed;
+}
+.pagination__back::before, .pagination__next::after {
+  content: "";
+  inline-size: 5px;
+  block-size: 5px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+}
+.pagination__back::before { transform: rotate(135deg); }
+.pagination__next::after { transform: rotate(-45deg); }
+.pagination__gap { padding-inline: 3px; color: var(--muted-text); }
+.pagination > .pagination__item:focus-visible { outline: 2px solid var(--glass-focus); outline-offset: 2px; }
 .ajax-table .ajax-table-sort {
   display: inline-flex;
   align-items: center;
@@ -39,7 +114,7 @@
   transform: none;
 }
 .ajax-table .ajax-table-sort:hover { background: var(--glass-control-hover); transform: none; }
-.ajax-table :is(.ajax-table-sort, .ajax-table-pages a):focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.ajax-table .ajax-table-sort:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 .ajax-table-sort svg { flex: 0 0 16px; color: var(--muted-text); }
 .ajax-table th[aria-sort] .ajax-table-sort { color: var(--navy); }
 .ajax-table th[aria-sort="ascending"] .ajax-sort-up,

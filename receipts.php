@@ -86,7 +86,7 @@ $bookingsByReceipt = $showParkingActions && !$showParking
 head('Digital receipts');
 ?>
 <link rel="stylesheet" href="assets/css/receipts.css">
-<div class="receipts-page<?= $showParking ? ' receipts-page--parking' : '' ?>">
+<div class="receipts-page">
   <?php if (!$showDetails): ?>
     <div class="receipts-hero">
       <h1><?= te('Digital receipts') ?></h1>
@@ -140,48 +140,12 @@ head('Digital receipts');
         <?php endif; ?>
 
         <ul class="receipt-list">
-          <?php foreach ($receipts as $item):
-              $itemUrl = $listUrl . '&id=' . $item['id'];
-              $summary = $item['details']['Vehicle plate'] ?? $item['details']['Compound number'] ?? '';
-              $isParking = $item['type'] === 'parking';
-              $booking = $bookingsByReceipt[$item['id']] ?? null;
-              $status = $booking['status'] ?? '';
-              $expiry = $status === 'active' ? booking_expiry($booking) : null;
-              $bayType = $booking ? parking_booking_bay_type($booking) : null;
-          ?>
-            <li class="card receipt-row"<?php if ($booking): ?> data-parking-session data-status="<?= e($status) ?>" data-plate="<?= e($booking['plate']) ?>"<?php endif; ?>>
-              <div>
-                <h3><?= te(receipt_title($item)) ?><?= $summary !== '' ? ' · ' . e($summary) : '' ?></h3>
-                <p><time datetime="<?= e(date(DATE_ATOM, $item['at'])) ?>"><?= e(receipt_time($item['at'])) ?></time></p>
-              </div>
-              <p class="receipt-row-amount"><?= e(receipt_money($item['amount_cents'])) ?></p>
-              <a class="btn" href="<?= e($itemUrl) ?>"><?= te('View receipt') ?><span class="receipt-sr-only"> <?= e($item['number']) ?></span></a>
-              <?php if ($isParking): ?>
-                <div class="receipt-parking-info">
-                  <dl class="receipt-parking-details">
-                    <div>
-                      <dt><?= te('Location') ?></dt>
-                      <dd><?= e($booking['lot'] ?? $item['details']['Location'] ?? '—') ?>
-                        <?php if ($bayType !== null): ?><small><?= te(PARKING_BAY_TYPES[$bayType]) ?></small><?php endif; ?>
-                      </dd>
-                    </div>
-                    <div><dt><?= te('Duration') ?></dt><dd><?= e($item['details']['Duration'] ?? '—') ?></dd></div>
-                    <?php if ($booking): ?>
-                      <div>
-                        <dt><?= te('Status') ?></dt>
-                        <dd>
-                          <span class="tag <?= e($status) ?>"><?= te($status) ?></span>
-                          <?php if ($expiry !== null): ?><span class="parking-timer" data-expires="<?= e($expiry) ?>">--:--:--</span><small class="timer-label"><?= te('Time remaining') ?></small><?php endif; ?>
-                        </dd>
-                      </div>
-                    <?php endif; ?>
-                  </dl>
-                  <?php if ($booking): ?>
-                    <div class="parking-session-actions"><?php require __DIR__ . '/includes/parking-session-actions.php'; ?></div>
-                  <?php endif; ?>
-                </div>
-              <?php endif; ?>
-            </li>
+          <?php foreach ($receipts as $item): ?>
+            <?php
+            $booking = $bookingsByReceipt[$item['id']] ?? null;
+            $at = $item['at'];
+            require __DIR__ . '/includes/receipt-card.php';
+            ?>
           <?php endforeach; ?>
         </ul>
       </section>

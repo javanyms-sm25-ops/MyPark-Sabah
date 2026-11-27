@@ -115,23 +115,18 @@
   gap: 8px 12px;
 }
 
-.find-parking-tools,
 .find-parking-result-heading,
 .find-parking-map-heading { justify-content: space-between; }
 
 .find-parking-tools {
+  justify-content: flex-end;
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px solid var(--glass-rim);
 }
 
-.find-parking-tools time {
-  color: var(--text);
-  font-weight: 600;
-  white-space: nowrap;
-}
+.find-parking-tools:not(:has(.btn:not([hidden]))) { display: none; }
 
-.find-parking-tools .find-parking-note span { display: block; }
 .find-parking [data-location-status]:not(:empty),
 .find-parking [data-parking-refresh-status]:not(:empty) { margin-top: 8px; }
 
@@ -333,5 +328,4 @@
   .find-parking-filter-row { grid-template-columns: minmax(0, 1fr); }
   .find-parking-filter-options label { flex-grow: 1; }
   .find-parking-actions .btn { flex: 1 1 auto; text-align: center; }
-  .find-parking-tools .find-parking-note > span { margin-top: 2px; }
 }

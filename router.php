@@ -22,11 +22,11 @@ if ($path === '/admin') {
     exit;
 }
 $pages = [
-    'index.php', 'pages/login.php', 'logout.php', 'pages/register.php', 'pages/change-email.php', 'forgot.php',
+    'index.php', 'pages/login.php', 'logout.php', 'pages/register.php', 'pages/change-email.php', 'pages/change-password.php', 'forgot.php',
     'dashboard.php', 'find_parking.php', 'parking-details.php', 'parking.php', 'history.php', 'profile.php', 'oku-verification.php', 'support.php', 'ticket.php', 'notifications.php',
     'wallet.php', 'checkout.php', 'compound.php', 'receipts.php', 'staff.php', 'admin/index.php', 'admin/dashboard.php', 'admin/attendance.php', 'api/availability.php',
     'api/export.php', 'api/dashboard.php', 'api/staff.php', 'api/oku-proof.php', 'api/paypal.php', 'api/vehicles.php', 'api/notifications.php',
-    'staff-attendance.php', 'admin/employee-attendance.php', 'admin/add-parking-location.php', 'api/attendance-photo.php', 'api/maintenance-photo.php',
+    'staff-attendance.php', 'admin/employee-attendance.php', 'admin/parking-locations.php', 'admin/add-parking-location.php', 'api/attendance-photo.php', 'api/maintenance-photo.php',
 ];
 if (in_array($page, $pages, true)) {
     $_SERVER['SCRIPT_NAME'] = '/' . $page;

@@ -26,17 +26,12 @@
   const canvas = finder.querySelector('#find-parking-map');
   const mapPanel = canvas.closest('.find-parking-map-panel');
   const message = finder.querySelector('[data-map-message]');
-  const refreshButton = finder.querySelector('[data-refresh-parking]');
   const refreshStatus = finder.querySelector('[data-parking-refresh-status]');
-  const checkedAt = finder.querySelector('[data-parking-checked-at]');
-  const checkTimeFormat = new Intl.DateTimeFormat(document.documentElement.lang || 'en', {
-    timeZone: 'Asia/Kuala_Lumpur', hour: 'numeric', minute: '2-digit', second: '2-digit',
-  });
   const refreshInterval = 20000;
   // Match the full-width letters, numbers and punctuation supported by the server search.
   const normalize = value => value.replace(/[\uFF01\uFF03-\uFF06\uFF08-\uFF3B\uFF3D-\uFF5D]/g, character =>
     String.fromCharCode(character.charCodeAt(0) - 0xFEE0)).replace(/\u3000/g, ' ').toLowerCase().trim();
-  const locations = Array.from(finder.querySelectorAll('[data-parking-location]'), card => ({
+  const readLocations = () => Array.from(locationList.querySelectorAll('[data-parking-location]'), card => ({
     card,
     id: card.dataset.parkingLocation,
     availability: card.querySelector('.find-parking-availability'),
@@ -53,14 +48,13 @@
       : null,
   }));
 
+  let locations = readLocations();
+  let mapped = locations.filter(location => location.position);
   let map, infoWindow, selected, timeout, searchTimeout;
   let userPosition, userMarker;
-  let mapFailed = false;
+  let mapFailed = false, mapLoading = false;
   let refreshTimer;
   let refreshing = false;
-  let manualRefresh = false;
-  let catalogChanged = false;
-  const mapped = locations.filter(location => location.position);
 
   function centerUserPosition() {
     if (!map || mapFailed || !userPosition) return;
@@ -109,8 +103,6 @@
   }
 
   locate.hidden = !mapped.length;
-  refreshButton.textContent = translate('Refresh availability');
-  finder.querySelector('[data-parking-auto-update]').hidden = false;
   locate.addEventListener('click', () => {
     if (!window.isSecureContext || !navigator.geolocation) {
       locationStatus.textContent = translate('Location access requires HTTPS or localhost. You can still search for parking.');
@@ -132,7 +124,7 @@
     }, { timeout: 10000, maximumAge: 30000 });
   });
 
-  function selectLocation(location) {
+  function selectLocation(location, pan = true) {
     if (selected) {
       selected.card.classList.remove('is-selected');
       selected.button.setAttribute('aria-pressed', 'false');
@@ -144,8 +136,10 @@
     location.card.classList.add('is-selected');
     location.button.setAttribute('aria-pressed', 'true');
     location.marker.zIndex = 1;
-    map.panTo(location.position);
-    if (map.getZoom() < 14) map.setZoom(14);
+    if (pan) {
+      map.panTo(location.position);
+      if (map.getZoom() < 14) map.setZoom(14);
+    }
 
     const content = document.createElement('div');
     content.className = 'find-parking-map-info';
@@ -250,6 +244,11 @@
     }
   }
 
+  function filterAndRefresh() {
+    applyFilters();
+    refreshAvailability();
+  }
+
   function updateAvailabilityRows(root, bays) {
     root.querySelector('[data-parking-capacity-unknown]').hidden = bays.regular.capacity !== null;
     for (const type of ['regular', 'oku']) {
@@ -277,6 +276,55 @@
     if (!document.hidden) refreshTimer = setTimeout(refreshAvailability, refreshInterval);
   }
 
+  async function refreshLocations(signal) {
+    const url = new URL(filters.action);
+    url.searchParams.set('_locations', '1');
+    const response = await fetch(url, { cache: 'no-store', credentials: 'same-origin', signal });
+    const version = response.headers.get('X-MyPark-Parking-Locations');
+    if (!response.ok || response.redirected || !version) throw new Error('Parking locations unavailable');
+    const fragment = new DOMParser().parseFromString(await response.text(), 'text/html');
+    const nextList = fragment.querySelector('#find-parking-list');
+    if (!nextList) throw new Error('Parking locations missing');
+
+    const scrollTop = list.scrollTop;
+    const active = document.activeElement;
+    const focusId = active?.closest('[data-parking-location]')?.dataset.parkingLocation;
+    const focusControl = ['[data-wish]', '[data-select-parking]', '[data-show-on-map]']
+      .find(selector => active?.matches(selector));
+    const selectedId = selected?.id;
+    if (selected) selectLocation(null);
+    infoWindow?.close();
+    for (const location of mapped) {
+      if (location.marker) location.marker.map = null;
+    }
+
+    locationList.replaceChildren(...nextList.children);
+    finder.dataset.catalogVersion = version;
+    locations = readLocations();
+    mapped = locations.filter(location => location.position);
+    locate.hidden = !mapped.length;
+    emptyDefault.querySelector('h3').textContent = translate(locations.length
+      ? 'No matching parking locations.' : 'No parking locations yet.');
+    emptyDefault.querySelector('p').hidden = !locations.length;
+    favourites?.updateButtons(locationList);
+    renderResults(normalize(search.value));
+    if (userPosition) sortByDistance();
+    if (map && !mapFailed) {
+      mapped.forEach(addLocationMarker);
+      const nextSelected = mapped.find(location => location.id === selectedId && !location.card.hidden);
+      if (nextSelected) selectLocation(nextSelected, false);
+      updateMarkers();
+    } else {
+      loadMap();
+    }
+    list.scrollTop = scrollTop;
+    if (focusId) {
+      const card = locations.find(location => location.id === focusId && !location.card.hidden)?.card;
+      const target = focusControl && card?.querySelector(focusControl);
+      (target && !target.hidden ? target : locationsHeading).focus({ preventScroll: true });
+    }
+  }
+
   async function refreshAvailability() {
     if (document.hidden || refreshing) return;
     refreshing = true;
@@ -290,17 +338,14 @@
       });
       if (!response.ok || response.redirected) throw new Error('Availability unavailable');
       const snapshot = await response.json();
-      const time = new Date(snapshot.checkedAt);
-      if (typeof snapshot.checkedAt !== 'string' || Number.isNaN(time.getTime())
-          || typeof snapshot.catalogVersion !== 'string' || !Array.isArray(snapshot.locations)) {
+      if (typeof snapshot.catalogVersion !== 'string' || !Array.isArray(snapshot.locations)) {
         throw new Error('Availability response is invalid');
       }
       const byId = new Map(snapshot.locations.map(location => [String(location.id), location.bays]));
-      catalogChanged = snapshot.catalogVersion !== finder.dataset.catalogVersion
-        || byId.size !== locations.length || locations.some(location => !byId.has(location.id));
-      if (catalogChanged) {
-        if (manualRefresh) window.location.reload();
-        else setRefreshStatus('Parking locations changed. Refresh to see the latest list.', true);
+      if (snapshot.catalogVersion !== finder.dataset.catalogVersion
+          || byId.size !== locations.length || locations.some(location => !byId.has(location.id))) {
+        await refreshLocations(controller.signal);
+        setRefreshStatus('');
         return;
       }
 
@@ -317,32 +362,21 @@
         location.okuAvailable = bays.oku.available > 0;
         updateAvailabilityRows(location.availability, bays);
       }
-      checkedAt.dateTime = snapshot.checkedAt;
-      checkedAt.textContent = checkTimeFormat.format(time) + ' MYT';
       renderResults(normalize(search.value), true);
       updateMarkers(false);
       if (selected) {
         const popup = infoWindow.getContent()?.querySelector('.find-parking-availability');
         if (popup) updateAvailabilityRows(popup, byId.get(selected.id));
       }
-      setRefreshStatus(manualRefresh ? 'Availability updated.' : '');
+      setRefreshStatus('');
     } catch (_) {
       setRefreshStatus('Could not refresh availability. Showing the last successful check.', true);
     } finally {
       clearTimeout(deadline);
       refreshing = false;
-      manualRefresh = false;
       scheduleRefresh();
     }
   }
-
-  refreshButton.addEventListener('click', event => {
-    if (catalogChanged) return;
-    event.preventDefault();
-    manualRefresh = true;
-    setRefreshStatus('Checking availability…');
-    refreshAvailability();
-  });
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) clearTimeout(refreshTimer);
@@ -359,15 +393,19 @@
 
   search.addEventListener('input', () => {
     clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(applyFilters, 160);
+    searchTimeout = setTimeout(filterAndRefresh, 250);
   });
-  [availableOnly, okuOnly].forEach(input => input.addEventListener('change', applyFilters));
+  filters.addEventListener('submit', event => {
+    event.preventDefault();
+    filterAndRefresh();
+  });
+  [availableOnly, okuOnly].forEach(input => input.addEventListener('change', filterAndRefresh));
   function clearFilters() {
     search.value = '';
     availableOnly.checked = false;
     okuOnly.checked = false;
     if (favouritesOnly) favouritesOnly.checked = false;
-    applyFilters();
+    filterAndRefresh();
     search.focus();
   }
 
@@ -380,7 +418,7 @@
   if (favouritesOnly) {
     favouritesOnly.disabled = false;
     finder.querySelector('[data-favourites-filter]').hidden = false;
-    favouritesOnly.addEventListener('change', applyFilters);
+    favouritesOnly.addEventListener('change', filterAndRefresh);
     finder.querySelector('[data-show-all-parking]').addEventListener('click', clearFilters);
     favourites.onChange(() => {
       if (!favouritesOnly.checked) return;
@@ -389,8 +427,6 @@
     });
   }
   applyFilters();
-
-  if (!mapped.length) return;
 
   function failMap() {
     clearTimeout(timeout);
@@ -403,66 +439,74 @@
     message.textContent = translate('Google Maps is unavailable. Select a location from the list.');
   }
 
-  if (!finder.dataset.mapsKey) {
-    failMap();
-    return;
+  function addLocationMarker(location) {
+    location.marker = new google.maps.marker.AdvancedMarkerElement({
+      position: location.position,
+      title: location.title,
+      gmpClickable: true,
+    });
+    location.marker.addEventListener('gmp-click', () => {
+      selectLocation(location);
+      if (list.scrollHeight > list.clientHeight) list.scrollTop = location.card.offsetTop;
+    });
+    location.button.addEventListener('click', () => {
+      selectLocation(location);
+      if (window.matchMedia('(max-width: 860px)').matches) {
+        mapPanel.scrollIntoView({ block: 'start' });
+      }
+    });
+    location.button.hidden = false;
   }
 
-  message.textContent = translate('Loading Google Maps…');
-  window.gm_authFailure = failMap;
-  window.myParkInitFindParking = () => {
-    if (mapFailed) return;
-    try {
-      mapPanel.hidden = false;
-      finder.classList.add('has-parking-map');
-      map = new google.maps.Map(canvas, {
-        center: mapped[0]?.position ?? { lat: 5.4, lng: 117 },
-        zoom: 8,
-        mapId: finder.dataset.mapId,
-        gestureHandling: 'cooperative',
-      });
-      infoWindow = new google.maps.InfoWindow();
-      infoWindow.addListener('closeclick', () => selectLocation(null));
-      for (const location of mapped) {
-        location.marker = new google.maps.marker.AdvancedMarkerElement({
-          position: location.position,
-          title: location.title,
-          gmpClickable: true,
-        });
-        location.marker.addEventListener('gmp-click', () => {
-          selectLocation(location);
-          if (list.scrollHeight > list.clientHeight) list.scrollTop = location.card.offsetTop;
-        });
-        location.button.addEventListener('click', () => {
-          selectLocation(location);
-          if (window.matchMedia('(max-width: 860px)').matches) {
-            mapPanel.scrollIntoView({ block: 'start' });
-          }
-        });
-        location.button.hidden = false;
-      }
-      updateMarkers();
-      centerUserPosition();
-      message.textContent = '';
-      clearTimeout(timeout);
-    } catch (_) {
+  function loadMap() {
+    if (mapLoading || mapFailed || !mapped.length) return;
+    if (!finder.dataset.mapsKey) {
       failMap();
+      return;
     }
-  };
 
-  const params = new URLSearchParams({
-    key: finder.dataset.mapsKey,
-    v: 'weekly',
-    loading: 'async',
-    libraries: 'marker',
-    callback: 'myParkInitFindParking',
-    region: 'MY',
-    language: document.documentElement.lang === 'zh-Hans' ? 'zh-CN' : document.documentElement.lang || 'en',
-  });
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = 'https://maps.googleapis.com/maps/api/js?' + params;
-  script.addEventListener('error', failMap, { once: true });
-  timeout = setTimeout(failMap, 15000);
-  document.head.append(script);
+    mapLoading = true;
+    message.textContent = translate('Loading Google Maps…');
+    window.gm_authFailure = failMap;
+    window.myParkInitFindParking = () => {
+      if (mapFailed) return;
+      try {
+        mapPanel.hidden = false;
+        finder.classList.add('has-parking-map');
+        map = new google.maps.Map(canvas, {
+          center: mapped[0]?.position ?? { lat: 5.4, lng: 117 },
+          zoom: 8,
+          mapId: finder.dataset.mapId,
+          gestureHandling: 'cooperative',
+        });
+        infoWindow = new google.maps.InfoWindow();
+        infoWindow.addListener('closeclick', () => selectLocation(null));
+        mapped.forEach(addLocationMarker);
+        updateMarkers();
+        centerUserPosition();
+        message.textContent = '';
+        clearTimeout(timeout);
+      } catch (_) {
+        failMap();
+      }
+    };
+
+    const params = new URLSearchParams({
+      key: finder.dataset.mapsKey,
+      v: 'weekly',
+      loading: 'async',
+      libraries: 'marker',
+      callback: 'myParkInitFindParking',
+      region: 'MY',
+      language: document.documentElement.lang === 'zh-Hans' ? 'zh-CN' : document.documentElement.lang || 'en',
+    });
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://maps.googleapis.com/maps/api/js?' + params;
+    script.addEventListener('error', failMap, { once: true });
+    timeout = setTimeout(failMap, 15000);
+    document.head.append(script);
+  }
+
+  loadMap();
 })();

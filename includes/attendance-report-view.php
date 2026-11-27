@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/attendance-view.php';
+require_once __DIR__ . '/ajax-table.php';
 
 function attendance_staff_options(array $staff): array {
     return array_map(static fn($account) => $account['name'] . ' · ' . attendance_staff_id($account['id']), $staff);
@@ -27,13 +28,30 @@ function attendance_report_filter_fields(array $filters, array $staff, array $lo
     <label for="attendance-report-to"><?= te('End Date') ?>
       <input type="date" name="to" id="attendance-report-to" value="<?= e($filters['to']) ?>" <?= $usePicker ? 'data-date-range-end' : '' ?>>
     </label>
-    <label><?= te('Search by name or staff ID') ?><input type="search" name="search" maxlength="80" value="<?= e($filters['search']) ?>"></label>
     <?php
-    attendance_select('employee', 'Employee', attendance_staff_options($staff), $filters['employee'], 'All permitted employees');
-    attendance_select('location', 'Parking location', array_column($locations, 'name', 'id'), $filters['location'], 'All permitted locations');
+    if ($usePicker): ?>
+      <label><?= te('Search by name or staff ID') ?><input type="search" name="search" maxlength="80" value="<?= e($filters['search']) ?>"></label>
+    <?php else:
+        attendance_select('employee', 'Employee', attendance_staff_options($staff), $filters['employee'], 'All permitted employees');
+    endif;
     $statusLabels = array_map('t', array_intersect_key(ATTENDANCE_LABELS, array_fill_keys(ATTENDANCE_REPORT_STATUSES, true)));
-    attendance_select('status', 'Attendance status', $statusLabels, $filters['status'], 'All statuses');
-    if ($exception) attendance_select('exception', 'Exception type', array_map('t', ATTENDANCE_EXCEPTION_LABELS), $filters['exception'], 'All exception types');
+    $moreActive = $filters['location'] !== '' || $filters['status'] !== ''
+        || ($exception && $filters['exception'] !== '') || ($usePicker ? $filters['employee'] !== '' : $filters['search'] !== '');
+    ?>
+    <details class="attendance-details attendance-more-filters" <?= $moreActive ? 'open' : '' ?>>
+      <summary><?= te('More filters') ?></summary>
+      <div class="attendance-fields">
+        <?php if ($usePicker):
+            attendance_select('employee', 'Employee', attendance_staff_options($staff), $filters['employee'], 'All permitted employees');
+        else: ?>
+          <label><?= te('Search by name or staff ID') ?><input type="search" name="search" maxlength="80" value="<?= e($filters['search']) ?>"></label>
+        <?php endif;
+        attendance_select('location', 'Parking location', array_column($locations, 'name', 'id'), $filters['location'], 'All permitted locations');
+        attendance_select('status', 'Attendance status', $statusLabels, $filters['status'], 'All statuses');
+        if ($exception) attendance_select('exception', 'Exception type', array_map('t', ATTENDANCE_EXCEPTION_LABELS), $filters['exception'], 'All exception types'); ?>
+      </div>
+    </details>
+    <?php
 }
 
 function attendance_report_display(string $key, mixed $value): string {
@@ -91,7 +109,7 @@ function attendance_status_bars(array $items, ?int $scale = null): void {
     <?php
 }
 
-function attendance_report_summary_tiles(array $summary): void {
+function attendance_report_summary_tiles(array $summary, bool $collapseDetails = false): void {
     $primary = ['scheduled', 'checked_in', 'attendance_rate', 'pending'];
     ?>
     <dl class="attendance-facts attendance-summary">
@@ -99,22 +117,24 @@ function attendance_report_summary_tiles(array $summary): void {
         <div class="attendance-key-metric"><dt><?= te(ATTENDANCE_REPORT_METRICS[$key]) ?></dt><dd><?= e(attendance_report_display($key, $summary[$key])) ?></dd></div>
       <?php endforeach; ?>
     </dl>
+    <?php if ($collapseDetails): ?>
+      <details class="attendance-details">
+        <summary><?= te('More attendance metrics') ?></summary>
+    <?php endif; ?>
     <dl class="attendance-secondary-metrics">
       <?php foreach (array_diff(array_keys(ATTENDANCE_REPORT_METRICS), $primary) as $key): ?>
         <div><dt><?= te(ATTENDANCE_REPORT_METRICS[$key]) ?></dt><dd><?= e(attendance_report_display($key, $summary[$key])) ?></dd></div>
       <?php endforeach; ?>
     </dl>
+    <?php if ($collapseDetails): ?>
+        <?php attendance_performance_help(); ?>
+      </details>
+    <?php endif; ?>
     <?php
 }
 
 function attendance_report_pager(array $pagination, array $query, string $page): void {
     if ($pagination['pages'] < 2) return;
-    $current = $pagination['current'];
-    ?>
-    <nav class="attendance-actions attendance-pager" aria-label="<?= te('Attendance record pages') ?>">
-      <?php if ($current > 1): ?><a class="btn btn-secondary" href="<?= e(attendance_report_links($query, $page, ['row_page' => $current - 1])) ?>#report-rows"><?= te('Previous page') ?></a><?php endif; ?>
-      <span><?= te('Page {page} of {total}', ['page' => $current, 'total' => $pagination['pages']]) ?></span>
-      <?php if ($current < $pagination['pages']): ?><a class="btn btn-secondary" href="<?= e(attendance_report_links($query, $page, ['row_page' => $current + 1])) ?>#report-rows"><?= te('Next page') ?></a><?php endif; ?>
-    </nav>
-    <?php
+    pagination_nav($pagination['current'], $pagination['pages'], static fn(int $number) =>
+        attendance_report_links($query, $page, ['row_page' => $number]) . '#report-rows', 'Attendance record pages');
 }

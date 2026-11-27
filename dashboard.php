@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/parking-location-photo.php';
 require_login();
 
 if (in_array(me()['role'], ['admin', 'superadmin'], true)) {
@@ -75,12 +76,6 @@ if ($resume) {
 
 $wallet = demo_wallet();
 $lots = active_parking_locations();
-$locationPhotos = [
-    'Kota Kinabalu Waterfront' => 'kota-kinabalu-waterfront.webp',
-    'Sandakan Central Parking' => 'sandakan-central-parking.webp',
-    'Tawau Tanjung Market' => 'tawau-tanjung-market.webp',
-    'TAR UMT Sabah' => 'tar-umt-sabah.webp',
-];
 $locationMapLinks = [
     'Kota Kinabalu Waterfront' => 'https://www.google.com/maps/search/?api=1&query=KK%20Waterfront%2C%20Kota%20Kinabalu&query_place_id=ChIJgY6SMZJpOzIR0-2MreF6hDA',
     'Sandakan Central Parking' => 'https://www.google.com/maps?cid=2288017653792329171',
@@ -161,7 +156,7 @@ head('Sabah Parking');
 <section class="lot-grid dashboard-location-grid" aria-labelledby="locations">
   <?php foreach ($lots as $lot): ?>
     <?php
-    $photo = $locationPhotos[$lot['name']] ?? null;
+    $photo = parking_location_photo_src($lot);
     $mapParams = [
         'api' => 1,
         'query' => implode(', ', array_filter([$lot['name'], $lot['address'] ?? '', $lot['city'] ?? '', 'Sabah, Malaysia'])),
@@ -172,7 +167,7 @@ head('Sabah Parking');
     <article class="card lot-card" data-city="<?= e($lot['city']) ?>" data-name="<?= e(strtolower($lot['name'] . ' ' . $lot['city'])) ?>">
       <div class="lot-cover">
         <?php if ($photo !== null): ?>
-          <img class="lot-photo" src="assets/images/<?= e($photo) ?>" alt="" loading="lazy" decoding="async">
+          <img class="lot-photo" src="<?= e($photo) ?>" alt="" loading="lazy" decoding="async">
         <?php endif; ?>
         <span class="lot-region"><?= te('Sabah, Malaysia') ?></span>
         <button type="button" class="heart" data-wish="<?= e($lot['id']) ?>" aria-pressed="false" hidden

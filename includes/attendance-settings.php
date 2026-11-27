@@ -1,7 +1,7 @@
 <details class="ops-panel attendance-panel" id="settings" <?= ($_POST['action'] ?? '') === 'save_settings' ? 'open' : '' ?>>
   <summary><?= te('Attendance Settings') ?></summary>
   <p><?= te('These settings apply to new attendance records. A lower GPS error limit requires more precise readings.') ?></p>
-  <form method="post" action="admin/employee-attendance.php#settings" class="attendance-controls">
+  <form method="post" action="<?= e($page) ?>?tab=settings#settings" class="attendance-controls">
     <?= attendance_fields('save_settings') ?>
     <div class="attendance-fields">
       <label><?= te('Allowed distance (m)') ?><input type="number" name="radius_m" min="25" max="5000" value="<?= $settings['radius_m'] ?>" required></label>
@@ -16,7 +16,7 @@
   <summary><?= te('Admin Location Access') ?></summary>
   <p><?= te('Admins can only view, schedule, review, and export attendance for locations you assign here.') ?></p>
   <?php if ($admins && $locations): ?>
-    <form method="post" action="admin/employee-attendance.php#access" class="attendance-controls">
+    <form method="post" action="<?= e($page) ?>?tab=settings#access" class="attendance-controls">
       <?= attendance_fields('grant_scope') ?>
       <div class="attendance-fields">
         <label><?= te('Admin') ?><select name="admin_id" required><option value=""><?= te('Choose an Admin') ?></option>
@@ -31,7 +31,7 @@
     <h3><?= te('Current assignments') ?></h3>
     <?php if (!$grants): ?><p><?= te('No Admin location assignments yet.') ?></p><?php endif; ?>
     <?php foreach ($grants as $grant): ?>
-      <form method="post" action="admin/employee-attendance.php#access" class="attendance-grant">
+      <form method="post" action="<?= e($page) ?>?tab=settings#access" class="attendance-grant">
         <?= attendance_fields('revoke_scope') ?>
         <input type="hidden" name="admin_id" value="<?= $grant['admin_id'] ?>"><input type="hidden" name="lot_id" value="<?= $grant['lot_id'] ?>">
         <span><?= e(($accounts[$grant['admin_id']]['name'] ?? '#' . $grant['admin_id']) . ' · ' . ($locations[$grant['lot_id']]['name'] ?? '#' . $grant['lot_id'])) ?></span>

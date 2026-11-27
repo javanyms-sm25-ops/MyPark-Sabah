@@ -1,13 +1,15 @@
 <?php
 require_once __DIR__ . '/oku-verification.php';
 require_once __DIR__ . '/parking-availability.php';
+require_once __DIR__ . '/parking-location-photo.php';
 require_once __DIR__ . '/staff-leave.php';
 
 // The Dashboard reads from the current database workspace.
 const OPS_ROLES = ['superadmin' => 'Super Admin', 'admin' => 'Admin', 'staff' => 'Staff', 'user' => 'Member'];
-const OPS_TRANSITIONS = ['active' => ['completed', 'cancelled'], 'completed' => [], 'cancelled' => []];
+const OPS_RESERVATION_STATUSES = ['active', 'completed', 'cancelled'];
 const OPS_MAX_PARKING_SPACES = 2500;
 const OPS_PARKING_SPACES_ERROR = 'Enter a whole number from 1 to {max}.';
+const OPS_OKU_CAPACITY_ERROR = 'Enter an OKU bay count between zero and total capacity.';
 
 function ops_actor(): array {
     if (!me()) throw new RuntimeException('Please sign in again.', 401);
@@ -15,6 +17,23 @@ function ops_actor(): array {
         if ($user['id'] === me()['id'] && !$user['blocked'] && in_array($user['role'], ['staff', 'admin', 'superadmin'], true)) return $user;
     }
     throw new RuntimeException('You do not have permission to access the Dashboard.', 403);
+}
+
+function ops_parking_location_actor(): array {
+    try {
+        $actor = ops_actor();
+        if (!in_array($actor['role'], ['admin', 'superadmin'], true)) {
+            throw new RuntimeException('Only an administrator can manage parking locations.', 403);
+        }
+        return $actor;
+    } catch (RuntimeException $error) {
+        if ($error->getCode() === 401) {
+            header('Location: ../pages/login.php');
+            exit;
+        }
+        http_response_code(403);
+        exit(te($error->getMessage()));
+    }
 }
 
 function ops_json(array $data, int $status = 200): never {
@@ -47,14 +66,13 @@ function ops_snapshot(array $actor): array {
             'hours' => (int)$booking['hours'], 'fee' => (float)$booking['fee'], 'status' => $booking['status'],
             'created_at' => $booking['created_at'] ?? '', 'created_ts' => $created ? $created->getTimestamp() : null,
             'created_day' => $created ? $created->format('Y-m-d') : '',
-            'allowed_statuses' => OPS_TRANSITIONS[$booking['status']] ?? []
         ];
     }, MyParkData::$records['demo_bookings']);
     $active = array_filter($reservations, static fn($b) => $b['status'] === 'active');
     $lots = active_parking_locations();
     $snapshot = [
         'accounts' => array_values($accounts), 'reservations' => array_values($reservations),
-        'roles' => OPS_ROLES, 'reservation_statuses' => array_keys(OPS_TRANSITIONS),
+        'roles' => OPS_ROLES, 'reservation_statuses' => OPS_RESERVATION_STATUSES,
         'account_statuses' => ['active', 'blocked'], 'csrf' => csrf(), 'actor_id' => $actor['id'],
         'can_manage_accounts' => $actor['role'] === 'superadmin',
         'can_export' => in_array($actor['role'], ['admin', 'superadmin'], true),
@@ -76,7 +94,15 @@ function ops_snapshot(array $actor): array {
     return $snapshot;
 }
 
-function ops_parking_location_fields(array $input): array {
+function ops_parking_oku_capacity(mixed $input, ?int $total): int {
+    $reserved = filter_var($input, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+    if ($total === null || $reserved === false || $reserved > $total) {
+        throw new RuntimeException(OPS_OKU_CAPACITY_ERROR, 422);
+    }
+    return $reserved;
+}
+
+function ops_parking_location_fields(array $input, ?array $photoFile = null): array {
     $name = trim($input['name'] ?? '');
     $city = trim($input['city'] ?? '');
     $address = trim($input['address'] ?? '');
@@ -94,10 +120,16 @@ function ops_parking_location_fields(array $input): array {
     if ($lat === false || $lng === false || abs($lat) > 90 || abs($lng) > 180) {
         throw new RuntimeException('Choose a location on the map.', 422);
     }
-    return compact('name', 'city', 'address', 'capacity', 'lat', 'lng');
+    $fields = compact('name', 'city', 'address', 'capacity', 'lat', 'lng');
+    if (array_key_exists('oku_capacity', $input)) {
+        $fields['oku_capacity'] = ops_parking_oku_capacity($input['oku_capacity'], $capacity);
+    }
+    $photo = parking_location_photo_upload($photoFile);
+    if ($photo !== null) $fields['photo'] = $photo;
+    return $fields;
 }
 
-function ops_change_parking_location(array $actor, string $action, int|false $id, array $input): string {
+function ops_change_parking_location(array $actor, string $action, int|false $id, array $input, ?array $photoFile = null): string {
     if ($action === 'delete_lot' && $actor['role'] !== 'superadmin') {
         throw new RuntimeException('Only Super Admin can delete parking locations.', 403);
     }
@@ -110,7 +142,7 @@ function ops_change_parking_location(array $actor, string $action, int|false $id
         $lots[] = [
             'id' => max(array_column($lots, 'id') ?: [0]) + 1,
             'rate' => PARKING_HOURLY_CENTS / 100,
-        ] + ops_parking_location_fields($input);
+        ] + ops_parking_location_fields($input, $photoFile);
         $message = 'Parking location added.';
     } else {
         $index = null;
@@ -129,10 +161,11 @@ function ops_change_parking_location(array $actor, string $action, int|false $id
             // Keep the original ID and details for historical reports.
             $lots[$index]['deleted_at'] = date(DATE_ATOM);
             $lots[$index]['deleted_by'] = $actor['id'];
+            unset($lots[$index]['photo']);
             $message = 'Parking location deleted.';
         } else {
-            $fields = ops_parking_location_fields($input);
-            $reserved = max(0, (int)($lots[$index]['oku_capacity'] ?? 0));
+            $fields = ops_parking_location_fields($input, $photoFile);
+            $reserved = $fields['oku_capacity'] ?? max(0, (int)($lots[$index]['oku_capacity'] ?? 0));
             if ($fields['capacity'] < $reserved) {
                 throw new RuntimeException('Total spaces must cover the existing OKU bay allocation.', 422);
             }
@@ -147,13 +180,13 @@ function ops_change_parking_location(array $actor, string $action, int|false $id
     return $message;
 }
 
-function ops_mutate(array $actor, array $input): string {
+function ops_mutate(array $actor, array $input, ?array $photoFile = null): string {
     ops_valid_csrf($input);
     $action = $input['action'] ?? '';
     if ($action === 'leave_review') return staff_leave_review($actor, $input);
     $id = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT);
     if (in_array($action, ['add_lot', 'update_lot', 'delete_lot'], true)) {
-        return ops_change_parking_location($actor, $action, $id, $input);
+        return ops_change_parking_location($actor, $action, $id, $input, $photoFile);
     }
     if ($action === 'oku_decide') {
         return oku_decide($actor, $input['submission_id'] ?? '', $input['decision'] ?? '', $input['reason'] ?? '');
@@ -170,15 +203,12 @@ function ops_mutate(array $actor, array $input): string {
         if (!in_array($actor['role'], ['admin', 'superadmin'], true)) {
             throw new RuntimeException('Only an administrator can set OKU bay capacity.', 403);
         }
-        $reserved = filter_var($input['oku_capacity'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
         complete_expired_bookings();
         $occupied = parking_occupancy_by_lot(MyParkData::$records['demo_bookings']);
         foreach (MyParkData::$records['demo_lots'] as &$lot) {
             if ($lot['id'] !== $id || isset($lot['deleted_at'])) continue;
             $total = parking_lot_capacity($lot);
-            if ($total === null || $reserved === false || $reserved > $total) {
-                throw new RuntimeException('Enter an OKU bay count between zero and total capacity.', 422);
-            }
+            $reserved = ops_parking_oku_capacity($input['oku_capacity'] ?? null, $total);
             $used = $occupied[$id] ?? [];
             if (($used['oku'] ?? 0) > $reserved || ($used['regular'] ?? 0) > $total - $reserved) {
                 throw new RuntimeException('This allocation is too small for current stays. Wait until bays are free.', 409);
@@ -191,18 +221,7 @@ function ops_mutate(array $actor, array $input): string {
         throw new RuntimeException('Parking location unavailable.', 404);
     }
     if ($action === 'status') {
-        complete_expired_bookings();
-        foreach (MyParkData::$records['demo_bookings'] as &$booking) {
-            if ($booking['id'] !== $id) continue;
-            $next = $input['status'] ?? '';
-            if (($input['expected_status'] ?? '') !== $booking['status']) throw new RuntimeException('This reservation has changed. Refresh and try again.', 409);
-            if (!in_array($next, OPS_TRANSITIONS[$booking['status']] ?? [], true)) throw new RuntimeException('This reservation status transition is not allowed.', 422);
-            $booking['status'] = $next;
-            MyParkData::$records['ops_revision'] = (MyParkData::$records['ops_revision'] ?? 0) + 1;
-            return 'Reservation #' . $id . ' updated.';
-        }
-        unset($booking);
-        throw new RuntimeException('Reservation not found.', 404);
+        throw new RuntimeException('Reservation status updates automatically.', 403);
     }
     if ($action === 'toggle_user') {
         if ($actor['role'] !== 'superadmin') throw new RuntimeException('Only Super Admin can block or unblock accounts.', 403);

@@ -1,6 +1,38 @@
 (() => {
   'use strict';
 
+  const dialog = document.getElementById('location-photo-preview');
+  if (typeof dialog?.showModal !== 'function') return;
+
+  const list = document.getElementById('location-list');
+  const title = document.getElementById('location-photo-preview-heading');
+  const image = document.createElement('img');
+  image.className = 'ops-location-preview-image';
+  let trigger;
+
+  list.addEventListener('click', event => {
+    const button = event.target.closest('[data-preview-location-photo]');
+    if (!button || dialog.open) return;
+    const thumbnail = button.querySelector('img');
+    trigger = button;
+    title.textContent = button.dataset.previewLocationPhoto;
+    image.alt = title.textContent;
+    image.src = thumbnail.currentSrc || thumbnail.src;
+    dialog.append(image);
+    dialog.showModal();
+  });
+
+  dialog.addEventListener('close', () => {
+    image.remove();
+    image.removeAttribute('src');
+    (trigger?.isConnected ? trigger : list.querySelector('[data-table-search]'))?.focus({ preventScroll: true });
+    trigger = null;
+  });
+})();
+
+(() => {
+  'use strict';
+
   const dialog = document.getElementById('location-delete');
   if (typeof dialog?.showModal !== 'function') return;
 
@@ -69,29 +101,45 @@
   const address = form.elements.address;
   const capacity = form.elements.capacity;
   const capacityFeedback = document.getElementById('location-capacity-feedback');
+  const okuCapacity = form.elements.oku_capacity;
+  const okuCapacityFeedback = document.getElementById('location-oku-capacity-feedback');
   const latitude = form.elements.lat;
   const longitude = form.elements.lng;
   const submit = form.querySelector('button[type="submit"]');
 
-  function validateCapacity(showError = true) {
-    capacity.setCustomValidity('');
-    const valid = capacity.validity.valid && /^[1-9][0-9]*$/.test(capacity.value);
-    const message = valid ? '' : capacityFeedback.dataset.message;
-    capacity.setCustomValidity(message);
+  function validateCount(input, feedbackField, pattern, showError = true) {
+    input.setCustomValidity('');
+    const valid = input.validity.valid && pattern.test(input.value);
+    const message = valid ? '' : feedbackField.dataset.message;
+    input.setCustomValidity(message);
     const feedback = showError ? message : '';
-    capacity.setAttribute('aria-invalid', String(feedback !== ''));
-    if (capacityFeedback.textContent !== feedback) capacityFeedback.textContent = feedback;
+    input.setAttribute('aria-invalid', String(feedback !== ''));
+    if (feedbackField.textContent !== feedback) feedbackField.textContent = feedback;
     return valid;
   }
 
-  capacity.addEventListener('input', () => validateCapacity());
+  const validateCapacity = showError => validateCount(capacity, capacityFeedback, /^[1-9][0-9]*$/, showError);
+  function validateOkuCapacity(showError) {
+    okuCapacity.max = capacity.validity.valid ? capacity.value : capacity.max;
+    return validateCount(okuCapacity, okuCapacityFeedback, /^(0|[1-9][0-9]*)$/, showError);
+  }
+
+  capacity.addEventListener('input', () => {
+    validateCapacity();
+    validateOkuCapacity();
+  });
   capacity.addEventListener('invalid', () => validateCapacity());
+  okuCapacity.addEventListener('input', () => validateOkuCapacity());
+  okuCapacity.addEventListener('invalid', () => validateOkuCapacity());
   form.addEventListener('submit', event => {
-    if (validateCapacity()) return;
+    const capacityValid = validateCapacity();
+    const okuCapacityValid = validateOkuCapacity();
+    if (capacityValid && okuCapacityValid) return;
     event.preventDefault();
-    capacity.focus();
+    (capacityValid ? okuCapacity : capacity).focus();
   });
   validateCapacity(capacity.value !== '' || capacity.hasAttribute('aria-invalid'));
+  validateOkuCapacity(okuCapacity.value !== '' || okuCapacity.hasAttribute('aria-invalid'));
 
   function readPosition() {
     if (!latitude.value.trim() || !longitude.value.trim()) return null;

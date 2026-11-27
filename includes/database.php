@@ -57,6 +57,7 @@ final class MyParkData {
         'demo_users', 'demo_lots', 'demo_bookings', 'demo_wallets', 'demo_receipts', 'demo_reviews',
         'staff_fines', 'staff_maintenance', 'staff_audit', 'staff_counters', 'staff_requests', 'staff_leave_requests',
         'oku_submissions', 'oku_latest', 'parking_notifications', 'parking_zone_notice_at',
+        'pending_registrations',
     ];
     private const COUNTERS = ['last_booking_id', 'ops_revision', 'staff_revision'];
     private const LEGACY_KEYS = [

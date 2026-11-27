@@ -62,9 +62,11 @@ function attendance_export_data(array $report, array $staff, array $locations): 
     }
     $people = [];
     foreach ($report['people'] as $id => $person) {
-        $people[] = ['staff_id' => attendance_staff_id($id), 'name' => $staff[$id]['name'] ?? attendance_staff_id($id),
+        $people[] = array_replace([
+            'staff_id' => attendance_staff_id($id),
+            'name' => $staff[$id]['name'] ?? attendance_staff_id($id),
             'location' => implode(', ', $places[$id] ?? []),
-            ...array_replace($person, ['full' => t(ATTENDANCE_FULL_LABELS[$person['full']])])];
+        ], $person, ['full' => t(ATTENDANCE_FULL_LABELS[$person['full']])]);
     }
 
     return ['title' => t(ATTENDANCE_REPORT_TYPES[$report['type']]), 'scope' => $scope, 'metrics' => $metrics,
@@ -82,10 +84,16 @@ function attendance_csv_cell(mixed $value): string {
 function attendance_report_csv(array $data): string {
     $stream = fopen('php://memory', 'w+');
     fwrite($stream, "\xEF\xBB\xBF");
-    fputcsv($stream, array_map('t', ATTENDANCE_EXPORT_COLUMNS), ',', '"', '', "\r\n");
+    $writeRow = static function (array $row) use ($stream): void {
+        if (fputcsv($stream, $row, ',', '"', '') === false) throw new RuntimeException('Could not generate CSV.');
+        // PHP 8.0 writes LF and does not accept a line-ending argument.
+        fseek($stream, -1, SEEK_CUR);
+        fwrite($stream, "\r\n");
+    };
+    $writeRow(array_map('t', ATTENDANCE_EXPORT_COLUMNS));
     foreach ($data['detail'] as $row) {
         if ($row['hours'] !== null) $row['hours'] = number_format($row['hours'], 2, '.', '');
-        fputcsv($stream, array_map('attendance_csv_cell', $row), ',', '"', '', "\r\n");
+        $writeRow(array_map('attendance_csv_cell', $row));
     }
     rewind($stream);
     $bytes = stream_get_contents($stream);

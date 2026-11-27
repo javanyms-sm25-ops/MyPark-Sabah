@@ -111,7 +111,8 @@
     });
 
     const pagePath = pathname => pathname.replace(/\/index\.php$/, '/').replace(/\/$/, '');
-    const currentPage = pagePath(window.location.pathname);
+    const currentPage = pagePath(window.location.pathname)
+      .replace(/\/admin\/add-parking-location\.php$/, '/admin/parking-locations.php');
     navigation.querySelectorAll('a[href]').forEach(function (link) {
       const destination = new URL(link.href);
       if (destination.origin === window.location.origin &&
@@ -406,7 +407,7 @@
     const savedPhoto = preview.getAttribute('src');
     let previewUrl = null;
     let rotation = 0;
-    rotate.hidden = preview.hidden;
+    if (rotate) rotate.hidden = preview.hidden;
 
     function validatePhoto(files) {
       if (files.length > 1) return 'Choose one photo at a time.';
@@ -432,7 +433,7 @@
       else preview.removeAttribute('src');
       preview.hidden = !source;
       initial.hidden = Boolean(source);
-      rotate.hidden = !source;
+      if (rotate) rotate.hidden = !source;
       filename.textContent = file?.name ?? '';
       rotation = 0;
       preview.style.transform = '';
@@ -461,7 +462,7 @@
       photoInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
-    rotate.addEventListener('click', function () {
+    rotate?.addEventListener('click', function () {
       if (preview.hidden) return;
       rotation += 90;
       preview.style.transform = 'rotate(' + rotation + 'deg)';

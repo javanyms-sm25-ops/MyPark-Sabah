@@ -52,11 +52,7 @@
   const dateFormat = new Intl.DateTimeFormat(document.documentElement.lang, { timeZone: 'Asia/Kuala_Lumpur', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
   const dateText = value => { const date = new Date(value); return Number.isNaN(date.getTime()) ? '—' : dateFormat.format(date); };
   const plateKey = value => value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const refreshButton = document.getElementById('staff-refresh');
-  const pageError = document.getElementById('staff-page-error');
-  const requestStatus = document.getElementById('staff-request-status');
   const tables = [];
-  let refreshController, sequence = 0;
   const dialog = document.getElementById('staff-dialog');
   const dialogBody = document.getElementById('staff-dialog-body');
   const closeDialog = document.getElementById('staff-dialog-close');
@@ -65,7 +61,7 @@
   dialog.addEventListener('cancel', event => { if (submitting) event.preventDefault(); });
   dialog.addEventListener('close', () => {
     if (origin?.isConnected) origin.focus();
-    else (document.getElementById('staff-new') || refreshButton).focus();
+    else (document.getElementById('staff-new') || document.getElementById('staff-page-title')).focus();
   });
   function openDialog(title, trigger) {
     origin = trigger || document.activeElement;
@@ -75,9 +71,6 @@
   function badge(status, kind = 'fine') {
     const label = statuses(kind)[status] || status;
     return el('span', 'staff-badge staff-badge--' + status, translate(label));
-  }
-  function showPageError(text) {
-    pageError.querySelector('span').textContent = text; pageError.hidden = false;
   }
   async function readResponse(response) {
     let result;
@@ -99,18 +92,6 @@
     tables.forEach(table => table.load());
     if (page === 'dashboard') renderDashboard();
   }
-  async function refresh() {
-    refreshController?.abort(); refreshController = new AbortController();
-    const current = ++sequence;
-    refreshButton.disabled = true; requestStatus.hidden = false; requestStatus.textContent = translate('Refreshing records…'); pageError.hidden = true;
-    try {
-      const response = await fetch('api/staff.php?page=' + page, { credentials: 'same-origin', cache: 'no-store', signal: refreshController.signal });
-      const result = await readResponse(response); if (current === sequence) applyData(result.data);
-    } catch (error) {
-      if (current === sequence && error.name !== 'AbortError') showPageError(translate('Refresh failed. {message}', { message: translate(error.message) }));
-    } finally { if (current === sequence) { refreshButton.disabled = false; requestStatus.hidden = true; } }
-  }
-  refreshButton.addEventListener('click', refresh); document.getElementById('staff-retry').addEventListener('click', refresh);
 
   const fineColumns = [
         ['code', translate('Fine ID')], ['plate', translate('Vehicle Plate')], ['violation', translate('Violation Type')], ['occurred_ts', translate('Date')],
@@ -201,11 +182,11 @@
       this.output = el('div');
       this.loading = el('p', 'staff-request-status'); this.loading.setAttribute('role', 'status'); this.loading.hidden = true;
       this.error = el('div', 'staff-error-banner'); this.error.hidden = true; this.error.setAttribute('role', 'alert');
-      const footer = el('div', 'staff-table-footer'); this.count = el('span', 'staff-muted'); this.count.setAttribute('role', 'status');
-      const label = el('label', 'staff-page-size', translate('Rows per page')), select = el('select');
+      const footer = el('div', 'table-footer staff-table-footer'); this.count = el('span', 'staff-muted'); this.count.setAttribute('role', 'status');
+      const label = el('label', 'table-page-size', translate('Rows per page')), select = el('select');
       [10, 25, 50].forEach(n => select.add(new Option(String(n), String(n)))); select.addEventListener('change', () => { this.state.size = Number(select.value); this.resetPage(); }); label.append(select);
-      this.pages = el('nav', 'staff-pagination'); this.pages.setAttribute('aria-label', translate(title) + ' · ' + translate('Pagination'));
-      footer.append(this.count, label, this.pages); host.append(tools, this.loading, this.error, this.output, footer);
+      this.pages = el('nav', 'pagination'); this.pages.setAttribute('aria-label', translate(title) + ' · ' + translate('Pagination'));
+      footer.append(this.count, this.pages, label); host.append(tools, this.loading, this.error, this.output, footer);
       this.load();
     }
     resetPage() { this.state.page = 1; this.load(); }
@@ -264,15 +245,10 @@
       this.output.replaceChildren(rendered); this.count.textContent = pageLabel(paged);
       const count = document.getElementById('staff-record-count');
       if (count) count.textContent = translate('{count} records', { count: paged.unfiltered });
-      this.pages.replaceChildren();
-      if (paged.pages > 1) {
-        const go = n => { state.page = n; this.load('page'); };
-        const prev = button(translate('Previous'), () => go(state.page - 1)); prev.disabled = state.page === 1; this.pages.append(prev);
-        window.MyParkTableData.pageNumbers(state.page, paged.pages).forEach(n => {
-          if (n === '…') { this.pages.append(el('span', '', n)); return; }
-          const item = button(String(n), () => go(n)); if (n === state.page) item.setAttribute('aria-current', 'page'); item.setAttribute('aria-label', 'Page ' + n); this.pages.append(item);
-        }); const next = button(translate('Next'), () => go(state.page + 1)); next.disabled = state.page === paged.pages; this.pages.append(next);
-      }
+      window.MyParkTableData.renderPager(this.pages, paged, number => {
+        state.page = number;
+        this.load('page');
+      });
     }
   }
 
@@ -506,7 +482,6 @@
     let invalid;
     inputs.forEach(input => { setFieldError(input, input.validity.valid ? '' : input.validationMessage); if (!input.validity.valid && !invalid) invalid = input; });
     if (invalid) { invalid.focus(); return; }
-    refreshController?.abort(); ++sequence; refreshButton.disabled = false; requestStatus.hidden = true;
     const photoInput = form.elements.namedItem('photo');
     const photoError = photoInput?.files[0] ? maintenancePhotoError(photoInput.files[0]) : '';
     if (photoError) { setFieldError(photoInput, photoError); photoInput.focus(); return; }
@@ -516,7 +491,7 @@
     form.querySelectorAll('button').forEach(b => b.disabled = true); const save = form.querySelector('[type="submit"]'); save.textContent = translate('Saving…');
     try {
       const response = await fetch('api/staff.php?page=' + page, { method: 'POST', body: payload, credentials: 'same-origin' });
-      const result = await readResponse(response); applyData(result.data); dialog.close(); pageError.hidden = true;
+      const result = await readResponse(response); applyData(result.data); dialog.close();
       window.MyParkToast?.show(result.message, 'success');
     } catch (error) {
       message.textContent = error.fields ? translate(error.message) : translate('The update could not be confirmed. Refresh records before retrying. {message}', { message: translate(error.message) }); message.hidden = false;

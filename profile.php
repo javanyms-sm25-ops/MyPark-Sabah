@@ -192,7 +192,8 @@ head($editingProfile ? 'Edit profile' : 'Profile');
         <dd><?= e($profile['email']) ?></dd>
       </div>
     </dl>
-    <a class="profile-email-link" href="pages/change-email.php"><?= te('Change email address') ?> <span aria-hidden="true">→</span></a>
+    <a class="profile-account-link" href="pages/change-email.php"><?= te('Change email address') ?> <span aria-hidden="true">→</span></a>
+    <a class="profile-account-link" href="pages/change-password.php"><?= te('Change password') ?> <span aria-hidden="true">→</span></a>
   </section>
 <?php if ($profile['role'] === 'user'): ?>
   <div class="profile-member-tools">

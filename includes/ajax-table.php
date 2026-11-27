@@ -98,11 +98,17 @@ function ajax_table_begin(array $view): void {
     $prefix = $view['prefix'];
     ?>
     <div class="ajax-table" data-ajax-table="<?= e($id) ?>">
+      <?php if (isset($view['tools_label'])): ?>
+      <details class="ajax-table-options" <?= !empty($view['tools_open']) ? 'open' : '' ?>>
+        <summary><?= te($view['tools_label']) ?></summary>
+      <?php endif; ?>
       <form method="get" action="<?= e($_SERVER['SCRIPT_NAME'] ?? '') ?>" id="filter-<?= e($id) ?>" class="ajax-table-tools" data-table-form>
         <?php foreach ($view['query'] as $key => $value): ?>
           <input type="hidden" name="<?= e($key) ?>" value="<?= e($value) ?>">
         <?php endforeach; ?>
-        <input type="hidden" name="<?= e($prefix) ?>order" value="<?= e($view['order']) ?>" data-table-order>
+        <?php if (empty($view['order_options'])): ?>
+          <input type="hidden" name="<?= e($prefix) ?>order" value="<?= e($view['order']) ?>" data-table-order>
+        <?php endif; ?>
         <label class="ajax-table-search"><span class="validation-sr-only"><?= te($view['search_label']) ?></span>
           <input type="search" maxlength="150" name="<?= e($prefix) ?>q" value="<?= e($view['search']) ?>" placeholder="<?= te($view['search_label']) ?>" data-table-search>
         </label>
@@ -115,13 +121,18 @@ function ajax_table_begin(array $view): void {
             </select>
           </label>
         <?php endif; ?>
+        <?php if (!empty($view['order_options'])): ?>
+          <label><span class="validation-sr-only"><?= te('Sort order') ?></span>
+            <select name="<?= e($prefix) ?>order" data-table-order data-table-change>
+              <?php foreach ($view['order_options'] as $value => $label): ?>
+                <option value="<?= e($value) ?>" <?= $value === $view['order'] ? 'selected' : '' ?>><?= e($label) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+        <?php endif; ?>
         <button type="submit" class="btn btn-secondary"><?= te('Search') ?></button>
-        <label class="ajax-table-size"><?= te('Rows per page') ?>
-          <select name="<?= e($prefix) ?>size" data-table-change>
-            <?php foreach ([10, 25, 50] as $size): ?><option <?= $size === $view['size'] ? 'selected' : '' ?>><?= $size ?></option><?php endforeach; ?>
-          </select>
-        </label>
       </form>
+      <?php if (isset($view['tools_label'])): ?></details><?php endif; ?>
       <p class="validation-sr-only" aria-live="polite" data-table-loading></p>
       <div class="ajax-table-error" data-table-error hidden><span role="alert"><?= te('The table could not be updated.') ?></span>
         <button type="button" class="btn btn-secondary" data-table-retry><?= te('Retry') ?></button>
@@ -155,26 +166,53 @@ function ajax_table_empty(array $view): void {
     if (!$view['rows']) echo '<tr><td class="ajax-table-empty" colspan="' . count($view['columns']) . '">' . te($view['empty']) . '</td></tr>';
 }
 
-function ajax_table_end(array $view): void {
-    $current = $view['page'];
-    $pages = $view['pages'];
-    $nearby = array_unique([1, max(1, $current - 1), $current, min($pages, $current + 1), $pages]);
+function pagination_page_numbers(int $current, int $pages): array {
+    if ($pages <= 7) return range(1, $pages);
+    if ($current <= 4) return [1, 2, 3, 4, 5, '…', $pages];
+    if ($current >= $pages - 3) return [1, '…', ...range($pages - 4, $pages)];
+    return [1, '…', $current - 1, $current, $current + 1, '…', $pages];
+}
+
+function pagination_nav(int $current, int $pages, callable $pageUrl, string $label = 'Pagination', bool $ajax = false): void {
     ?>
-        <div class="ajax-table-footer">
+    <nav class="pagination" aria-label="<?= te($label) ?>">
+      <?php foreach (['back', ...pagination_page_numbers($current, $pages), 'next'] as $item): ?>
+        <?php if ($item === '…'): ?><span class="pagination__gap" aria-hidden="true">…</span><?php continue; endif; ?>
+        <?php
+        $target = match ($item) { 'back' => $current - 1, 'next' => $current + 1, default => $item };
+        $text = match ($item) { 'back' => t('Back'), 'next' => t('Next'), default => (string)$item };
+        $class = 'pagination__item' . (is_string($item) ? ' pagination__' . $item : '');
+        $pageLabel = is_int($item) ? t('Page {page}', ['page' => $item]) : $text;
+        ?>
+        <?php if ($target < 1 || $target > $pages): ?>
+          <span class="<?= e($class) ?>" role="link" aria-label="<?= e($pageLabel) ?>" aria-disabled="true"><?= e($text) ?></span>
+        <?php else: ?>
+          <a class="<?= e($class) ?>" href="<?= e($pageUrl($target)) ?>"<?= $ajax ? ' data-table-page' : '' ?>
+             <?php if (is_int($item)): ?>aria-label="<?= e($pageLabel) ?>"<?php endif; ?>
+             <?= $target === $current ? 'aria-current="page"' : '' ?>><?= e($text) ?></a>
+        <?php endif; ?>
+      <?php endforeach; ?>
+    </nav>
+    <?php
+}
+
+function ajax_table_end(array $view): void {
+    $formId = 'filter-' . $view['id'];
+    ?>
+        <div class="table-footer ajax-table-footer">
           <span data-table-count role="status"><?= $view['total'] ? te('Showing {first}–{last} of {total} results', [
               'first' => $view['first'], 'last' => $view['last'], 'total' => $view['total'],
           ]) : te('0 results') ?></span>
-          <?php if ($pages > 1): ?><nav class="ajax-table-pages" aria-label="<?= te('Pagination') ?>">
-            <?php $pageUrl = static fn(int $page) => e(ajax_table_url($view, [$view['prefix'] . 'page' => $page])); ?>
-            <?php if ($current > 1): ?><a href="<?= $pageUrl($current - 1) ?>" data-table-page><?= te('Previous') ?></a>
-            <?php else: ?><span aria-disabled="true"><?= te('Previous') ?></span><?php endif; ?>
-            <?php $previous = 0; foreach ($nearby as $number): ?>
-              <?php if ($number - $previous > 1): ?><span aria-hidden="true">…</span><?php endif; ?>
-              <a href="<?= $pageUrl($number) ?>" data-table-page <?= $number === $current ? 'aria-current="page"' : '' ?>><?= $number ?></a>
-            <?php $previous = $number; endforeach; ?>
-            <?php if ($current < $pages): ?><a href="<?= $pageUrl($current + 1) ?>" data-table-page><?= te('Next') ?></a>
-            <?php else: ?><span aria-disabled="true"><?= te('Next') ?></span><?php endif; ?>
-          </nav><?php endif; ?>
+          <?php pagination_nav($view['page'], $view['pages'],
+              static fn(int $page) => ajax_table_url($view, [$view['prefix'] . 'page' => $page]), ajax: true); ?>
+          <div class="table-page-size">
+            <label><?= te($view['size_label'] ?? 'Rows per page') ?>
+              <select name="<?= e($view['prefix']) ?>size" form="<?= e($formId) ?>" data-table-size data-table-change>
+                <?php foreach ([10, 25, 50] as $size): ?><option <?= $size === $view['size'] ? 'selected' : '' ?>><?= $size ?></option><?php endforeach; ?>
+              </select>
+            </label>
+            <noscript><button type="submit" form="<?= e($formId) ?>" class="btn btn-secondary"><?= te('Apply') ?></button></noscript>
+          </div>
         </div>
       </div>
     </div>

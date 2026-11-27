@@ -40,10 +40,10 @@ function account_verification_url(array $config, string $token, string $page): s
     return rtrim($appUrl, '/') . '/' . $page . '?verify=' . rawurlencode($token);
 }
 
-function account_email_message(string $sender, string $recipient, string $detail, string $title, string $instructions, bool $useLink): string {
+function account_email_message(string $sender, string $recipient, string $detail, string $title, string $instructions, bool $useLink, bool $sameBrowser = true): string {
     $notice = $useLink ? 'This link expires in 10 minutes and can be used once.' : 'This code expires in 10 minutes.';
     $guidance = 'If you did not request this email, you can ignore it.';
-    if ($useLink) $guidance = 'Open the link in the browser where you requested it. ' . $guidance;
+    if ($useLink && $sameBrowser) $guidance = 'Open the link in the browser where you requested it. ' . $guidance;
     $plain = implode("\r\n\r\n", ['MyPark Sabah', $title, str_replace('{email}', $recipient, $instructions), $detail, $notice, $guidance]);
     $heading = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
     $description = htmlspecialchars($instructions, ENT_QUOTES, 'UTF-8');
@@ -166,7 +166,8 @@ function send_account_email(string $recipient, string $detail, string $title, st
 
     $useLink = $verificationPage !== null;
     if ($useLink) $detail = account_verification_url($config, $detail, $verificationPage);
-    $message = account_email_message($sender, $recipient, $detail, $title, $instructions, $useLink);
+    $message = account_email_message($sender, $recipient, $detail, $title, $instructions, $useLink,
+        $verificationPage !== 'pages/register.php');
     $offset = 0;
     $smtp = curl_init('smtp://' . $host . ':' . $port);
     if ($smtp === false) {

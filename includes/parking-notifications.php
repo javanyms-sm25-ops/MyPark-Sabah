@@ -11,7 +11,8 @@ function parking_add_notice(int $userId, array $notice): void {
     MyParkData::$records['parking_notifications'][$userId] = array_slice($items, -60, null, true);
 }
 
-function parking_notification_items(int $userId): array {
+function parking_notification_items(array $account): array {
+    $userId = $account['id'];
     $now = time();
     foreach (MyParkData::$records['demo_bookings'] as &$booking) {
         if ($booking['user_id'] !== $userId || $booking['status'] !== 'active') continue;
@@ -27,7 +28,11 @@ function parking_notification_items(int $userId): array {
     }
     unset($booking);
 
-    return array_reverse(MyParkData::$records['parking_notifications'][$userId] ?? [], true);
+    $items = MyParkData::$records['parking_notifications'][$userId] ?? [];
+    if ($account['role'] !== 'user') {
+        $items = array_filter($items, static fn(array $notice): bool => $notice['type'] !== 'zone');
+    }
+    return array_reverse($items, true);
 }
 
 function parking_alert_zones(): array {

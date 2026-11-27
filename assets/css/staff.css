@@ -88,13 +88,7 @@
 .staff-badge--void { background: var(--glass-error-bg); color: var(--red); }
 .staff-badge--in_progress { background: var(--glass-tab-surface); color: var(--navy); }
 .staff-portal .staff-empty { padding: 38px 20px; text-align: center; color: var(--muted-text); font-size: 13px; white-space: normal; }
-.staff-table-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 20px; }
-.staff-table-footer > .staff-muted { margin-right: auto; }
-.staff-portal .staff-page-size { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--muted-text); font-size: 11px; font-weight: 400; }
-.staff-page-size select { width: 65px; min-height: 32px; height: 32px; padding: 4px 6px; font-size: 12px; }
-.staff-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
-.staff-pagination .staff-button { min-width: 30px; min-height: 32px; padding: 5px 8px; font-size: 11px; }
-.staff-portal .staff-pagination [aria-current="page"] { background: var(--navy); border-color: var(--navy); color: var(--button-text); }
+.staff-table-footer { padding: 14px 20px; }
 .staff-portal .staff-dialog { width: min(620px, calc(100% - 28px)); max-height: calc(100dvh - 40px); margin: auto; padding: 24px; overflow: auto; border: 1px solid var(--glass-rim); border-radius: 18px; background: var(--glass-panel); color: var(--text); box-shadow: var(--shadow-hover); }
 .staff-dialog::backdrop { background: rgb(16 37 60 / 42%); }
 .staff-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
@@ -189,7 +183,6 @@
   .staff-table-tools input { flex-basis: 100%; max-width: none; font-size: 16px; }
   .staff-table-tools select { flex: 1; }
   .staff-table-footer { padding: 14px 16px; }
-  .staff-table-footer > .staff-muted { width: 100%; }
   .staff-detail-grid { grid-template-columns: 110px minmax(0, 1fr); }
   .staff-dialog { padding: 18px !important; }
   .staff-dialog :is(input,select,textarea) { font-size: 16px; }

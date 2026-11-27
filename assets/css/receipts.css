@@ -4,17 +4,29 @@
   font-size: 1rem;
 }
 
-.receipts-page--parking {
-  max-width: none;
-}
-
 #parking-sessions,
 #receipt-results-title {
   scroll-margin-top: 7rem;
 }
 
-.parking-session-filters > select {
-  width: auto;
+.receipts-page .ajax-table-options {
+  margin-bottom: 8px;
+}
+
+.receipts-page .ajax-table-options summary {
+  width: fit-content;
+  margin-inline-start: auto;
+  color: var(--navy);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.receipts-page .ajax-table-options .ajax-table-tools {
+  padding-inline: 0;
+}
+
+.receipts-page .ajax-table-options label {
   max-width: 100%;
 }
 
@@ -131,16 +143,6 @@
 .receipts-page :is(button, .btn):hover {
   background: var(--navy-hover);
   color: var(--button-text);
-}
-
-:root:not([data-theme="dark"]) #parkingSessionsTable .ajax-table-sort {
-  background: var(--card);
-  color: var(--navy);
-  border: 1px solid var(--glass-field-border);
-}
-
-:root:not([data-theme="dark"]) #parkingSessionsTable .ajax-table-sort:hover {
-  background: var(--glass-control-hover);
 }
 
 .receipts-page .btn.btn-secondary {

@@ -3,7 +3,6 @@
   'use strict';
 
   const storageKey = 'park-wishlist';
-  const buttons = document.querySelectorAll('[data-wish]');
   const listeners = [];
   let saved = readSaved();
   let temporary = false;
@@ -17,12 +16,17 @@
     }
   }
 
-  function update() {
-    for (const button of buttons) {
+  function updateButtons(root = document) {
+    for (const button of root.querySelectorAll('[data-wish]')) {
       const pressed = saved.has(button.dataset.wish);
       button.textContent = pressed ? '♥' : '♡';
       button.setAttribute('aria-pressed', String(pressed));
+      button.hidden = false;
     }
+  }
+
+  function update() {
+    updateButtons();
     listeners.forEach(listener => listener());
   }
 
@@ -34,30 +38,30 @@
     update();
   }
 
-  for (const button of buttons) {
-    button.addEventListener('click', () => {
-      sync();
-      const id = button.dataset.wish;
-      const added = !saved.has(id);
-      if (added) saved.add(id);
-      else saved.delete(id);
-      try {
-        window.localStorage.setItem(storageKey, JSON.stringify([...saved]));
-        temporary = false;
-      } catch (_) {
-        temporary = true;
-      }
-      update();
-      const message = temporary ? 'Favourites could only be updated on this page.'
-        : added ? 'Parking location added to favourites.' : 'Parking location removed from favourites.';
-      window.MyParkToast?.show(message, added && !temporary ? 'success' : 'info');
-    });
-    button.hidden = false;
-  }
+  document.addEventListener('click', event => {
+    const button = event.target.closest('button[data-wish]');
+    if (!button) return;
+    sync();
+    const id = button.dataset.wish;
+    const added = !saved.has(id);
+    if (added) saved.add(id);
+    else saved.delete(id);
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify([...saved]));
+      temporary = false;
+    } catch (_) {
+      temporary = true;
+    }
+    update();
+    const message = temporary ? 'Favourites could only be updated on this page.'
+      : added ? 'Parking location added to favourites.' : 'Parking location removed from favourites.';
+    window.MyParkToast?.show(message, added && !temporary ? 'success' : 'info');
+  });
 
   window.MyParkFavourites = {
     has: id => saved.has(id),
     onChange: listener => listeners.push(listener),
+    updateButtons,
   };
   update();
   window.addEventListener('storage', event => {

@@ -30,7 +30,7 @@
 
   const bootstrap = document.getElementById('operations-data');
   if (!bootstrap) return;
-  const autoRefresh = bootstrap.dataset.autoRefresh === 'true';
+  const fastAvailability = bootstrap.dataset.fastAvailability === 'true';
   let data = JSON.parse(bootstrap.textContent);
   const { create: tableRequest, pageLabel } = window.MyParkTableRequest;
   const tables = [], pending = new Set();
@@ -69,15 +69,15 @@
   }
   const columns = {
     accounts: [
-      { key: 'name', label: translate('Name'), essential: true, wide: true }, { key: 'email', label: translate('Email'), wide: true },
-      { key: 'role_label', label: translate('Role') }, { key: 'status', label: translate('Status'), essential: true }, { key: 'actions', label: translate('Actions'), essential: true }
+      { key: 'name', label: translate('Name'), wide: true }, { key: 'email', label: translate('Email'), wide: true },
+      { key: 'role_label', label: translate('Role') }, { key: 'status', label: translate('Status') }, { key: 'actions', label: translate('Actions') }
     ],
     reservations: [
-      { key: 'id', label: translate('ID'), essential: true, number: true }, { key: 'user', label: translate('Member'), wide: true },
-      { key: 'lot', label: translate('Location'), wide: true }, { key: 'plate', label: translate('Plate'), essential: true },
+      { key: 'id', label: translate('ID'), number: true }, { key: 'user', label: translate('Member'), wide: true },
+      { key: 'lot', label: translate('Location'), wide: true }, { key: 'plate', label: translate('Plate') },
       { key: 'hours', label: translate('Duration'), number: true }, { key: 'fee', label: translate('Fee'), number: true },
-      { key: 'status', label: translate('Status'), essential: true }, { key: 'created_ts', label: translate('Created'), initiallyHidden: true },
-      { key: 'actions', label: translate('Actions'), essential: true }
+      { key: 'status', label: translate('Status') }, { key: 'created_ts', label: translate('Created'), detailOnly: true },
+      { key: 'actions', label: translate('Actions') }
     ]
   };
   class ManagementTable {
@@ -86,21 +86,15 @@
       this.heading = kind === 'accounts' ? translate('Account Management') : translate('Reservation Management');
       this.storageKey = 'MyPark:operations:preferences:' + data.actor_id + ':' + kind;
       let prefs = {}; try { prefs = JSON.parse(localStorage.getItem(this.storageKey) || '{}') || {}; } catch (_) { /* Optional storage. */ }
-      this.hidden = new Set(Array.isArray(prefs.hidden) ? prefs.hidden.filter(k => this.columns.some(c => c.key === k && !c.essential)) : this.columns.filter(c => c.initiallyHidden).map(c => c.key));
-      this.density = prefs.density === 'compact' ? 'compact' : 'comfortable';
       const dated = kind === 'reservations' && data.reservations.some(r => r.created_ts != null);
       this.state = { q: '', status: '', role: '', location: '', from: '', to: '', sort: dated ? 'created_ts' : 'id', dir: kind === 'accounts' ? 'asc' : 'desc', page: 1, size: [10, 25, 50].includes(prefs.size) ? prefs.size : 10 };
       this.request = tableRequest();
       this.build(); this.updateOptions(); this.load();
     }
     save() {
-      try { localStorage.setItem(this.storageKey, JSON.stringify({ hidden: [...this.hidden], density: this.density, size: this.state.size })); } catch (_) { /* Never store records or tokens. */ }
+      try { localStorage.setItem(this.storageKey, JSON.stringify({ size: this.state.size })); } catch (_) { /* Optional storage. */ }
     }
     changed() { this.state.page = 1; this.load(); }
-    hasStatusDraft() {
-      return Array.from(this.tbody.querySelectorAll('.ops-status-form select'))
-        .some(select => select.value || select === document.activeElement);
-    }
     load(focus, background = false) {
       clearTimeout(this.debounce);
       this.debounce = null;
@@ -118,7 +112,7 @@
         if (!Array.isArray(result.table?.rows)) throw new Error(translate('The table could not be updated.'));
         return result.table;
       }, pageData => {
-        if (background && (pending.size || document.querySelector('dialog[open]') || this.hasStatusDraft())) return;
+        if (background && (pending.size || document.querySelector('dialog[open]'))) return;
         this.paged = pageData;
         this.state.page = pageData.page;
         this.appliedSort = state.sort;
@@ -180,32 +174,18 @@
         this.syncDateRange = window.MyParkDateRange?.enhance(this.filters.from, this.filters.to, updateDates);
       }
       const tools = el('div', 'ops-tools');
-      if (!autoRefresh) {
-        this.refresh = btn(translate('Refresh'), () => refresh(this));
-        tools.append(this.refresh);
-      }
-      const menu = el('details', 'ops-columns'), summary = el('summary', '', translate('Columns')), choices = el('div', 'ops-column-menu'); menu.append(summary);
-      this.columns.filter(c => !c.essential).forEach(c => {
-        const label = el('label'), input = el('input'); input.type = 'checkbox'; input.checked = !this.hidden.has(c.key);
-        input.addEventListener('change', () => { if (input.checked) this.hidden.delete(c.key); else this.hidden.add(c.key); this.save(); this.render(); });
-        label.append(input, document.createTextNode(c.label)); choices.append(label);
-      }); menu.append(choices);
-      menu.addEventListener('keydown', event => { if (event.key === 'Escape') { menu.open = false; summary.focus(); } });
-      document.addEventListener('click', event => { if (!menu.contains(event.target)) menu.open = false; });
-      const density = el('select'); density.setAttribute('aria-label', translate('Row density'));
-      [['comfortable', translate('Comfortable')], ['compact', translate('Compact')]].forEach(([v, t]) => density.add(new Option(t, v))); density.value = this.density;
-      density.addEventListener('change', () => { this.density = density.value; this.save(); this.render(); }); tools.append(menu, density);
-      if (data.can_export) { this.export = btn(translate('Export filtered results (CSV)'), () => this.exportRows()); tools.append(this.export); }
+      if (data.can_export) { this.export = btn(translate('Export Report'), () => this.exportRows()); tools.append(this.export); }
+      tools.hidden = !data.can_export;
       this.tags = el('div', 'ops-filter-tags'); this.notice = el('div', 'ops-notice'); this.notice.hidden = true; this.notice.setAttribute('role', 'alert');
       this.loading = el('p', 'ops-loading'); this.loading.hidden = true; this.loading.setAttribute('role', 'status');
       this.scroll = el('div', 'ops-table-scroll'); this.scroll.tabIndex = 0; this.scroll.setAttribute('role', 'region'); this.scroll.setAttribute('aria-label', this.heading + ', scroll for more columns');
       this.table = el('table', 'ops-table'); this.table.setAttribute('aria-label', this.heading);
       this.thead = el('thead'); this.tbody = el('tbody'); this.table.append(this.thead, this.tbody); this.scroll.append(this.table);
-      const footer = el('div', 'ops-table-footer'); this.counter = el('p', 'ops-result-count'); this.counter.setAttribute('role', 'status');
-      const label = el('label', 'ops-page-size', translate('Rows per page')), size = el('select');
+      const footer = el('div', 'table-footer ops-table-footer'); this.counter = el('p', 'ops-result-count'); this.counter.setAttribute('role', 'status');
+      const label = el('label', 'table-page-size', translate('Rows per page')), size = el('select');
       [10, 25, 50].forEach(n => size.add(new Option(String(n), String(n)))); size.value = String(this.state.size);
       size.addEventListener('change', () => { this.state.size = Number(size.value); this.save(); this.changed(); }); label.append(size);
-      this.pager = el('nav', 'ops-pager'); this.pager.setAttribute('aria-label', this.heading + ' pages'); footer.append(this.counter, label, this.pager);
+      this.pager = el('nav', 'pagination'); this.pager.setAttribute('aria-label', this.heading + ' · ' + translate('Pagination')); footer.append(this.counter, this.pager, label);
       this.host.append(tools, this.tags, this.notice, this.loading, this.scroll, footer);
     }
     updateOptions() {
@@ -250,11 +230,10 @@
     render(background = false) {
       const page = this.paged;
       if (!page) return;
-      this.panel.dataset.density = this.density;
       const count = data[this.kind].length;
       this.panel.querySelector('[data-total]').textContent = translate('{count} records', { count });
       if (!background) this.renderTags();
-      const visible = this.columns.filter(c => !this.hidden.has(c.key)), header = el('tr');
+      const visible = this.columns.filter(c => !c.detailOnly), header = el('tr');
       visible.forEach(c => {
         const th = el('th', (c.number ? 'ops-number ' : '') + (c.wide ? 'ops-wide' : '')); th.scope = 'col'; th.dataset.column = c.key;
         if (c.key === 'actions') th.textContent = c.label;
@@ -284,15 +263,11 @@
           : (this.kind === 'reservations' ? translate('No reservations yet') : translate('No accounts yet'));
         td.append(el('strong', '', translate(emptyText)));
         if (data[this.kind].length) td.append(btn(translate('Clear filters'), () => { this.clear(); this.search.focus(); })); tr.append(td); body.append(tr);
-      } this.tbody.replaceChildren(body); this.counter.textContent = pageLabel(page); this.pager.replaceChildren();
-      if (page.pages > 1) {
-        const change = n => { this.state.page = n; this.load('page'); };
-        const prev = btn(translate('Previous'), () => change(page.page - 1)); prev.disabled = page.page === 1; this.pager.append(prev);
-        window.MyParkTableData.pageNumbers(page.page, page.pages).forEach(n => {
-          if (n === '…') { this.pager.append(el('span', 'ops-ellipsis', '…')); return; }
-          const button = btn(String(n), () => change(n)); button.setAttribute('aria-label', 'Page ' + n); if (n === page.page) button.setAttribute('aria-current', 'page'); this.pager.append(button);
-        }); const next = btn(translate('Next'), () => change(page.page + 1)); next.disabled = page.page === page.pages; this.pager.append(next);
-      }
+      } this.tbody.replaceChildren(body); this.counter.textContent = pageLabel(page);
+      window.MyParkTableData.renderPager(this.pager, page, number => {
+        this.state.page = number;
+        this.load('page');
+      });
     }
     actions(record) {
       const group = el('div', 'ops-row-actions'), key = this.kind + ':' + record.id;
@@ -301,20 +276,14 @@
         const block = record.status === 'active', lastSuper = record.role === 'superadmin' && data.accounts.filter(u => u.role === 'superadmin' && u.status === 'active').length <= 1;
         const action = btn(pending.has(key) ? translate('Saving…') : block ? translate('Block') : translate('Unblock'), async () => {
           if (block && !await openDialog(translate('Block account?'), el('p', '', 'Block ' + record.name + ' (' + record.email + ')? This account will no longer be able to sign in.'), 'Block account', action)) return;
-          mutate(this, record, 'toggle_user', block ? 'blocked' : 'active');
+          mutateAccount(this, record, block ? 'blocked' : 'active');
         }); action.dataset.recordAction = record.id;
         action.disabled = pending.has(key) || (block && (record.id === data.actor_id || lastSuper));
         if (block && record.id === data.actor_id) action.title = 'You cannot block your own account.';
         else if (block && lastSuper) action.title = 'The last active Super Admin cannot be blocked.';
         group.append(action);
       }
-      if (this.kind === 'reservations' && record.allowed_statuses.length) {
-        const form = el('form', 'ops-status-form'), select = el('select'), save = el('button', 'ops-button', pending.has(key) ? translate('Saving…') : translate('Save'));
-        select.setAttribute('aria-label', 'New status for reservation ' + record.id); select.required = true; select.add(new Option(translate('Change status…'), ''));
-        record.allowed_statuses.forEach(s => select.add(new Option(title(s), s))); save.type = 'submit'; save.dataset.recordAction = record.id;
-        select.disabled = save.disabled = pending.has(key);
-        form.addEventListener('submit', event => { event.preventDefault(); if (select.value) mutate(this, record, 'status', select.value); }); form.append(select, save); group.append(form);
-      } return group;
+      return group;
     }
     details(record, origin) {
       const dl = el('dl', 'ops-details'), fields = this.columns.filter(c => c.key !== 'actions');
@@ -328,7 +297,6 @@
       this.loading.hidden = !busy;
       this.loading.textContent = busy ? translate('Refreshing records…') : '';
       this.table.setAttribute('aria-busy', String(busy));
-      if (this.refresh) this.refresh.disabled = busy;
     }
     error(message, retry) { this.notice.replaceChildren(el('span', '', message)); if (retry) this.notice.append(btn('Retry', retry)); this.notice.hidden = false; }
     async exportRows() {
@@ -341,7 +309,7 @@
         const url = URL.createObjectURL(await response.blob()), link = el('a'); link.href = url; link.download = 'mypark-' + this.kind + '.csv'; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
         toast('Filtered ' + this.kind + ' exported.', 'success');
       } catch (error) { this.error(error.message, () => this.exportRows()); }
-      finally { this.export.disabled = false; this.export.textContent = translate('Export filtered results (CSV)'); }
+      finally { this.export.disabled = false; this.export.textContent = translate('Export Report'); }
     }
   }
   function applySnapshot(next, background = false) {
@@ -360,7 +328,7 @@
   }
   function dashboardIsBusy() {
     return document.hidden || pending.size || document.querySelector('dialog[open]')
-      || tables.some(table => table.pageBusy || table.debounce || table.hasStatusDraft());
+      || tables.some(table => table.pageBusy || table.debounce);
   }
   async function refresh(table, background = false) {
     if (background && (refreshController || dashboardIsBusy())) return;
@@ -418,18 +386,18 @@
 
   function setRefreshing(table = null) {
     tables.forEach(item => { item.snapshotBusy = item === table; item.updateLoading(); });
-    parkingMap?.setRefreshing(table !== null);
+    if (table) parkingMap?.clearRefreshError();
   }
-  async function mutate(table, record, action, status) {
+  async function mutateAccount(table, record, status) {
     const key = table.kind + ':' + record.id; if (pending.has(key)) return;
     refreshController?.abort(); refreshController = null; ++refreshSequence; setRefreshing(); pending.add(key); table.notice.hidden = true; table.render();
-    const payload = new FormData(); Object.entries({ action, id: record.id, status, expected_status: record.status, csrf: data.csrf }).forEach(([k, v]) => payload.set(k, String(v)));
+    const payload = new FormData(); Object.entries({ action: 'toggle_user', id: record.id, status, expected_status: record.status, csrf: data.csrf }).forEach(([k, v]) => payload.set(k, String(v)));
     try {
       const result = await readResponse(await fetch('api/dashboard.php', { method: 'POST', body: payload, credentials: 'same-origin' })); applySnapshot(result.data); toast(result.message, 'success');
     } catch (error) { table.error('Update failed. ' + error.message + ' Refresh records before retrying the action.', () => refresh(table)); toast(error.message, 'error'); }
     finally {
       pending.delete(key); table.render();
-      if (document.activeElement === document.body || !document.activeElement?.isConnected) (table.tbody.querySelector('[data-record-action="' + record.id + '"]') || table.refresh || table.search).focus();
+      if (document.activeElement === document.body || !document.activeElement?.isConnected) (table.tbody.querySelector('[data-record-action="' + record.id + '"]') || table.search).focus();
     }
   }
   document.querySelectorAll('[data-table-host]').forEach(host => tables.push(new ManagementTable(host, host.dataset.tableHost)));
@@ -441,17 +409,18 @@
       selectLocation(id) {
         locationFilter.value = id;
         locationFilter.dispatchEvent(new Event('change'));
-      },
-      refresh: () => refresh(reservations)
+      }
     });
     parkingMap.update(data.parking_availability);
-    if (!autoRefresh) {
-      const refreshVisibleAvailability = () => refreshAvailability(reservations);
-      window.setInterval(refreshVisibleAvailability, 20000);
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) refreshVisibleAvailability();
-      });
+    if (fastAvailability) {
+      window.setInterval(() => refreshAvailability(reservations), 20000);
     }
   }
-  if (autoRefresh && reservations) window.setInterval(() => refresh(reservations, true), 60000);
+  if (reservations && data.parking_availability) {
+    const refreshReservations = () => refresh(reservations, true);
+    window.setInterval(refreshReservations, 60000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) refreshReservations();
+    });
+  }
 }());

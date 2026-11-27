@@ -259,7 +259,7 @@
   font-size: 1rem;
 }
 
-.profile-email-link {
+.profile-account-link {
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
@@ -272,7 +272,7 @@
   text-decoration: none;
 }
 
-.profile-email-link:hover {
+.profile-account-link:hover {
   text-decoration: underline;
 }
 
