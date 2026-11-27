@@ -217,9 +217,9 @@ function head(string $title): void {
         unset($links['dashboard.php']);
         $links = [
             'admin/dashboard.php' => 'Dashboard',
-            'admin/add-parking-location.php' => 'Add parking location',
+            'admin/add-parking-location.php' => 'Parking',
         ] + $links;
-        $links['admin/employee-attendance.php'] = 'Employee Attendance';
+        $links['admin/employee-attendance.php'] = 'Attendance';
     }
     header('Content-Language: ' . current_language());
     ?>
