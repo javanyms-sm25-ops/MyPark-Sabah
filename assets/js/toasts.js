@@ -10,15 +10,18 @@
   const active = new Map();
   const titles = { success: translate('Success'), info: translate('Information'), warning: translate('Reminder'), error: translate('Something went wrong') };
   const icons = { success: '✓', info: 'i', warning: '!', error: '!' };
+  const durations = { success: 5000, info: 4000, warning: 10000, error: 10000 };
 
   function show(message, type = 'info', options = {}) {
     if (!Object.prototype.hasOwnProperty.call(titles, type)) type = 'info';
     const title = options.title || titles[type];
     const key = options.key || type + ':' + message;
     if (active.has(key)) return;
+    const duration = options.parkingNotice ? 8000 : durations[type];
     const origin = document.activeElement;
     const toast = document.createElement('section');
     toast.className = 'pe-toast pe-toast--' + type;
+    toast.style.setProperty('--toast-duration', duration + 'ms');
     if (options.parkingNotice) toast.classList.add('pe-toast--parking-notice');
     toast.setAttribute('aria-label', title);
     const icon = document.createElement('span');
@@ -56,9 +59,8 @@
 
     let timer;
     let hovering = false;
-    let remaining = options.parkingNotice ? 8000 : (type === 'success' ? 5000 : 4000);
-    let started;
-    const autoClose = options.parkingNotice || type === 'success' || type === 'info';
+    let remaining = duration;
+    let started = null;
     function dismiss() {
       window.clearTimeout(timer);
       document.removeEventListener('visibilitychange', onVisibility);
@@ -69,15 +71,17 @@
       active.delete(key);
     }
     function resume() {
-      if (!autoClose || hovering || toast.contains(document.activeElement) || document.hidden) return;
-      window.clearTimeout(timer);
-      started = Date.now();
-      timer = window.setTimeout(dismiss, Math.max(remaining, 250));
+      if (!toast.isConnected || started !== null || hovering || toast.contains(document.activeElement) || document.hidden) return;
+      started = performance.now();
+      toast.setAttribute('data-counting-down', '');
+      timer = window.setTimeout(dismiss, remaining);
     }
     function pause() {
+      if (started === null) return;
       window.clearTimeout(timer);
-      if (started) remaining = Math.max(0, remaining - (Date.now() - started));
+      remaining = Math.max(0, remaining - (performance.now() - started));
       started = null;
+      toast.removeAttribute('data-counting-down');
     }
     close.addEventListener('click', dismiss);
     toast.addEventListener('keydown', function (event) {

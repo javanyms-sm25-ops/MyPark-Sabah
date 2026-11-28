@@ -110,11 +110,15 @@ function attendance_status_bars(array $items, ?int $scale = null): void {
 }
 
 function attendance_report_summary_tiles(array $summary, bool $collapseDetails = false): void {
-    $primary = ['scheduled', 'checked_in', 'attendance_rate', 'pending'];
+    $primary = $collapseDetails ? ['checked_in', 'late', 'leave', 'attendance_rate']
+        : ['scheduled', 'checked_in', 'attendance_rate', 'pending'];
     ?>
     <dl class="attendance-facts attendance-summary">
       <?php foreach ($primary as $key): ?>
-        <div class="attendance-key-metric"><dt><?= te(ATTENDANCE_REPORT_METRICS[$key]) ?></dt><dd><?= e(attendance_report_display($key, $summary[$key])) ?></dd></div>
+        <div class="attendance-key-metric" data-metric="<?= e($key) ?>">
+          <dt><?= te(ATTENDANCE_REPORT_METRICS[$key]) ?></dt>
+          <dd><?= e(attendance_report_display($key, $summary[$key])) ?></dd>
+        </div>
       <?php endforeach; ?>
     </dl>
     <?php if ($collapseDetails): ?>

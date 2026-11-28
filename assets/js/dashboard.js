@@ -32,6 +32,7 @@
   if (!bootstrap) return;
   const fastAvailability = bootstrap.dataset.fastAvailability === 'true';
   let data = JSON.parse(bootstrap.textContent);
+  let parkingAvailability = data.parking_availability;
   const { create: tableRequest, pageLabel } = window.MyParkTableRequest;
   const tables = [], pending = new Set();
   let refreshController, refreshSequence = 0;
@@ -150,6 +151,10 @@
         input.addEventListener('change', () => { this.state[key] = input.value; this.changed(); });
         this.filters[key] = input; toolbar.append(input);
       });
+      if (data.can_export) {
+        this.export = btn(translate('Export Report'), () => this.exportRows(), 'ops-button ops-export-button');
+        toolbar.append(this.export);
+      }
       if (this.kind === 'reservations') {
         this.dateGroup = el('div', 'ops-dates');
         const updateDates = () => {
@@ -173,9 +178,6 @@
         toolbar.append(this.dateGroup);
         this.syncDateRange = window.MyParkDateRange?.enhance(this.filters.from, this.filters.to, updateDates);
       }
-      const tools = el('div', 'ops-tools');
-      if (data.can_export) { this.export = btn(translate('Export Report'), () => this.exportRows()); tools.append(this.export); }
-      tools.hidden = !data.can_export;
       this.tags = el('div', 'ops-filter-tags'); this.notice = el('div', 'ops-notice'); this.notice.hidden = true; this.notice.setAttribute('role', 'alert');
       this.loading = el('p', 'ops-loading'); this.loading.hidden = true; this.loading.setAttribute('role', 'status');
       this.scroll = el('div', 'ops-table-scroll'); this.scroll.tabIndex = 0; this.scroll.setAttribute('role', 'region'); this.scroll.setAttribute('aria-label', this.heading + ', scroll for more columns');
@@ -186,7 +188,7 @@
       [10, 25, 50].forEach(n => size.add(new Option(String(n), String(n)))); size.value = String(this.state.size);
       size.addEventListener('change', () => { this.state.size = Number(size.value); this.save(); this.changed(); }); label.append(size);
       this.pager = el('nav', 'pagination'); this.pager.setAttribute('aria-label', this.heading + ' · ' + translate('Pagination')); footer.append(this.counter, this.pager, label);
-      this.host.append(tools, this.tags, this.notice, this.loading, this.scroll, footer);
+      this.host.append(this.tags, this.notice, this.loading, this.scroll, footer);
     }
     updateOptions() {
       const values = this.kind === 'accounts'
@@ -195,7 +197,7 @@
             status: data.reservation_statuses.map(v => [v, title(v)]),
             location: [...new Map([
               ...data.reservations.map(r => [String(r.lot_id), r.lot]),
-              ...(data.parking_availability?.locations ?? []).map(lot => [String(lot.id), lot.name])
+              ...(parkingAvailability?.locations ?? []).map(lot => [String(lot.id), lot.name])
             ])]
           };
       Object.entries(values).forEach(([key, options]) => {
@@ -315,8 +317,9 @@
   function applySnapshot(next, background = false) {
     if (!next || !Array.isArray(next.accounts) || !Array.isArray(next.reservations) || !next.summary || !Number.isInteger(next.revision)) throw new Error(translate('The server returned incomplete table data. Existing records have been kept.'));
     if (next.revision < data.revision) return;
-    data = next; tables.forEach(t => { t.updateOptions(); t.load(undefined, background); });
-    parkingMap?.update(data.parking_availability);
+    data = next;
+    if (!parkingMap) parkingAvailability = next.parking_availability;
+    tables.forEach(t => { t.updateOptions(); t.load(undefined, background); });
     document.querySelectorAll('[data-ops-stat]').forEach(n => { const key = n.dataset.opsStat; n.textContent = key === 'revenue' ? money(data.summary[key]) : data.summary[key]; });
   }
   async function readResponse(response) {
@@ -344,7 +347,6 @@
     } catch (error) {
       if (sequence === refreshSequence && error.name !== 'AbortError') {
         table.error('Refresh failed. Existing records have been kept. ' + error.message, () => refresh(table));
-        parkingMap?.showRefreshError();
       }
     } finally {
       window.clearTimeout(timeout);
@@ -356,8 +358,7 @@
   }
 
   async function refreshAvailability(reservations) {
-    if (document.hidden || refreshController || pending.size || availabilityPending) return;
-    const sequence = refreshSequence;
+    if (document.hidden || availabilityPending) return;
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 8000);
     availabilityPending = true;
@@ -367,17 +368,16 @@
         credentials: 'same-origin', cache: 'no-store', signal: controller.signal
       });
       const snapshot = await readResponse(response);
-      if (sequence !== refreshSequence) return;
       if (!Array.isArray(snapshot.locations) || !Number.isFinite(Date.parse(snapshot.refreshed_at))) {
         throw new Error('Invalid availability snapshot.');
       }
       const options = locations => JSON.stringify(locations.map(lot => [lot.id, lot.name]));
-      const locationsChanged = options(snapshot.locations) !== options(data.parking_availability.locations);
-      data.parking_availability = snapshot;
+      const locationsChanged = options(snapshot.locations) !== options(parkingAvailability.locations);
+      parkingAvailability = snapshot;
       if (locationsChanged) reservations.updateOptions();
       parkingMap.update(snapshot);
     } catch (_) {
-      if (sequence === refreshSequence) parkingMap.showRefreshError();
+      parkingMap.showRefreshError();
     } finally {
       window.clearTimeout(timeout);
       availabilityPending = false;
@@ -386,7 +386,6 @@
 
   function setRefreshing(table = null) {
     tables.forEach(item => { item.snapshotBusy = item === table; item.updateLoading(); });
-    if (table) parkingMap?.clearRefreshError();
   }
   async function mutateAccount(table, record, status) {
     const key = table.kind + ':' + record.id; if (pending.has(key)) return;
@@ -411,12 +410,14 @@
         locationFilter.dispatchEvent(new Event('change'));
       }
     });
-    parkingMap.update(data.parking_availability);
-    if (fastAvailability) {
-      window.setInterval(() => refreshAvailability(reservations), 20000);
-    }
+    parkingMap.update(parkingAvailability);
+    const refreshMap = () => refreshAvailability(reservations);
+    refreshMap();
+    window.setInterval(refreshMap, fastAvailability ? 20000 : 60000);
+    document.addEventListener('visibilitychange', refreshMap);
+    window.addEventListener('online', refreshMap);
   }
-  if (reservations && data.parking_availability) {
+  if (reservations && parkingAvailability) {
     const refreshReservations = () => refresh(reservations, true);
     window.setInterval(refreshReservations, 60000);
     document.addEventListener('visibilitychange', () => {

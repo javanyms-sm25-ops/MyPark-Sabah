@@ -65,9 +65,9 @@ function attendance_accounts(): array {
     return array_column(MyParkData::$records['demo_users'], null, 'id');
 }
 
-function attendance_locations(PDO $db, array $actor): array {
+function attendance_locations(PDO $db, array $actor, bool $allLocations = false): array {
     $lots = array_column(MyParkData::$records['demo_lots'], null, 'id');
-    if ($actor['role'] === 'superadmin') return $lots;
+    if ($actor['role'] === 'superadmin' || ($actor['role'] === 'admin' && $allLocations)) return $lots;
     if ($actor['role'] !== 'admin') return [];
     $ids = attendance_query($db, 'SELECT lot_id FROM attendance_admin_locations WHERE scope = ? AND admin_id = ?',
         [vehicle_account_scope(), $actor['id']])->fetchAll(PDO::FETCH_COLUMN);
@@ -167,23 +167,23 @@ function attendance_photo(mixed $data): string {
     return $bytes;
 }
 
-function attendance_visibility(array $actor): array {
+function attendance_visibility(array $actor, bool $allLocations = false): array {
     $where = 's.scope = ?';
     $params = [vehicle_account_scope()];
     if ($actor['role'] === 'staff') {
         $where .= ' AND s.staff_id = ?';
         $params[] = $actor['id'];
-    } elseif ($actor['role'] === 'admin') {
+    } elseif ($actor['role'] === 'admin' && !$allLocations) {
         $where .= ' AND EXISTS (SELECT 1 FROM attendance_admin_locations a WHERE a.scope = s.scope AND a.admin_id = ? AND a.lot_id = s.lot_id)';
         $params[] = $actor['id'];
-    } elseif ($actor['role'] !== 'superadmin') {
+    } elseif (!in_array($actor['role'], ['admin', 'superadmin'], true)) {
         throw new RuntimeException('You do not have access to attendance records.', 403);
     }
     return [$where, $params];
 }
 
-function attendance_rows(PDO $db, array $actor, string $where, array $params, bool $evidence = true, int $limit = 0): array {
-    [$access, $owner] = attendance_visibility($actor);
+function attendance_rows(PDO $db, array $actor, string $where, array $params, bool $evidence = true, int $limit = 0, bool $allLocations = false): array {
+    [$access, $owner] = attendance_visibility($actor, $allLocations && !$evidence);
     $rowLimit = $limit > 0 ? ' LIMIT ' . $limit : '';
     $private = $evidence ? 's.lot_lat, s.lot_lng, r.in_lat, r.in_lng, r.out_lat, r.out_lng,
         r.in_accuracy, r.out_accuracy, r.in_distance, r.out_distance,
@@ -202,8 +202,8 @@ function attendance_rows(PDO $db, array $actor, string $where, array $params, bo
         WHERE $access AND ($where) ORDER BY s.starts_at DESC, s.staff_id, s.id$rowLimit", [...$owner, ...$params])->fetchAll();
 }
 
-function attendance_row(PDO $db, array $actor, int $id): array {
-    $rows = attendance_rows($db, $actor, 's.id = ?', [$id]);
+function attendance_row(PDO $db, array $actor, int $id, bool $evidence = true, bool $allLocations = false): array {
+    $rows = attendance_rows($db, $actor, 's.id = ?', [$id], $evidence, allLocations: $allLocations);
     return $rows[0] ?? throw new RuntimeException('Attendance record not found.', 404);
 }
 

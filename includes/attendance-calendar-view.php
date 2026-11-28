@@ -11,11 +11,14 @@ $legend = ['on_time' => 'On time', 'late' => 'Late', 'missing' => 'Absent', 'lea
     <?php foreach (['-1 month' => 'Previous month', '+1 month' => 'Next month'] as $offset => $label): ?>
       <?php $targetMonth = $first->modify($offset)->format('Y-m'); ?>
       <?php if ($targetMonth >= '1900-01' && $targetMonth <= '9998-12'): ?>
-        <a class="btn btn-secondary" href="<?= e(attendance_report_links($calendarQuery, $page, ['month' => $targetMonth])) ?>#attendance-calendar"><?= te($label) ?></a>
+        <a class="btn btn-secondary" data-monthly-link href="<?= e(attendance_report_links($calendarQuery, $page, ['month' => $targetMonth])) ?>#attendance-calendar"><?= te($label) ?></a>
       <?php endif; ?>
     <?php endforeach; ?>
   </div>
 </div>
+<?php if (!array_filter(array_column($calendar['days'], 'shifts'))): ?>
+  <p class="muted"><?= te('No scheduled shifts for this employee in the selected month and locations.') ?></p>
+<?php endif; ?>
 <ul class="attendance-calendar-legend" aria-label="<?= te('Calendar legend') ?>">
   <?php foreach ($legend as $state => $label): ?><li><span class="attendance-calendar-dot calendar-<?= e($state) ?>" aria-hidden="true"></span><?= te($label) ?></li><?php endforeach; ?>
 </ul>
@@ -28,20 +31,18 @@ $legend = ['on_time' => 'On time', 'late' => 'Late', 'missing' => 'Absent', 'lea
     $state = $day['state'];
     $caption = $legend[$state] ?? ATTENDANCE_LABELS[$state];
   ?>
-    <a class="attendance-calendar-day calendar-<?= e($state) ?>" <?= $date === $workday ? 'aria-current="date"' : '' ?>
+    <a class="attendance-calendar-day calendar-<?= e($state) ?>" data-monthly-link <?= $date === $workday ? 'aria-current="date"' : '' ?>
        aria-label="<?= e(date('D, j M', strtotime($date)) . ' · ' . t($caption)) ?>"
        href="<?= e(attendance_report_links($calendarQuery, $page, ['workday' => $date])) ?>#calendar-day">
       <strong><?= e((int)substr($date, -2)) ?></strong><span class="attendance-day-name"><?= te($caption) ?></span>
     </a>
   <?php endforeach; ?>
 </div>
-<p class="muted"><?= te($actor['role'] === 'admin'
-    ? 'The calendar shows assigned locations only. Overnight shifts stay on the date they start.'
-    : 'Overnight shifts stay on the date they start.') ?></p>
+<p class="muted"><?= te('Overnight shifts stay on the date they start.') ?></p>
 
 <section class="attendance-calendar-detail" id="calendar-day" aria-labelledby="calendar-day-heading">
   <?php if ($selectedDay): ?>
-    <h3 id="calendar-day-heading"><?= e(date('l, j F Y', strtotime($workday))) ?></h3>
+    <h3 id="calendar-day-heading" tabindex="-1"><?= e(date('l, j F Y', strtotime($workday))) ?></h3>
     <p><?= attendance_badge($selectedDay['state']) ?><?= $selectedDay['holiday'] !== null ? ' · ' . e($selectedDay['holiday']) : '' ?></p>
     <?php foreach ($selectedDay['shifts'] as $entry): ?>
       <article class="attendance-review">

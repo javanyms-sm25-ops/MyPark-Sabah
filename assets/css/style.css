@@ -141,6 +141,7 @@
 
 .pe-toast {
   --toast-accent: #287fa8;
+  position: relative;
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) 36px;
   align-items: start;
@@ -159,6 +160,21 @@
 .pe-toast--success { --toast-accent: #168b88; }
 .pe-toast--warning { --toast-accent: #bc770b; }
 .pe-toast--error { --toast-accent: #c04458; }
+
+.pe-toast::after {
+  content: "";
+  position: absolute;
+  inset-inline: 8px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--toast-accent);
+  transform-origin: left;
+  pointer-events: none;
+  animation: toast-countdown var(--toast-duration) linear both paused;
+}
+
+.pe-toast[data-counting-down]::after { animation-play-state: running; }
 
 .pe-toast__icon {
   display: grid;
@@ -203,8 +219,12 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes toast-countdown {
+  to { transform: scaleX(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .pe-toast { animation: none; }
+  .pe-toast, .pe-toast::after { animation: none; }
 }
 
 @media print {

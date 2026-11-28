@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const panel = document.getElementById('attendance-management');
+  const panel = document.querySelector('[data-leave-review-panel]');
   const dialog = document.getElementById('attendance-review-dialog');
   if (!panel || typeof dialog?.showModal !== 'function') return;
 
@@ -29,7 +29,7 @@
     if (dialog.open || submitting) return;
 
     trigger = button;
-    const row = button.closest('tr');
+    const row = button.closest('[data-leave-review-item]');
     const dates = Array.from(row.querySelectorAll('[data-leave-date]'), time => time.textContent.trim());
     title.textContent = button.dataset.attendanceConfirm;
     staffName.textContent = row.querySelector('.attendance-name').textContent.trim();

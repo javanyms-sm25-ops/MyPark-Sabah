@@ -165,3 +165,75 @@
 .date-range-picker .date-range-day:focus-visible { outline-color: var(--blue); outline-offset: -2px; }
 .date-range-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .date-range-actions .date-range-cancel { border: 1px solid var(--border); }
+
+.attendance-month-field input[type="month"] {
+  width: 100%;
+  min-height: 44px;
+}
+.attendance-month-field input[hidden] { display: none; }
+.date-range-trigger.month-picker-trigger { margin-top: .35rem; }
+.month-picker-trigger::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  margin-inline-end: 3px;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: translateY(-2px) rotate(45deg);
+}
+.date-range-picker.month-picker {
+  width: min(340px, calc(100% - 24px));
+  background: var(--card);
+}
+.month-picker h2 { font-size: 1.15rem; margin-bottom: 8px; }
+.month-picker .month-picker-year {
+  margin-bottom: 12px;
+}
+.month-picker-year input {
+  appearance: textfield;
+  width: 6ch;
+  min-width: 0;
+  min-height: 40px;
+  margin: 0;
+  justify-self: center;
+  padding: 0 4px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--navy);
+  font-weight: 600;
+  text-align: center;
+}
+.month-picker-year input::-webkit-inner-spin-button { appearance: none; }
+.month-picker-year input:is(:hover, :focus) { background: var(--light-blue); }
+.month-picker .date-range-choices {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+.month-picker .date-range-choices button {
+  min-height: 52px;
+  padding: 4px 2px;
+  border-color: transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-text);
+  font-size: .87rem;
+}
+.month-picker .date-range-choices button:hover:not(:disabled, [aria-current]) {
+  background: var(--light-blue);
+  color: var(--navy);
+}
+.month-picker .date-range-choices button[aria-current="true"] {
+  background: var(--navy);
+  color: var(--button-text);
+}
+.month-picker .date-range-actions {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.month-picker .date-range-actions button {
+  min-height: 40px;
+  padding: 6px 10px;
+  font-size: .8rem;
+}

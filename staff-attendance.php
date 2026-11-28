@@ -21,6 +21,8 @@ $selected = null;
 $history = [];
 $calendar = null;
 $calendarView = ($_GET['view'] ?? '') === 'calendar';
+$monthlyRequest = $calendarView && $_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['shift'])
+    && ($_SERVER['HTTP_X_MYPARK_MONTHLY_ATTENDANCE'] ?? '') === '1';
 $month = date('Y-m', $now);
 $workday = '';
 $page = 'staff-attendance.php';
@@ -46,16 +48,18 @@ try {
             $error = attendance_error($failure);
         }
     }
-    $history = attendance_rows($db, $actor, 's.shift_date BETWEEN ? AND ?', [date('Y-m-d', strtotime('-30 days', $now)), $today]);
-    if (isset($shiftId) || isset($_GET['shift'])) {
-        $selected = attendance_row($db, $actor, $shiftId ?? attendance_int($_GET['shift']));
-    } else {
-        foreach ($history as $row) {
-            if ($row['shift_date'] === $today) $selected = $row;
-            if (($row['starts_at'] <= $now && $row['ends_at'] > $now)
-                || attendance_can_check_in($row, $now) || attendance_can_check_out($row, $now)) {
-                $selected = $row;
-                break;
+    if (!$monthlyRequest) {
+        $history = attendance_rows($db, $actor, 's.shift_date BETWEEN ? AND ?', [date('Y-m-d', strtotime('-30 days', $now)), $today]);
+        if (isset($shiftId) || isset($_GET['shift'])) {
+            $selected = attendance_row($db, $actor, $shiftId ?? attendance_int($_GET['shift']));
+        } else {
+            foreach ($history as $row) {
+                if ($row['shift_date'] === $today) $selected = $row;
+                if (($row['starts_at'] <= $now && $row['ends_at'] > $now)
+                    || attendance_can_check_in($row, $now) || attendance_can_check_out($row, $now)) {
+                    $selected = $row;
+                    break;
+                }
             }
         }
     }
@@ -69,6 +73,12 @@ try {
     }
 } catch (RuntimeException $failure) {
     if ($error === '') $error = attendance_error($failure);
+}
+
+if ($monthlyRequest) {
+    header('X-MyPark-Monthly-Attendance: 1');
+    require __DIR__ . '/includes/attendance-monthly-panel.php';
+    exit;
 }
 
 head('My Attendance');
@@ -176,23 +186,7 @@ head('My Attendance');
     <?php endif; ?>
   </section>
 
-  <?php if ($calendarView): ?>
-    <section class="staff-card" id="attendance-calendar" aria-labelledby="attendance-calendar-heading">
-      <h2 id="attendance-calendar-heading"><?= te('Monthly Calendar') ?></h2>
-      <form method="get" action="staff-attendance.php#attendance-calendar" class="attendance-controls">
-        <input type="hidden" name="view" value="calendar">
-        <div class="attendance-fields">
-          <label><?= te('Month') ?><input type="month" name="month" value="<?= e($month) ?>" min="1900-01" max="9998-12" required></label>
-        </div>
-        <button class="staff-button"><?= te('View month') ?></button>
-      </form>
-      <?php if ($calendar):
-          $calendarQuery = ['view' => 'calendar', 'month' => $month];
-          $subject = $actor['name'] . ' · ' . attendance_staff_id($actor['id']);
-          require __DIR__ . '/includes/attendance-calendar-view.php';
-      endif; ?>
-    </section>
-  <?php endif; ?>
+  <?php if ($calendarView) require __DIR__ . '/includes/attendance-monthly-panel.php'; ?>
 
   <section class="staff-card" id="attendance-history" aria-labelledby="attendance-history-heading">
     <h2 id="attendance-history-heading"><?= te('Attendance History') ?></h2>
@@ -227,4 +221,5 @@ head('My Attendance');
   </section>
 </div>
 <script src="assets/js/employee-attendance.js" defer></script>
+<?php if ($calendarView) require __DIR__ . '/includes/month-picker-dialog.php'; ?>
 <?php foot(false); ?>

@@ -34,11 +34,76 @@
 }
 .table-page-size { flex-wrap: wrap; justify-content: flex-end; }
 .table-footer .table-page-size select {
-  width: auto;
+  width: 52px;
+  height: 32px;
   min-height: 32px;
   margin: 0;
-  padding: 4px 7px;
+  padding: 2px 4px;
   font-size: 12px;
+  border-radius: 7px;
+  background-color: var(--glass-control);
+  color: var(--navy);
+  text-align: center;
+  text-align-last: center;
+}
+.table-footer .table-page-size option {
+  background-color: var(--card);
+  color: var(--text);
+}
+.table-footer .table-page-size option:checked {
+  background-color: var(--navy);
+  color: var(--button-text);
+}
+@supports (appearance: base-select) and selector(::picker(select)) {
+  .table-footer .table-page-size select,
+  .table-footer .table-page-size select::picker(select) {
+    appearance: base-select;
+  }
+  .table-footer .table-page-size select {
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  .table-footer .table-page-size select::picker-icon {
+    position: absolute;
+    inset-inline-end: 5px;
+    font-size: 9px;
+  }
+  .table-footer .table-page-size select::picker(select) {
+    position-area: block-end;
+    position-try-fallbacks: none;
+    align-self: start;
+    margin: 4px 0 0;
+    max-block-size: none;
+    padding: 3px;
+    border: 1px solid var(--glass-field-border);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
+  .table-footer .table-page-size option {
+    justify-content: center;
+    min-height: 28px;
+    padding: 3px 4px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .table-footer .table-page-size option::checkmark { display: none; }
+  .table-footer .table-page-size option:checked { font-weight: 600; }
+  .table-footer .table-page-size option:not(:checked):is(:hover, :focus-visible) {
+    background-color: var(--glass-control-hover);
+  }
+  .table-footer .table-page-size option:focus-visible {
+    outline: 2px solid var(--glass-focus);
+    outline-offset: -2px;
+  }
+  body:has(.table-footer .table-page-size select:open)::after {
+    content: "";
+    display: block;
+    block-size: 108px;
+  }
 }
 @container table-footer (max-width: 660px) {
   .table-footer > .pagination { grid-column: 1 / -1; grid-row: 2; }

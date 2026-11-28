@@ -15,9 +15,9 @@ foreach ($report['locations'] as $locationRow) {
     $places[] = ['name' => $locationRow['name'], 'size' => $locationRow['present'], 'value' => $locationRow['present']];
 }
 ?>
-<section class="ops-panel attendance-panel" aria-labelledby="attendance-trends-heading">
-  <div class="attendance-heading"><div><h2 id="attendance-trends-heading"><?= te('Attendance Trends') ?></h2>
-    <p class="muted"><?= e($filters['from']) ?> – <?= e($filters['to']) ?> · MYT</p></div></div>
+<details class="ops-panel attendance-panel attendance-trends">
+  <summary><?= te('Attendance Trends') ?></summary>
+  <p class="muted"><?= e($filters['from']) ?> – <?= e($filters['to']) ?> · MYT</p>
   <div class="attendance-chart-card">
     <h3><?= te('Daily attendance trend') ?></h3>
     <p class="muted"><?= te('Latest 14 scheduled dates in the current selection. A dash means no completed, settled days.') ?></p>
@@ -67,4 +67,4 @@ foreach ($report['locations'] as $locationRow) {
       <?php attendance_status_bars($places); ?>
     </section>
   </div>
-</section>
+</details>

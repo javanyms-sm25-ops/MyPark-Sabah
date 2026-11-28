@@ -60,8 +60,9 @@
 .operations-page .ops-panel h2 { margin: 0; font-size: 18px; line-height: 26px; font-weight: 600; color: var(--text); }
 .ops-count { font-size: 12px; color: var(--muted-text); background: var(--glass-control); padding: 3px 8px; border-radius: 6px; }
 .ops-caption, .ops-initial { margin: 0; padding: 0 20px 16px; color: var(--muted-text); font-size: 13px; }
-.ops-toolbar, .ops-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 0 20px 14px; }
+.ops-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 0 20px 14px; }
 .ops-toolbar > select { flex: 0 1 170px; }
+.ops-toolbar > .ops-button.ops-export-button { min-height: 44px; margin-inline-start: auto; }
 .ops-panel input, .ops-panel select { min-width: 0; width: auto; margin: 0; min-height: 44px; height: 44px; padding: 8px 10px; border: 1px solid var(--glass-field-border); border-radius: 7px; background: var(--card); color: var(--text); font: 400 14px/20px "Poppins", Arial, sans-serif; }
 .ops-panel input:focus, .ops-panel select:focus { outline: 2px solid var(--glass-focus); outline-offset: 1px; border-color: var(--glass-focus); }
 .ops-search { position: relative; flex: 1 1 300px; max-width: 360px; min-width: 200px; }
@@ -76,12 +77,11 @@
 .ops-panel .ops-button:disabled { opacity: 0.5; cursor: not-allowed; }
 .ops-panel button:focus-visible, .ops-dialog button:focus-visible { outline: 2px solid var(--glass-focus); outline-offset: 2px; }
 .ops-panel .ops-search-clear { position: absolute; right: 6px; top: 4px; min-height: 32px; padding: 4px; background: transparent; color: var(--muted-text); font-size: 11px; font-weight: 500; transform: none; }
-.ops-dates { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ops-dates { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .ops-dates > div { display: flex; align-items: center; gap: 6px; }
 .ops-dates label { margin: 0; font-size: 12px; color: var(--muted-text); }
 .ops-dates input { max-width: 148px; font-size: 12px; }
 .ops-panel .ops-dates .date-range-trigger { width: auto; min-height: 40px; margin: 0; font-size: 0.8rem; }
-.ops-tools > .ops-button { min-height: 40px; }
 .ops-filter-tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 20px 14px; }
 .ops-panel .ops-filter-tag { max-width: 100%; min-height: 30px; padding: 4px 9px; border: 1px solid var(--glass-rim); border-radius: 6px; background: var(--glass-control); color: var(--navy); font-size: 12px; font-weight: 400; white-space: normal; overflow-wrap: anywhere; text-align: left; }
 .ops-panel .ops-link-button { min-height: 30px; padding: 4px 6px; background: transparent; color: var(--navy); font-size: 12px; text-decoration: underline; }
@@ -289,14 +289,14 @@ button.ops-location-thumb { cursor: zoom-in; }
   .ops-location-form { grid-template-columns: minmax(0, 1fr); }
 }
 .ops-panel [hidden], .ops-dialog [hidden] { display: none; }
-.ops-availability-heading { justify-content: space-between; }
-.ops-availability-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; color: var(--muted-text); font-size: 13px; }
-.ops-availability-tools time { color: var(--text); font-weight: 600; }
 .ops-availability-layout { display: grid; align-items: start; gap: 14px; padding: 0 20px 20px; }
 .ops-availability-layout.has-map { grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr); }
 .ops-map-canvas { height: clamp(300px, 46vh, 400px); min-width: 0; border: 1px solid var(--glass-rim); border-radius: 8px; background: var(--glass-control); }
+.ops-availability-sidebar { display: grid; gap: 8px; min-width: 0; }
+.ops-availability-search { margin: 0; }
+.ops-panel .ops-availability-search input { width: 100%; }
 .ops-availability-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 8px; padding: 0; margin: 0; list-style: none; }
-.has-map .ops-availability-list { grid-template-columns: 1fr; max-height: 400px; overflow: auto; }
+.has-map .ops-availability-list { grid-template-columns: 1fr; max-height: calc(clamp(300px, 46vh, 400px) - 52px); overflow: auto; }
 .ops-panel .ops-availability-location {
   display: block;
   width: 100%;
@@ -336,15 +336,13 @@ button.ops-location-thumb { cursor: zoom-in; }
 }
 @media (max-width: 600px) {
   .ops-panel-heading { padding: 16px; }
-  .ops-toolbar, .ops-tools, .ops-filter-tags { padding-left: 16px; padding-right: 16px; }
+  .ops-toolbar, .ops-filter-tags { padding-left: 16px; padding-right: 16px; }
   .ops-search { flex-basis: 100%; max-width: none; min-width: 0; }
   .ops-toolbar > select { flex: 1 1 120px; max-width: 100%; }
-  .ops-dates { width: 100%; }
   .ops-dates > div { flex: 1 1 130px; display: block; }
   .ops-dates input { display: block; width: 100%; max-width: none; margin-top: 4px; }
   .ops-panel .ops-dates .date-range-trigger { width: 100%; margin-top: 4px; }
-  .ops-tools { gap: 8px; }
-  .ops-tools > .ops-button { white-space: normal; }
+  .ops-toolbar > .ops-button.ops-export-button { max-width: 100%; white-space: normal; }
   .ops-table-footer { padding: 12px 16px; }
   .ops-result-count { width: 100%; }
   .ops-notice { flex-wrap: wrap; margin-left: 16px; margin-right: 16px; }

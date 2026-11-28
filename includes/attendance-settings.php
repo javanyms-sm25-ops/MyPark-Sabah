@@ -14,7 +14,7 @@
 
 <details class="ops-panel attendance-panel" id="access" <?= in_array($_POST['action'] ?? '', ['grant_scope', 'revoke_scope'], true) ? 'open' : '' ?>>
   <summary><?= te('Admin Location Access') ?></summary>
-  <p><?= te('Admins can only view, schedule, review, and export attendance for locations you assign here.') ?></p>
+  <p><?= te('These assignments control where Admins can schedule shifts, review evidence, and export attendance.') ?></p>
   <?php if ($admins && $locations): ?>
     <form method="post" action="<?= e($page) ?>?tab=settings#access" class="attendance-controls">
       <?= attendance_fields('grant_scope') ?>

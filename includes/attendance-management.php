@@ -7,7 +7,7 @@ $view = ajax_table_view('leave-review', $leaveRequests, [
     'empty' => $dateQuery !== '' ? 'No matching leave requests.' : 'No leave requests yet.',
 ]);
 ?>
-<section class="ops-panel attendance-panel" id="attendance-management" aria-labelledby="attendance-heading">
+<section class="ops-panel attendance-panel" id="attendance-management" aria-labelledby="attendance-heading" data-leave-review-panel>
   <div class="ops-panel-heading attendance-panel-heading">
     <h2 id="attendance-heading"><?= te('Leave requests') ?></h2>
     <span class="attendance-pending-count"><?= te('{count} pending', ['count' => count(array_filter($leaveRequests, static fn($leave) => $leave['status'] === 'pending'))]) ?></span>
@@ -40,7 +40,7 @@ $view = ajax_table_view('leave-review', $leaveRequests, [
         <?php ajax_table_head($view); ?>
         <tbody>
           <?php foreach ($view['rows'] as $leave): ?>
-            <tr>
+            <tr data-leave-review-item>
               <td><strong class="attendance-name"><?= e($leave['staff_name']) ?></strong>
                 <time class="ops-leave-submitted" datetime="<?= e($leave['submitted_at']) ?>"><?= e(date('d M Y', strtotime($leave['submitted_at']))) ?></time>
               </td>
@@ -52,13 +52,10 @@ $view = ajax_table_view('leave-review', $leaveRequests, [
               }) ?>"><?= te(STAFF_LEAVE_STATUSES[$leave['status']]) ?></span></td>
               <td data-column="actions">
                 <?php if ($leave['status'] === 'pending'): ?>
-                  <form method="post" action="<?= e('admin/' . $attendanceTarget) ?>" class="ops-row-actions">
-                    <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-                    <input type="hidden" name="action" value="leave_review">
-                    <input type="hidden" name="id" value="<?= e($leave['id']) ?>">
-                    <button type="submit" name="decision" value="approved" class="ops-button attendance-approve" data-attendance-confirm="<?= te('Approve this leave request?') ?>"><?= te('Approve') ?></button>
-                    <button type="submit" name="decision" value="rejected" class="ops-button attendance-reject" data-attendance-confirm="<?= te('Reject this leave request?') ?>"><?= te('Reject') ?></button>
-                  </form>
+                  <?php
+                  $leaveAction = 'admin/' . $attendanceTarget;
+                  require __DIR__ . '/attendance-leave-actions.php';
+                  ?>
                 <?php else: ?>
                   <span class="attendance-reviewer"><?= te('Reviewed by {name}', ['name' => $leave['reviewer_name']]) ?></span>
                   <time class="ops-leave-submitted" datetime="<?= e($leave['reviewed_at']) ?>"><?= e(date('d M Y, H:i', strtotime($leave['reviewed_at']))) ?> MYT</time>

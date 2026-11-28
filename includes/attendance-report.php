@@ -68,7 +68,7 @@ function attendance_report_matches(array $row, string $status): bool {
     };
 }
 
-function attendance_report(PDO $db, array $actor, array $locations, array $staff, array $query, int $now, string $type = 'custom'): array {
+function attendance_report(PDO $db, array $actor, array $locations, array $staff, array $query, int $now, string $type = 'custom', bool $allLocations = false): array {
     $filters = attendance_report_filters($query, $locations, $staff, $now, $type);
     ['from' => $from, 'to' => $to, 'employee' => $employee, 'location' => $location, 'status' => $status,
         'search' => $search, 'exception' => $exception] = $filters;
@@ -86,7 +86,7 @@ function attendance_report(PDO $db, array $actor, array $locations, array $staff
     $policy = attendance_report_policy($db);
     $holidays = attendance_report_holidays($db, $from, $to);
     $periodClosed = $now >= strtotime($to . ' +1 day');
-    $records = attendance_rows($db, $actor, $where, $params, false, ATTENDANCE_REPORT_MAX_ROWS + 1);
+    $records = attendance_rows($db, $actor, $where, $params, false, ATTENDANCE_REPORT_MAX_ROWS + 1, $allLocations);
     if (count($records) > ATTENDANCE_REPORT_MAX_ROWS) {
         throw new RuntimeException('This report has too many shifts. Narrow the dates, employee, or location.', 422);
     }
@@ -125,11 +125,29 @@ function attendance_report_month(mixed $value, int $now): string {
     return $value;
 }
 
+function attendance_monthly_employee(array $staff, string $query): string {
+    if ($query === '') return '';
+    $query = mb_strtolower($query, 'UTF-8');
+    $matches = $exactNames = [];
+    foreach ($staff as $id => $employee) {
+        $staffId = attendance_staff_id($id);
+        $name = mb_strtolower($employee['name'], 'UTF-8');
+        $label = $name . ' · ' . strtolower($staffId);
+        if ($label === $query || strcasecmp($staffId, $query) === 0) return (string)$id;
+        if ($name === $query) $exactNames[] = $id;
+        if (str_contains($label, $query)) $matches[] = $id;
+    }
+    $results = $exactNames ?: $matches;
+    if (count($results) === 1) return (string)$results[0];
+    throw new RuntimeException($results ? 'More than one employee matches. Choose a suggestion or enter the full staff ID.'
+        : 'No employees match your search.', 422);
+}
+
 function attendance_calendar(PDO $db, array $actor, array $locations, array $staff, string $employee, string $month, int $now, string $location = '', string $workday = ''): array {
     $first = $month . '-01';
     $last = date('Y-m-t', strtotime($first));
     $report = attendance_report($db, $actor, $locations, $staff,
-        ['from' => $first, 'to' => $last, 'employee' => $employee, 'location' => $location], $now);
+        ['from' => $first, 'to' => $last, 'employee' => $employee, 'location' => $location], $now, allLocations: true);
     $byDate = [];
     foreach (array_reverse($report['rows']) as $row) $byDate[$row['shift_date']][] = $row;
     $days = [];
@@ -137,9 +155,11 @@ function attendance_calendar(PDO $db, array $actor, array $locations, array $sta
         $key = $date->format('Y-m-d');
         $shifts = $byDate[$key] ?? [];
         if ($key === $workday) {
+            [$access, $params] = attendance_visibility($actor);
             foreach ($shifts as &$shift) {
-                $shift['calendar_photo'] = (bool)attendance_query($db, 'SELECT 1 FROM attendance_photos WHERE shift_id = ?',
-                    [$shift['id']])->fetchColumn();
+                $shift['calendar_photo'] = (bool)attendance_query($db, "SELECT 1 FROM attendance_photos p
+                    JOIN attendance_shifts s ON s.id = p.shift_id WHERE $access AND s.id = ?",
+                    [...$params, $shift['id']])->fetchColumn();
             }
             unset($shift);
         }

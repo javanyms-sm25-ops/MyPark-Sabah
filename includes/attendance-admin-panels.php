@@ -5,7 +5,7 @@
         $filterValues['from'] = $filterValues['to'] = '';
     }
   ?>
-  <section class="ops-panel attendance-panel" id="attendance-report" aria-labelledby="report-heading">
+  <section class="ops-panel attendance-panel<?= $tab === 'overview' ? ' attendance-overview' : '' ?>" id="attendance-report" aria-labelledby="report-heading">
     <div class="attendance-heading">
       <div><h2 id="report-heading"><?= te(match ($tab) {
         'records' => 'Attendance Records', 'exceptions' => 'Attendance Exceptions', default => 'Attendance Overview',
@@ -21,6 +21,10 @@
     <?php if ($report && $tab === 'overview'): ?>
       <?php attendance_report_summary_tiles($report['summary'], true); ?>
       <?php if (!$report['rows']): ?><p class="attendance-empty"><?= te('No attendance records match these filters.') ?></p><?php endif; ?>
+    <?php endif; ?>
+    <?php if ($tab === 'overview'): ?>
+      <details class="attendance-details" <?= array_filter($tabFilters) || $error !== '' ? 'open' : '' ?>>
+        <summary><?= te('Filter attendance') ?></summary>
     <?php endif; ?>
     <form method="get" action="<?= e($page) ?>#attendance-report" class="attendance-controls" data-date-range data-date-range-require-both>
       <input type="hidden" name="tab" value="<?= e($tab) ?>">
@@ -38,39 +42,16 @@
       </div>
       <small><?= te('Leave both dates blank to view today’s report.') ?></small>
     </form>
+    <?php if ($tab === 'overview'): ?></details><?php endif; ?>
   </section>
 <?php endif; ?>
 
-<?php if ($tab === 'overview' && $report && $report['rows']): ?>
-  <?php require __DIR__ . '/attendance-trends.php'; ?>
+<?php if ($tab === 'overview'): ?>
+  <?php require __DIR__ . '/attendance-overview.php'; ?>
+  <?php if ($report && $report['rows']) require __DIR__ . '/attendance-trends.php'; ?>
 <?php endif; ?>
 
-<?php if ($tab === 'calendar'): ?>
-  <section class="ops-panel attendance-panel" id="attendance-calendar" aria-labelledby="attendance-calendar-heading">
-    <h2 id="attendance-calendar-heading"><?= te('Monthly Calendar') ?></h2>
-    <form action="<?= e($page) ?>#attendance-calendar" method="get" class="attendance-controls">
-      <input type="hidden" name="tab" value="calendar">
-      <?php foreach ($filters as $name => $value): if ($value === '') continue; ?>
-        <input type="hidden" name="<?= e($name) ?>" value="<?= e($value) ?>">
-      <?php endforeach; ?>
-      <div class="attendance-fields">
-        <?php attendance_select('calendar_employee', 'Employee', attendance_staff_options($staff), is_string($calendarEmployee) ? $calendarEmployee : '', 'Choose an employee'); ?>
-        <label><?= te('Month') ?><input type="month" name="month" value="<?= e($month) ?>" min="1900-01" max="9998-12" required></label>
-        <?php attendance_select('calendar_location', 'Parking location', array_column($locations, 'name', 'id'),
-          is_string($calendarLocation) ? $calendarLocation : '', 'All permitted locations'); ?>
-      </div>
-      <button class="btn"><?= te('View month') ?></button>
-    </form>
-    <?php if ($calendar):
-        $calendarQuery = $filters + ['tab' => 'calendar', 'calendar_employee' => $calendarEmployee,
-            'calendar_location' => $calendarLocation, 'month' => $month];
-        $subject = $staff[$calendarEmployee]['name'] . ' · ' . attendance_staff_id((int)$calendarEmployee);
-        require __DIR__ . '/attendance-calendar-view.php';
-    else: ?>
-      <p class="attendance-empty"><?= te($staff ? 'Choose an employee and month to see scheduled shifts.' : 'No employees are available in your attendance scope.') ?></p>
-    <?php endif; ?>
-  </section>
-<?php endif; ?>
+<?php if ($tab === 'calendar') require __DIR__ . '/attendance-monthly-panel.php'; ?>
 
 <?php if ($tab === 'reports'): ?>
   <section class="ops-panel attendance-panel" id="report-config" aria-labelledby="report-config-title">
@@ -92,18 +73,23 @@
       <p class="muted"><?= te('Daily, weekly, and monthly reports use the start date to select a day, Monday–Sunday week, or calendar month.') ?></p>
       <div class="attendance-actions">
         <button type="submit" class="btn btn-secondary" name="generate" value="preview"><?= te('Preview report') ?></button>
-        <button type="submit" class="btn" name="generate" value="download"><?= te('Download report') ?></button>
+        <button type="submit" class="btn" name="generate" value="download" <?= $managedLocations ? '' : 'disabled' ?>><?= te('Download report') ?></button>
       </div>
     </form>
     <small><?= te('Downloads exclude photos, precise GPS coordinates, and private review notes.') ?></small>
+    <?php if (!$super): ?><small><?= te('Downloads cover your assigned parking locations. A Super Admin can assign export access.') ?></small><?php endif; ?>
   </section>
   <?php if ($report): ?>
     <section class="ops-panel attendance-panel" id="report-preview" aria-labelledby="preview-heading">
       <div class="attendance-heading"><div>
         <h2 id="preview-heading"><?= te(ATTENDANCE_REPORT_TYPES[$reportType]) ?></h2>
         <p class="muted"><?= e($filters['from']) ?> – <?= e($filters['to']) ?> · MYT</p>
-      </div><a class="btn btn-secondary" href="<?= e(attendance_report_links($filters, $page,
-        ['tab' => 'reports', 'report_type' => $reportType, 'export' => $format])) ?>"><?= te('Download {format}', ['format' => ATTENDANCE_REPORT_FORMATS[$format]]) ?></a></div>
+      </div>
+      <?php if ($managedLocations && ($filters['location'] === '' || isset($managedLocations[$filters['location']]))): ?>
+        <a class="btn btn-secondary" href="<?= e(attendance_report_links($filters, $page,
+          ['tab' => 'reports', 'report_type' => $reportType, 'export' => $format])) ?>"><?= te('Download {format}', ['format' => ATTENDANCE_REPORT_FORMATS[$format]]) ?></a>
+      <?php endif; ?>
+      </div>
       <?php attendance_report_summary_tiles($report['summary']); ?>
       <?php if ($reportType === 'full' && !$report['period_closed']): ?>
         <p class="attendance-notice"><?= te('Full attendance is assessed after the selected period and its shifts end.') ?></p>

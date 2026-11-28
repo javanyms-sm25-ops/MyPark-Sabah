@@ -38,6 +38,21 @@
 
   window.MyParkTableRequest = { create: createRequest, pageLabel };
 
+  // Make room below a page-size menu opened near the viewport edge.
+  document.addEventListener('focusin', event => {
+    if (!event.target.matches('.table-footer .table-page-size select option')
+        || !CSS.supports('selector(::picker(select))')) return;
+    const select = event.target.closest('select');
+    requestAnimationFrame(() => {
+      if (!select.matches(':open')) return;
+      const last = select.options[select.options.length - 1];
+      const viewport = window.visualViewport;
+      const bottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
+      const overflow = last.getBoundingClientRect().bottom + 8 - bottom;
+      if (overflow > 0) window.scrollBy({ top: Math.ceil(overflow), behavior: 'instant' });
+    });
+  });
+
   document.querySelectorAll('[data-ajax-table]').forEach(table => {
     const id = table.dataset.ajaxTable;
     const prefix = id + '_';

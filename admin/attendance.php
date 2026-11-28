@@ -55,19 +55,10 @@ head('Attendance');
 <div class="operations-page attendance-page">
   <h1><?= te('Attendance') ?></h1>
   <p class="attendance-subtitle"><?= te('Review staff leave requests.') ?></p>
-  <?php require dirname(__DIR__) . '/includes/attendance-management.php'; ?>
-  <dialog class="attendance-review-dialog" id="attendance-review-dialog" aria-labelledby="attendance-review-title"
-          aria-describedby="attendance-review-summary" data-saving-label="<?= te('Saving…') ?>">
-    <h2 id="attendance-review-title"></h2>
-    <div class="attendance-review-summary" id="attendance-review-summary">
-      <strong data-review-staff></strong>
-      <span data-review-dates></span>
-    </div>
-    <div class="attendance-review-actions">
-      <button type="button" data-review-cancel autofocus><?= te('Cancel') ?></button>
-      <button type="button" data-review-confirm></button>
-    </div>
-  </dialog>
+  <?php
+  require dirname(__DIR__) . '/includes/attendance-management.php';
+  require dirname(__DIR__) . '/includes/attendance-leave-dialog.php';
+  ?>
 </div>
 <?php require dirname(__DIR__) . '/includes/date-range-dialog.php'; ?>
 <script src="assets/js/attendance.js" defer></script>

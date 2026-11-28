@@ -4,18 +4,17 @@
 
   function mount(section, { selectLocation }) {
     const translate = window.MyParkLocale?.text ?? (message => message);
-    const dateFormat = new Intl.DateTimeFormat(document.documentElement.lang || 'en-MY', {
-      dateStyle: 'medium', timeStyle: 'medium', timeZone: 'Asia/Kuala_Lumpur'
-    });
     const canvas = section.querySelector('[data-parking-map]');
     const layout = canvas.parentElement;
     const list = section.querySelector('[data-availability-locations]');
-    const time = section.querySelector('[data-availability-time]');
+    const search = section.querySelector('[data-availability-search]');
+    const searchStatus = section.querySelector('[data-availability-search-status]');
     const mapMessage = section.querySelector('[data-maps-message]');
     const refreshError = section.querySelector('[data-availability-error]');
     const markers = new Map();
     const buttons = new Map();
     let locations = new Map();
+    let visibleLocations = new Map();
     let selectedId = '', openId = '', positionsKey = '';
     let maps, map, infoWindow, loadTimeout;
     let mapState = 'idle', renderedCatalog = '';
@@ -71,11 +70,11 @@
       infoWindow.open({ map, anchor: marker, shouldFocus: false });
     }
 
-    function renderLocations() {
+    function renderLocations(query) {
       const focusedId = document.activeElement?.dataset.availabilityLocation;
       buttons.clear();
       const items = [];
-      for (const [id, location] of locations) {
+      for (const [id, location] of visibleLocations) {
         const item = element('li');
         const button = element('button', 'ops-availability-location');
         button.type = 'button';
@@ -88,9 +87,15 @@
         items.push(item);
         buttons.set(id, button);
       }
-      if (!items.length) items.push(element('li', 'ops-availability-note', translate('No parking locations yet.')));
+      if (!items.length) {
+        const message = query ? 'No matching parking locations.' : 'No parking locations yet.';
+        items.push(element('li', 'ops-availability-note', translate(message)));
+      }
       list.replaceChildren(...items);
-      buttons.get(focusedId)?.focus({ preventScroll: true });
+      if (focusedId) (buttons.get(focusedId) ?? search).focus({ preventScroll: true });
+      const count = visibleLocations.size;
+      const status = query ? translate(count === 1 ? '{count} location found' : '{count} locations found', { count }) : '';
+      if (searchStatus.textContent !== status) searchStatus.textContent = status;
     }
 
     function setSelection(id) {
@@ -103,13 +108,13 @@
 
     function updateMarkers() {
       for (const [id, marker] of markers) {
-        if (locations.get(id)?.position) continue;
+        if (visibleLocations.get(id)?.position) continue;
         if (openId === id) closeInfoWindow();
         marker.map = null;
         markers.delete(id);
       }
 
-      const plotted = [...locations.values()].filter(location => location.position);
+      const plotted = [...visibleLocations.values()].filter(location => location.position);
       const nextPositions = JSON.stringify(plotted.map(location => [location.id, location.position]));
       for (const location of plotted) {
         const id = String(location.id);
@@ -218,30 +223,40 @@
       }
     }
 
+    function render() {
+      const normalize = text => text.normalize('NFKC').toLocaleLowerCase().trim();
+      const query = normalize(search.value);
+      visibleLocations = query ? new Map([...locations].filter(([, location]) =>
+        location.capacity > 0 && normalize(location.name + ' ' + location.city).includes(query)
+      )) : locations;
+      renderLocations(query);
+      renderMap();
+    }
+
+    search.closest('label').hidden = false;
+    search.addEventListener('input', () => {
+      list.scrollTop = 0;
+      render();
+    });
+
     function update(snapshot) {
       section.hidden = !snapshot;
       if (!snapshot) {
         closeInfoWindow();
         return;
       }
-      time.dateTime = snapshot.refreshed_at;
-      time.textContent = dateFormat.format(new Date(snapshot.refreshed_at)) + ' MYT';
       refreshError.hidden = true;
 
       const catalog = JSON.stringify(snapshot.locations);
       if (catalog === renderedCatalog) return;
       renderedCatalog = catalog;
       locations = new Map(snapshot.locations.map(location => [String(location.id), location]));
-      renderLocations();
-      renderMap();
+      render();
     }
 
     return {
       update,
       setSelection,
-      clearRefreshError() {
-        refreshError.hidden = true;
-      },
       showRefreshError() {
         if (!refreshError.hidden) return;
         refreshError.textContent = translate('Refresh failed. Showing the last known parking availability.');

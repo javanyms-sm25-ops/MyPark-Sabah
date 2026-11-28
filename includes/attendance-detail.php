@@ -9,6 +9,7 @@
   <div><dt><?= te('Check Out') ?></dt><dd><?= e(attendance_clock($out)) ?></dd></div>
   <div><dt><?= te('Working duration') ?></dt><dd><?= e(attendance_duration($row)) ?></dd></div>
 </dl>
+<?php if ($showAttendanceEvidence ?? true): ?>
 <div class="attendance-location-grid" id="attendance-locations">
   <?php foreach (['in' => 'Check-in location', 'out' => 'Check-out location'] as $event => $label):
     $mapUrl = attendance_location_map_url($row, $event);
@@ -76,6 +77,7 @@
     </div>
   </div>
 </details>
+<?php endif; ?>
 <?php if ($requests): ?>
   <section class="attendance-reviews" aria-label="<?= te('Attendance reviews') ?>">
     <h3><?= te('Attendance reviews') ?></h3>

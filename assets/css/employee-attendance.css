@@ -193,8 +193,17 @@
   --attendance-review-text: #ffd5b0;
 }
 
+.attendance-workspace-header {
+  border: 1px solid var(--glass-rim);
+  border-radius: 1.25rem;
+  background: var(--card);
+  box-shadow: var(--glass-elevation);
+}
+
 .attendance-page-header {
-  padding-block: .5rem;
+  padding: clamp(1rem, 3vw, 1.9rem);
+  border-radius: inherit;
+  background: linear-gradient(110deg, var(--card) 42%, var(--glass-control));
 }
 
 .attendance-page-header h1 { font-size: clamp(1.75rem, 3.5vw, 2.4rem); }
@@ -211,11 +220,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: .45rem;
-  padding: .5rem;
-  border: 1px solid var(--glass-rim);
-  border-radius: 1rem;
-  background: var(--glass-panel);
-  box-shadow: var(--glass-elevation);
+  padding: .5rem clamp(.55rem, 2vw, 1.15rem);
+  border-top: 1px solid var(--glass-rim);
 }
 
 .attendance-tabs a {
@@ -263,6 +269,117 @@
 .attendance-trend strong { font-variant-numeric: tabular-nums; }
 
 .attendance-summary > div dd { font-size: clamp(1rem, 2vw, 1.5rem); }
+
+.operations-page.employee-attendance :is(.attendance-overview, .attendance-leave-preview) {
+  background: var(--card);
+}
+
+.attendance-overview .attendance-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .85rem;
+}
+
+.attendance-overview .attendance-key-metric {
+  display: grid;
+  align-content: start;
+  gap: .3rem;
+  min-height: 7rem;
+  padding: clamp(.75rem, 2vw, 1.1rem);
+  border-radius: 1rem;
+  box-shadow: none;
+  background: var(--card);
+}
+
+.attendance-overview .attendance-key-metric dt {
+  font-size: .86rem;
+  font-weight: 500;
+}
+
+.attendance-overview .attendance-key-metric dd {
+  font-size: clamp(1.65rem, 3.5vw, 2.55rem);
+  font-weight: 600;
+  line-height: 1.12;
+  color: var(--navy);
+}
+.attendance-overview [data-metric="late"] dd { color: var(--glass-warning-text); }
+.attendance-overview [data-metric="leave"] dd { color: var(--green); }
+
+.attendance-section-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem .75rem;
+}
+
+.attendance-leave-list, .attendance-week-days {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attendance-leave-list > li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .85rem;
+  padding-block: .85rem;
+  border-top: 1px solid var(--border);
+}
+
+.attendance-leave-avatar {
+  display: grid;
+  place-items: center;
+  width: 2.7rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--glass-tab-surface);
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.attendance-leave-person { overflow-wrap: anywhere; }
+.attendance-leave-person p { font-size: .85rem; }
+.attendance-leave-person .attendance-leave-reason { margin-top: .2rem; }
+.attendance-leave-preview .ops-row-actions { flex-wrap: wrap; }
+.attendance-leave-preview .ops-row-actions .attendance-approve {
+  background: var(--glass-success-bg);
+  border-color: var(--glass-success-bg);
+  color: var(--green);
+}
+.attendance-leave-preview .ops-row-actions .attendance-reject {
+  background: var(--glass-error-bg);
+  border-color: var(--glass-error-bg);
+}
+.attendance-leave-preview .ops-row-actions .ops-button:hover { border-color: currentColor; }
+
+.operations-page.employee-attendance .attendance-week { background: var(--glass-control); }
+.attendance-week-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: .55rem;
+}
+.attendance-week-days li { display: grid; gap: .35rem; text-align: center; }
+.attendance-week-days time { color: var(--muted-text); font-size: .83rem; }
+.attendance-week-days time[aria-current="date"] { color: var(--navy); font-weight: 700; }
+.attendance-week-days strong {
+  padding: .55rem .15rem;
+  border-radius: .65rem;
+  background: var(--card);
+  color: var(--muted-text);
+  font-variant-numeric: tabular-nums;
+}
+.attendance-week-days [data-rate-state="complete"] { background: var(--glass-success-bg); color: var(--green); }
+.attendance-week-days [data-rate-state="partial"] { background: var(--glass-warning-bg); color: var(--glass-warning-text); }
+.attendance-trends > :is(.attendance-chart-card, .attendance-chart-grid) { margin-top: .85rem; }
+
+@media (max-width: 720px) {
+  .attendance-overview .attendance-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .attendance-week-days { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .attendance-leave-list > li { grid-template-columns: auto minmax(0, 1fr); }
+  .attendance-leave-list .ops-row-actions { grid-column: 2; justify-content: flex-start; }
+}
 
 .attendance-chart-grid {
   display: grid;

@@ -58,7 +58,6 @@ if ($availability !== null) {
     $mapsApiKey = trim((string)($mapsConfig['api_key'] ?? ''));
     $mapsId = trim((string)($mapsConfig['map_id'] ?? '')) ?: 'DEMO_MAP_ID';
 }
-$availabilityTime = $availability === null ? null : new DateTimeImmutable($availability['refreshed_at']);
 head('Dashboard');
 ?>
 <link rel="stylesheet" href="assets/css/dashboard.css">
@@ -100,11 +99,8 @@ head('Dashboard');
   <?php if ($availability !== null): ?>
     <section class="ops-panel" id="parking-availability" aria-labelledby="parking-availability-heading"
       data-map-enabled="true" data-maps-key="<?= e($mapsApiKey) ?>" data-maps-id="<?= e($mapsId) ?>">
-      <div class="ops-panel-heading ops-availability-heading">
+      <div class="ops-panel-heading">
         <h2 id="parking-availability-heading"><?= te('Parking Availability Map') ?></h2>
-        <div class="ops-availability-tools">
-          <span><?= te('Last refresh') ?> <time data-availability-time datetime="<?= e($availability['refreshed_at']) ?>"><?= e($availabilityTime->format('j M Y, H:i:s')) ?> MYT</time></span>
-        </div>
       </div>
       <p class="ops-caption">
         <?= te('Select a marker or location to filter the reservations below.') ?>
@@ -114,7 +110,16 @@ head('Dashboard');
       <p class="ops-notice" data-availability-error role="alert" hidden></p>
       <div class="ops-availability-layout">
         <div class="ops-map-canvas" data-parking-map role="region" aria-label="<?= te('Map of parking locations') ?>" hidden></div>
-        <ul class="ops-availability-list" data-availability-locations aria-label="<?= te('Parking locations') ?>"></ul>
+        <div class="ops-availability-sidebar">
+          <label class="ops-availability-search" hidden>
+            <span class="validation-sr-only"><?= te('Search parking locations') ?></span>
+            <input type="search" data-availability-search maxlength="120" autocomplete="off"
+                   placeholder="<?= te('Search city or parking lot') ?>" aria-controls="parking-availability-locations">
+          </label>
+          <p class="validation-sr-only" data-availability-search-status role="status"></p>
+          <ul class="ops-availability-list" id="parking-availability-locations" data-availability-locations
+              aria-label="<?= te('Parking locations') ?>"></ul>
+        </div>
       </div>
       <noscript><p class="ops-caption"><?= te('Enable JavaScript to use the parking availability map.') ?></p></noscript>
     </section>
