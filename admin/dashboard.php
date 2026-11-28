@@ -87,7 +87,7 @@ head('Dashboard');
     <div class="card"><small><?= te('Parking locations') ?></small><b data-ops-stat="lots"><?= $snapshot['summary']['lots'] ?></b></div>
     <div class="card"><small><?= te('Reservations') ?></small><b data-ops-stat="reservations"><?= $snapshot['summary']['reservations'] ?></b></div>
     <div class="card"><small><?= te('Active stays') ?></small><b data-ops-stat="active"><?= $snapshot['summary']['active'] ?></b></div>
-    <div class="card"><small><?= te('Parking revenue') ?></small><b data-ops-stat="revenue">RM <?= number_format($snapshot['summary']['revenue'], 2) ?></b></div>
+    <div class="card"><small><?= te('Parking payments recorded') ?></small><b data-ops-stat="revenue">RM <?= number_format($snapshot['summary']['revenue'], 2) ?></b></div>
   </div>
   <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
     <section class="ops-panel" aria-labelledby="attendance-heading">
@@ -137,7 +137,7 @@ head('Dashboard');
     ] as $kind => [$heading, $columns, $empty]): ?>
       <section class="ops-panel">
         <div class="ops-panel-heading"><h2><?= te($heading) ?></h2></div>
-        <?php $view = ajax_table_view($kind, $snapshot[$kind], $columns, ['empty' => $empty]); ?>
+        <?php $view = ajax_table_view($kind, $snapshot[$kind], $columns, ['empty' => $empty]) + ['inside_noscript' => true]; ?>
         <?php ajax_table_begin($view); ?>
         <div class="ops-table-scroll">
           <table class="ops-table" aria-label="<?= te($heading) ?>">

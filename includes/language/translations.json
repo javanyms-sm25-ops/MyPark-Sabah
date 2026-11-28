@@ -627,7 +627,7 @@
   "Parking locations": {"zh-Hans":"停车地点","ms":"Lokasi parkir"},
   "Reservations": {"zh-Hans":"停车记录","ms":"Tempahan"},
   "Active stays": {"zh-Hans":"进行中的停车","ms":"Sesi aktif"},
-  "Parking revenue": {"zh-Hans":"停车收入","ms":"Hasil parkir"},
+  "Parking payments recorded": {"zh-Hans":"已记录的停车付款","ms":"Bayaran parkir yang direkodkan"},
   "Reservation Management": {"zh-Hans":"停车管理","ms":"Pengurusan tempahan"},
   "Account Management": {"zh-Hans":"账户管理","ms":"Pengurusan akaun"},
   "Preparing reservation table…": {"zh-Hans":"正在准备停车记录…","ms":"Menyediakan jadual tempahan…"},

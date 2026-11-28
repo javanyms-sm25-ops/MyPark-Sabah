@@ -211,7 +211,7 @@ function ajax_table_end(array $view): void {
                 <?php foreach ([10, 25, 50] as $size): ?><option <?= $size === $view['size'] ? 'selected' : '' ?>><?= $size ?></option><?php endforeach; ?>
               </select>
             </label>
-            <noscript><button type="submit" form="<?= e($formId) ?>" class="btn btn-secondary"><?= te('Apply') ?></button></noscript>
+            <?php if (empty($view['inside_noscript'])): ?><noscript><?php endif; ?><button type="submit" form="<?= e($formId) ?>" class="btn btn-secondary"><?= te('Apply') ?></button><?php if (empty($view['inside_noscript'])): ?></noscript><?php endif; ?>
           </div>
         </div>
       </div>

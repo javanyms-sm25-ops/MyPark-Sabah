@@ -82,7 +82,7 @@ function ops_snapshot(array $actor): array {
             'active' => count($active),
             'completed' => count(array_filter($reservations, static fn($b) => $b['status'] === 'completed')),
             'cancelled' => count(array_filter($reservations, static fn($b) => $b['status'] === 'cancelled')),
-            'revenue' => array_sum(array_map(static fn($b) => in_array($b['status'], ['active', 'completed'], true) ? $b['fee'] : 0, $reservations))
+            'revenue' => array_sum(array_column(MyParkData::$records['demo_bookings'], 'paid_amount_cents')) / 100
         ]
     ];
     if (in_array($actor['role'], ['admin', 'superadmin'], true)) {
