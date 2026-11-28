@@ -11,13 +11,17 @@ if (!in_array($actor['role'], ['user', 'admin', 'superadmin'], true)) {
 }
 
 $canPay = can_use_customer_wallet($actor);
-$title = $canPay ? 'Scan & Pay Compound' : 'Check compounds';
+$title = 'Scan & Pay Compound';
 $isPaymentRequest = $_SERVER['REQUEST_METHOD'] === 'POST';
 if ($isPaymentRequest) {
     require_customer_wallet();
     check_csrf();
 }
 staff_store();
+if (!$canPay) {
+    require __DIR__ . '/includes/admin-compounds.php';
+    exit;
+}
 if ($canPay) {
     $wallet =& demo_wallet();
     $balanceCents = (int) round($wallet['balance'] * 100);

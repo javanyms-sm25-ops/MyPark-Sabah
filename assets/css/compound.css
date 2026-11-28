@@ -11,6 +11,19 @@
   box-shadow: var(--shadow-hover);
 }
 
+.compound-overview { max-width: 1088px; }
+.compound-overview .compound-hero p { color: var(--glass-hero-muted); margin: 0; }
+.compound-overview-stats { margin-block: 20px; }
+.compound-overview-stats .card { display: grid; gap: .35rem; }
+.compound-overview-stats .card span { color: var(--muted-text); }
+.compound-overview-table { min-width: 52rem; }
+.compound-overview-details { min-width: 7.5rem; }
+.compound-overview-details[open] { min-width: min(16rem, 58vw); }
+.compound-overview-details summary { color: var(--navy); cursor: pointer; padding-block: .45rem; font-weight: 600; }
+.compound-overview-details dl { margin-bottom: 0; overflow-wrap: anywhere; }
+.compound-overview-details dt { font-weight: 600; }
+.compound-overview-details dd { margin: 0 0 .55rem; color: var(--muted-text); }
+
 .compound-hero h1 {
   margin: 0 0 18px;
   color: var(--glass-on-hero);

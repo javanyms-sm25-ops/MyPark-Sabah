@@ -69,7 +69,7 @@ head('Dashboard');
       <h1><?= te('Dashboard') ?></h1>
       <p class="ops-subtitle"><?= te('Manage reservations and member access.') ?></p>
       <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>
-        <a class="btn" href="compound.php"><?= te('Check compounds') ?></a>
+        <a class="btn" href="compound.php"><?= te('Compound overview') ?></a>
       <?php endif; ?>
     </div>
     <?php if (in_array($actor['role'], ['admin', 'superadmin'], true)): ?>

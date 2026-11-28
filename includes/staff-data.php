@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/staff-leave.php';
 require_once __DIR__ . '/maintenance-photos.php';
+require_once __DIR__ . '/staff-parking-check.php';
 
 // Private parking prototype. Fines and maintenance start with no records.
 const STAFF_FINE_STATUSES = ['unpaid' => 'Unpaid', 'paid' => 'Paid', 'void' => 'Void'];
@@ -114,7 +115,7 @@ function staff_change(array $actor, array $input, ?array $photoFile = null): str
             if ($previous['fingerprint'] !== $fingerprint) throw new RuntimeException('This submission was already used. Reopen the form for a new record.', 409);
             return $previous['message'];
         }
-        $record = $kind === 'fine' ? staff_fine_fields($input) : staff_maintenance_fields($input);
+        $record = $kind === 'fine' ? staff_new_fine_fields($input) : staff_maintenance_fields($input);
         $id = ++MyParkData::$records['staff_counters'][$kind];
         $record += ['id' => $id, 'code' => ($kind === 'fine' ? 'F-' : 'M-') . str_pad((string)$id, 6, '0', STR_PAD_LEFT),
             'created_at' => staff_now(), 'updated_at' => staff_now(), 'created_by' => $actor['id'], 'created_by_name' => $actor['name'], 'version' => 1];
@@ -138,7 +139,14 @@ function staff_change(array $actor, array $input, ?array $photoFile = null): str
     $record = $before; $reason = '';
     if ($action === 'fine_update') {
         if ($before['status'] !== 'unpaid') throw new RuntimeException('Paid and void fines cannot be edited. Their financial history is retained.', 409);
-        $changes = staff_fine_fields($input); $errors = [];
+        if (isset($before['parking_evidence'])) {
+            // Keep the observed plate, reason and time tied to the original parking check.
+            $changes = staff_fine_fields(array_replace($input, array_intersect_key($before, array_flip(['plate', 'violation', 'occurred_at']))));
+            $changes = array_intersect_key($changes, array_flip(['amount_cents', 'notes']));
+        } else {
+            $changes = staff_fine_fields($input);
+        }
+        $errors = [];
         $reason = staff_text($input, 'reason', 'Reason for correction', 500, $errors);
         if ($errors) throw new StaffValidationException($errors);
         $record = array_replace($record, $changes);
@@ -190,7 +198,8 @@ function staff_snapshot(array $actor): array {
         'locations' => array_values(array_map(static fn($l) => [
             'id' => $l['id'], 'name' => $l['name'], 'archived' => isset($l['deleted_at']),
         ], MyParkData::$records['demo_lots'])),
-        'fine_statuses' => STAFF_FINE_STATUSES, 'maintenance_statuses' => STAFF_MAINTENANCE_STATUSES,
+        'fine_statuses' => STAFF_FINE_STATUSES, 'fine_reasons' => STAFF_FINE_REASONS,
+        'parking_check_labels' => STAFF_PARKING_CHECK_LABELS, 'maintenance_statuses' => STAFF_MAINTENANCE_STATUSES,
         'csrf' => csrf(), 'revision' => MyParkData::$records['staff_revision'],
         'summary' => ['total_fines' => count($fines), 'unpaid_fines' => count($unpaid),
             'outstanding_cents' => array_sum(array_column($unpaid, 'amount_cents')),

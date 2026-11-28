@@ -94,6 +94,20 @@
 .staff-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
 .staff-dialog-header h2 { font-size: 19px; }
 .staff-form-fields { min-width: 0; margin: 0; padding: 0; border: 0; }
+.staff-parking-evidence {
+  display: grid;
+  gap: .5rem;
+  margin-block: .75rem;
+  padding: .9rem 1rem;
+  border: 1px solid var(--glass-rim);
+  border-radius: .75rem;
+  background: var(--light-blue);
+  overflow-wrap: anywhere;
+}
+.staff-parking-evidence :is(h3, h4, p, ul) { margin: 0; }
+.staff-unpaid-count { font-weight: 600; }
+.staff-unpaid-list { padding-inline-start: 1.2rem; }
+.staff-fine-issue { padding-top: .75rem; }
 .staff-field { margin-bottom: 18px; }
 .staff-help { margin: 8px 0 0; color: var(--muted-text); font-size: 11px; line-height: 18px; }
 .staff-field-error { margin: 6px 0 0; color: var(--red); font-size: 12px; line-height: 18px; }

@@ -159,7 +159,7 @@
     constructor(host, key, plate = '', onUpdate) {
       this.key = key; this.config = tabs[key]; this.plate = plate; this.onUpdate = onUpdate;
       const { kind, sort, label: title } = this.config;
-      this.state = { q: '', status: '', sort, dir: 'desc', page: 1, size: 10 };
+      this.state = { q: '', status: key === 'vehicle-fines' ? 'unpaid' : '', sort, dir: 'desc', page: 1, size: 10 };
       this.request = tableRequest();
       const tools = el('div', 'staff-table-tools');
       const searchLabel = { fine: 'Search Fine ID or Vehicle Plate', maintenance: 'Search ID, issue or location',
@@ -173,6 +173,7 @@
       });
       this.status = el('select'); this.status.setAttribute('aria-label', translate('Filter by status')); this.status.add(new Option(translate('All statuses'), ''));
       Object.entries(statuses(kind)).forEach(([value, label]) => this.status.add(new Option(translate(label), value)));
+      this.status.value = this.state.status;
       this.status.addEventListener('change', () => { this.state.status = this.status.value; this.resetPage(); });
       const clear = button(translate('Clear filters'), () => {
         this.state.q = this.state.status = this.search.value = this.status.value = '';
@@ -437,18 +438,135 @@
     window.addEventListener('pagehide', stopCamera);
   }
 
-  function editRecord(kind, record, trigger) {
+  function parkingEvidencePanel(evidence) {
+    const panel = el('section', 'staff-parking-evidence');
+    panel.append(el('h3', '', translate(data.parking_check_labels[evidence.status])));
+    const checkedAt = dateText(evidence.checked_at * 1000) + ' MYT';
+    panel.append(el('p', 'staff-muted', evidence.plate + ' · ' + evidence.location + ' · ' + checkedAt));
+    if (evidence.session) {
+      const session = evidence.session;
+      panel.append(el('p', '', translate('Related parking session') + ' #' + session.id + ' · '
+        + translate(session.status) + ' · ' + dateText(session.start * 1000) + ' – ' + dateText(session.end * 1000) + ' MYT'));
+      if (session.paid_cents != null) panel.append(el('p', '', translate('Parking payment recorded') + ' · ' + money(session.paid_cents)));
+    }
+    if (evidence.status === 'no_active_session') {
+      panel.append(el('p', 'staff-muted', translate('Verify the plate, location and any other parking proof before issuing a compound.')));
+    }
+    return panel;
+  }
+
+  function newFineFields(form, fields, plateValue) {
+    const plate = field(fields, 'plate', translate('Vehicle plate'), { value: plateValue, maxLength: 15, placeholder: 'SAB 1234' });
+    plate.autocapitalize = 'characters';
+    plate.spellcheck = false;
+    const lots = data.locations.filter(location => !location.archived);
+    const lot = field(fields, 'lot_id', translate('Parking location'),
+      { tag: 'select', options: [['', 'Select a location'], ...lots.map(location => [location.id, location.name])] });
+    const status = el('p', 'staff-help');
+    status.setAttribute('role', 'status');
+    const result = el('div');
+    const issue = el('div', 'staff-fine-issue');
+    issue.hidden = true;
+    const reason = field(issue, 'violation_reason', translate('Violation type'), {
+      tag: 'select', options: [['', 'Choose a parking violation reason.'], ...Object.entries(data.fine_reasons)]
+    });
+    field(issue, 'amount', translate('Amount (RM)'), { type: 'number', min: '0.01', max: '99999.99', step: '0.01' });
+    field(issue, 'observation', translate('On-site observation'), { tag: 'textarea', maxLength: 500,
+      placeholder: translate('Describe what you saw and what you checked on site.') });
+    issue.append(el('p', 'staff-help', translate('MyPark saves the parking check with this compound.')));
+    form.dataset.parkingReviewed = 'no';
+    let request;
+
+    function requireCheck() {
+      request?.abort();
+      check.disabled = false;
+      form.dataset.parkingReviewed = 'no';
+      issue.hidden = true;
+      form.querySelector('button[type="submit"]').hidden = true;
+      status.textContent = '';
+      result.replaceChildren();
+    }
+
+    const check = button(translate('Check parking'), async () => {
+      requireCheck();
+      if (!plate.value.trim() || !lot.value) {
+        const input = plate.value.trim() ? lot : plate;
+        setFieldError(input, translate(input === lot ? 'Select an existing parking location.' : 'Enter a valid vehicle plate.'));
+        input.focus();
+        return;
+      }
+      const current = new AbortController();
+      request = current;
+      check.disabled = true;
+      status.textContent = translate('Checking MyPark records…');
+      const payload = new URLSearchParams({ csrf: data.csrf, plate: plate.value, lot_id: lot.value });
+      try {
+        const response = await fetch('api/staff.php?page=' + page + '&action=parking_check', {
+          method: 'POST', credentials: 'same-origin', body: payload, signal: current.signal
+        });
+        const responseData = await readResponse(response);
+        if (current.signal.aborted || !form.isConnected || !dialog.open) return;
+        const evidence = responseData.check;
+        const unpaid = responseData.unpaid;
+        const panel = parkingEvidencePanel(evidence);
+        panel.append(el('p', 'staff-unpaid-count', translate('Unpaid compounds for this plate: {count}', { count: unpaid.count })));
+        if (unpaid.items.length) {
+          const list = el('ul', 'staff-unpaid-list');
+          unpaid.items.forEach(fine => list.append(el('li', '', fine.code + ' · ' + translate(fine.violation)
+            + ' · ' + money(fine.amount_cents) + ' · ' + dateText(fine.occurred_ts * 1000) + ' MYT')));
+          panel.append(list);
+        }
+        if (unpaid.count > unpaid.items.length) {
+          const history = el('a', '', translate('View full fine history'));
+          history.href = 'staff.php?' + new URLSearchParams({ page: 'vehicles', plate: evidence.plate });
+          panel.append(history);
+        }
+        result.append(panel);
+        const noSession = Array.from(reason.options).find(option => option.value === 'no_active_session');
+        noSession.disabled = evidence.status !== 'no_active_session';
+        if (noSession.disabled && reason.value === noSession.value) reason.value = '';
+        form.dataset.parkingReviewed = 'yes';
+        issue.hidden = false;
+        form.querySelector('button[type="submit"]').hidden = false;
+        status.textContent = translate('Parking check complete.');
+      } catch (error) {
+        if (current.signal.aborted) return;
+        status.textContent = translate(error.message);
+        let first;
+        Object.entries(error.fields || {}).forEach(([name, message]) => {
+          const input = form.elements.namedItem(name);
+          if (input) { setFieldError(input, translate(message)); first ||= input; }
+        });
+        first?.focus();
+      } finally {
+        if (!current.signal.aborted) check.disabled = false;
+      }
+    });
+    check.dataset.checkParking = '';
+    plate.addEventListener('input', requireCheck);
+    lot.addEventListener('change', requireCheck);
+    dialog.addEventListener('close', () => request?.abort(), { once: true });
+    fields.append(check, status, result, issue);
+  }
+
+  function editRecord(kind, record, trigger, plateValue = '') {
     if (kind === 'fine' && record && record.status !== 'unpaid') return;
     openDialog(record ? translate('Edit {code}', { code: record.code }) : translate(kind === 'fine' ? 'New Fine' : 'New maintenance record'), trigger);
     const { form, fields } = formBase(kind + (record ? '_update' : '_create'), record);
-    if (kind === 'fine') {
-      field(fields, 'plate', translate('Vehicle plate'), { value: record?.plate, maxLength: 15, placeholder: 'e.g. SAB 1234' });
-      field(fields, 'violation', 'Violation type', { value: record?.violation, maxLength: 100, placeholder: translate('Describe the parking violation') });
-      field(fields, 'occurred_at', translate('Date and time (Malaysia)'), { type: 'datetime-local', value: record?.occurred_at || localNow(), max: localNow() });
-      field(fields, 'amount', translate('Amount (RM)'), { type: 'number', min: '0.01', max: '99999.99', step: '0.01', value: record ? (record.amount_cents / 100).toFixed(2) : '' });
-      field(fields, 'notes', translate('Notes (optional)'), { tag: 'textarea', maxLength: 2000, required: false, value: record?.notes });
-      if (record) field(fields, 'reason', translate('Reason for correction'), { tag: 'textarea', maxLength: 500 });
-      form.append(el('p', 'staff-help', translate('Private parking prototype only. This creates an unpaid record; it is not a government-issued fine.')));
+    if (kind === 'fine' && !record) {
+      newFineFields(form, fields, plateValue);
+    } else if (kind === 'fine') {
+      if (record.parking_evidence) {
+        fields.append(parkingEvidencePanel(record.parking_evidence));
+        fields.append(el('p', '', translate(record.violation)));
+      } else {
+        field(fields, 'plate', translate('Vehicle plate'), { value: record.plate, maxLength: 15 });
+        field(fields, 'violation', translate('Violation type'), { value: record.violation, maxLength: 100 });
+        field(fields, 'occurred_at', translate('Date and time (Malaysia)'), { type: 'datetime-local', value: record.occurred_at, max: localNow() });
+      }
+      field(fields, 'amount', translate('Amount (RM)'), { type: 'number', min: '0.01', max: '99999.99', step: '0.01', value: (record.amount_cents / 100).toFixed(2) });
+      field(fields, 'notes', translate('Notes (optional)'), { tag: 'textarea', maxLength: 2000, required: false, value: record.notes });
+      field(fields, 'reason', translate('Reason for correction'), { tag: 'textarea', maxLength: 500 });
     } else {
       const locations = data.locations.filter(location => !location.archived || location.id === record?.lot_id);
       field(fields, 'title', translate('Issue title'), { value: record?.title, maxLength: 120 });
@@ -458,6 +576,7 @@
       maintenancePhotoField(form, fields, record);
     }
     formFooter(form, record ? translate('Save changes') : kind === 'fine' ? translate('Create fine record') : translate('Create record'));
+    if (form.dataset.parkingReviewed === 'no') form.querySelector('button[type="submit"]').hidden = true;
     fields.querySelector('input:not([type="hidden"]),select,textarea')?.focus();
   }
   function confirmRecord(action, record, trigger) {
@@ -478,6 +597,10 @@
   async function submitForm(event, form) {
     if (event.defaultPrevented) return;
     event.preventDefault(); if (submitting) return;
+    if (form.dataset.parkingReviewed === 'no') {
+      form.querySelector('[data-check-parking]').click();
+      return;
+    }
     const inputs = [...form.querySelectorAll('input:not([type="hidden"]),select,textarea')];
     let invalid;
     inputs.forEach(input => { setFieldError(input, input.validity.valid ? '' : input.validationMessage); if (!input.validity.valid && !invalid) invalid = input; });
@@ -514,6 +637,11 @@
     fields.forEach(([key, label]) => details.append(el('dt', '', label), el('dd', '', displayValue(record, key, kind) || '—')));
     if (kind === 'fine' && record.paid_at) details.append(el('dt', '', 'Paid amount retained'), el('dd', '', money(record.paid_amount_cents)), el('dt', '', 'Payment recorded'), el('dd', '', dateText(record.paid_at)));
     dialogBody.append(details);
+    if (kind === 'fine' && record.parking_evidence) {
+      const evidence = parkingEvidencePanel(record.parking_evidence);
+      evidence.append(el('h4', '', translate('On-site observation')), el('p', '', record.observation));
+      dialogBody.append(evidence);
+    }
     if (kind === 'maintenance' && record.photo_version) {
       const photo = el('section', 'staff-maintenance-photo');
       const link = el('a', 'staff-maintenance-photo-link');
@@ -550,7 +678,10 @@
     tables.splice(0).forEach(table => table.cancel());
     const host = document.getElementById('staff-lookup-results'); host.replaceChildren();
     const summary = el('p', 'staff-lookup-summary', plate);
-    host.append(summary);
+    const actions = el('div', 'staff-section-heading');
+    const create = button(translate('New Fine'), () => editRecord('fine', null, create, plate), false);
+    actions.append(summary, create);
+    host.append(actions);
     const updateSummary = () => {
       const [fines, bookings] = tables;
       if (fines?.paged && bookings?.paged) summary.textContent = translate('{plate} · {fines} fine records · {bookings} parking records',

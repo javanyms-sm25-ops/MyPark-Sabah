@@ -8,6 +8,12 @@ $leaveError = '';
 try {
     $actor = staff_actor();
     if (!is_string($page) || !isset($pages[$page])) throw new RuntimeException('Staff page not found.', 404);
+    if ($json && ($_GET['action'] ?? '') === 'parking_check') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new RuntimeException('Invalid request.', 400);
+        check_csrf();
+        $check = staff_parking_check($_POST['plate'] ?? null, $_POST['lot_id'] ?? null, time());
+        staff_json(['check' => $check, 'unpaid' => staff_unpaid_fines($check['plate'])]);
+    }
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $leaveSubmission = ($_POST['action'] ?? '') === 'leave_submit';
         try {
