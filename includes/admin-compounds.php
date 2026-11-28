@@ -4,20 +4,26 @@ $fines = MyParkData::$records['staff_fines'];
 $totals = ['unpaid' => 0, 'paid' => 0, 'void' => 0];
 $outstanding = 0;
 $collected = 0;
+$retained = 0;
+$payments = [];
 foreach ($fines as $fine) {
     $totals[$fine['status']]++;
     if ($fine['status'] === 'unpaid') $outstanding += $fine['amount_cents'];
-    if ($fine['status'] === 'paid') $collected += $fine['paid_amount_cents'] ?? $fine['amount_cents'];
+    $payments[$fine['id']] = $fine['paid_amount_cents']
+        ?? (($fine['status'] === 'paid' || !empty($fine['paid_at'])) ? $fine['amount_cents'] : 0);
+    $collected += $payments[$fine['id']];
+    if ($fine['status'] === 'void') $retained += $payments[$fine['id']];
 }
 $view = ajax_table_view('admin-compounds', $fines, [
     'code' => 'Compound number', 'violation' => 'Violation type', 'location' => 'Parking location',
-    'occurred_ts' => 'Issued', 'amount_cents' => 'Amount', 'status' => 'Status', 'actions' => 'Details',
+    'occurred_ts' => 'Issued', 'amount_cents' => 'Amount', 'payment' => 'Payment recorded', 'status' => 'Status', 'actions' => 'Details',
 ], [
     'order' => 'occurred_ts:desc',
+    'values' => static fn(array $fine): array => $fine + ['payment' => $payments[$fine['id']]],
     'filter' => ['label' => 'Compound status', 'field' => 'status', 'choices' => ['' => 'All statuses'] + STAFF_FINE_STATUSES],
     'search_label' => 'Search by compound number, reason or location',
     'empty' => 'No compounds have been issued yet.',
-    'numeric' => ['amount_cents'],
+    'numeric' => ['amount_cents', 'payment'],
 ]);
 head('Compound overview');
 ?>
@@ -29,8 +35,9 @@ head('Compound overview');
   </div>
   <div class="stats compound-overview-stats">
     <div class="card"><small><?= te('Unpaid compounds') ?></small><b><?= e($totals['unpaid']) ?></b><span><?= e(staff_money($outstanding)) ?></span></div>
-    <div class="card"><small><?= te('Paid compounds') ?></small><b><?= e($totals['paid']) ?></b><span><?= e(staff_money($collected)) ?></span></div>
+    <div class="card"><small><?= te('Paid compounds') ?></small><b><?= e($totals['paid']) ?></b></div>
     <div class="card"><small><?= te('Void compounds') ?></small><b><?= e($totals['void']) ?></b></div>
+    <div class="card"><small><?= te('Payments recorded') ?></small><b><?= e(staff_money($collected)) ?></b><span><?= te('Includes {amount} retained on voided compounds.', ['amount' => staff_money($retained)]) ?></span></div>
   </div>
 
   <section class="card" aria-labelledby="admin-compounds-heading">
@@ -47,7 +54,9 @@ head('Compound overview');
               <td><?= e($fine['location'] ?? '—') ?></td>
               <td><?= e(date('d M Y, H:i', $fine['occurred_ts'])) ?> MYT</td>
               <td class="ajax-table-number"><?= e(staff_money($fine['amount_cents'])) ?></td>
-              <td><span class="tag <?= e($fine['status']) ?>"><?= te(STAFF_FINE_STATUSES[$fine['status']]) ?></span></td>
+              <?php $payment = $payments[$fine['id']]; ?>
+              <td class="ajax-table-number"><?= $payment > 0 ? e(staff_money($payment)) : '—' ?></td>
+              <td><span class="tag <?= e($fine['status']) ?>"><?= te($fine['status'] === 'void' && $payment > 0 ? 'Void · payment retained' : STAFF_FINE_STATUSES[$fine['status']]) ?></span></td>
               <td>
                 <details class="compound-overview-details">
                   <summary><?= te('View details') ?></summary>
@@ -56,6 +65,9 @@ head('Compound overview');
                     <div><dt><?= te('Created by') ?></dt><dd><?= e($fine['created_by_name'] ?? '—') ?></dd></div>
                     <?php if (!empty($fine['paid_at'])): ?>
                       <div><dt><?= te('Payment recorded') ?></dt><dd><?= e(date('d M Y, H:i', strtotime($fine['paid_at']))) ?> MYT</dd></div>
+                    <?php endif; ?>
+                    <?php if (!empty($fine['payment_reference']) && $payment > 0): ?>
+                      <div><dt><?= te('Payment reference') ?></dt><dd><?= e($fine['payment_reference']) ?></dd></div>
                     <?php endif; ?>
                     <?php if (!empty($fine['void_reason'])): ?>
                       <div><dt><?= te('Void reason') ?></dt><dd><?= e($fine['void_reason']) ?></dd></div>

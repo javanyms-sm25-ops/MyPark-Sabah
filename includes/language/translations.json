@@ -1,4 +1,7 @@
 {
+  "Payments recorded": {"zh-Hans":"已记录付款","ms":"Bayaran direkodkan"},
+  "Includes {amount} retained on voided compounds.": {"zh-Hans":"其中 {amount} 是已作废罚单保留的付款。","ms":"Termasuk {amount} bayaran yang dikekalkan bagi kompaun yang dibatalkan."},
+  "Void · payment retained": {"zh-Hans":"已作废 · 保留付款","ms":"Dibatalkan · bayaran kekal"},
   "Language": {"zh-Hans":"语言","ms":"Bahasa"},
   "Apply": {"zh-Hans":"应用","ms":"Guna"},
   "Home": {"zh-Hans":"首页","ms":"Laman utama"},
